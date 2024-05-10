@@ -61,7 +61,6 @@ class KeywordViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        print(UserDefaults.standard.string(forKey: "serverToken"))
         navigationBarSetup()
         setupUI()
         setupLayout()

@@ -26,17 +26,17 @@ class TabBarViewController: UITabBarController {
         findTab.tabBarItem.imageInsets = UIEdgeInsets(top: 5, left: 0, bottom: -5, right: 0)
         findTab.tabBarItem.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: 5)
         
-        let moreTab = UINavigationController(rootViewController: LearnMoreViewController())
-        moreAttribute(moreTab)
-        moreTab.tabBarItem.imageInsets = UIEdgeInsets(top: 5, left: 0, bottom: -5, right: 0)
-        moreTab.tabBarItem.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: 5)
-        
+//        let moreTab = UINavigationController(rootViewController: LearnMoreViewController())
+//        moreAttribute(moreTab)
+//        moreTab.tabBarItem.imageInsets = UIEdgeInsets(top: 5, left: 0, bottom: -5, right: 0)
+//        moreTab.tabBarItem.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: 5)
+//
         let mypageTab = UINavigationController(rootViewController: MyPageViewController())
         mypageAttribute(mypageTab)
         mypageTab.tabBarItem.imageInsets = UIEdgeInsets(top: 5, left: 0, bottom: -5, right: 0)
         mypageTab.tabBarItem.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: 5)
 
-        viewControllers = [homeTab, findTab, moreTab, mypageTab]
+        viewControllers = [findTab,homeTab, mypageTab]
         
         self.delegate = self
     }
@@ -44,20 +44,20 @@ class TabBarViewController: UITabBarController {
 
 extension TabBarViewController {
     
-    func homeAttribute(_ tab : UINavigationController) {
-        let homeTabItem = UITabBarItem(title: "홈", image: UIImage(named: "icon-home"), tag: 0)
-        tab.tabBarItem = homeTabItem
-    }
     func findAttribute(_ tab : UINavigationController) {
-        let findTabItem = UITabBarItem(title: "발견", image: UIImage(named: "icon-discover"), tag: 1)
+        let findTabItem = UITabBarItem(title: "발견", image: UIImage(named: "icon-discover"), tag: 0)
         tab.tabBarItem = findTabItem
     }
-    func moreAttribute(_ tab : UINavigationController) {
-        let moreTabItem = UITabBarItem(title: "더 알아보기", image: UIImage(named: "icon-learn-more-1"), tag: 2)
-        tab.tabBarItem = moreTabItem
+    func homeAttribute(_ tab : UINavigationController) {
+        let homeTabItem = UITabBarItem(title: "홈", image: UIImage(named: "icon-home"), tag: 1)
+        tab.tabBarItem = homeTabItem
     }
+//    func moreAttribute(_ tab : UINavigationController) {
+//        let moreTabItem = UITabBarItem(title: "더 알아보기", image: UIImage(named: "icon-learn-more-1"), tag: 2)
+//        tab.tabBarItem = moreTabItem
+//    }
     func mypageAttribute(_ tab : UINavigationController) {
-        let mypageTabItem = UITabBarItem(title: "마이페이지", image: UIImage(named: "icon-my-page"), tag: 3)
+        let mypageTabItem = UITabBarItem(title: "마이페이지", image: UIImage(named: "icon-my-page"), tag: 2)
         tab.tabBarItem = mypageTabItem
     }
 }

@@ -272,24 +272,14 @@ extension LoginViewController : ASAuthorizationControllerDelegate, ASAuthorizati
                 print("identityToken: \(identityToken)")
                 
                 self.appleloginToServer(with: identityToken, deviceToken: UserDefaultsKey.deviceToken)
+                print("useridentifier: \(userIdentifier)")
+                print("fullName: \(fullName?.description ?? "")")
+                print("email: \(email?.description ?? "")")
             }
-            
-            print("useridentifier: \(userIdentifier)")
-            print("fullName: \(fullName?.description ?? "")")
-            print("email: \(email?.description ?? "")")
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) { // 1초 딜레이
-                if UserDefaults.standard.bool(forKey: UserDefaultsKey.existMember) {
-                    self.presentTo(name: "main")
-                } else {
-                    self.presentTo(name: "keyword")
-                }
-            }
-            
         default:
             break
         }
-        
+    
     }
     
     func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
@@ -340,8 +330,16 @@ extension LoginViewController {
                 print("Apple login to server success with data: \(data)")
                 
                 UserDefaults.standard.set(data.data.accessToken, forKey: "serverToken")
-                UserDefaults.standard.set(data.data.refreshToken, forKey: "appleRefreshToken")
+                UserDefaults.standard.set(data.data.refreshToken, forKey: "refreshToken")
                 UserDefaults.standard.set(data.data.existMember, forKey: "existMember")
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { // 1초 딜레이
+                    if UserDefaults.standard.bool(forKey: UserDefaultsKey.existMember) {
+                        self.presentTo(name: "main")
+                    } else {
+                        self.presentTo(name: "keyword")
+                    }
+                }
                 
             case .tokenExpired:
                 print("애플 토큰 만료")
@@ -354,35 +352,33 @@ extension LoginViewController {
             case .serverErr:
                 print("애플 로그인: 서버 오류")
             }
+            
         }
     }
     
     // 화면 전환 함수
-    func presentTo(name : String) {
+    func presentTo(name: String) {
         if name == "keyword" {
-            let joinVC = KeywordViewController()
-            // 네비게이션 컨트롤러 대신 직접 뷰 컨트롤러를 설정
-            if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate {
-                UIView.transition(with: sceneDelegate.window!,
-                                  duration: 1.5,
-                                  options: .transitionCrossDissolve,
-                                  animations: {
-                    sceneDelegate.window?.rootViewController = joinVC
-                },
-                                  completion: nil)
+            // KeywordViewController로 네비게이션 컨트롤러를 사용하여 푸시
+            if let navigationController = self.navigationController {
+                let nextViewController = KeywordViewController() // 다음으로 이동할 뷰 컨트롤러 인스턴스 생성
+                navigationController.pushViewController(nextViewController, animated: true)
+            } else {
+                // 네비게이션 컨트롤러가 없는 경우, 대비책으로 SceneDelegate를 사용해 루트 뷰 컨트롤러 변경
+                if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate, let window = sceneDelegate.window {
+                    let nextViewController = KeywordViewController()
+                    UIView.transition(with: window, duration: 1.5, options: .transitionCrossDissolve, animations: {
+                        window.rootViewController = UINavigationController(rootViewController: nextViewController)
+                    }, completion: nil)
+                }
             }
-        }
-        else if name == "main" {
-            let mainVC = TabBarViewController()
-            // 네비게이션 컨트롤러 대신 직접 뷰 컨트롤러를 설정
-            if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate {
-                UIView.transition(with: sceneDelegate.window!,
-                                  duration: 1.5,
-                                  options: .transitionCrossDissolve,
-                                  animations: {
-                    sceneDelegate.window?.rootViewController = mainVC
-                },
-                                  completion: nil)
+        } else if name == "main" {
+            // TabBarViewController를 루트 뷰 컨트롤러로 설정
+            if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate, let window = sceneDelegate.window {
+                let mainVC = TabBarViewController()
+                UIView.transition(with: window, duration: 1.5, options: .transitionCrossDissolve, animations: {
+                    window.rootViewController = mainVC
+                }, completion: nil)
             }
         }
     }
