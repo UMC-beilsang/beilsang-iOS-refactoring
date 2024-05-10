@@ -21,6 +21,9 @@
 		2F48E0992B5BB44C002F3D4A /* NotoSansKR-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2F48E08E2B5BB44C002F3D4A /* NotoSansKR-SemiBold.ttf */; };
 		2F48E09A2B5BB44C002F3D4A /* NotoSansKR-Thin.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2F48E08F2B5BB44C002F3D4A /* NotoSansKR-Thin.ttf */; };
 		2F48E09B2B5BB44C002F3D4A /* NotoSansKR-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2F48E0902B5BB44C002F3D4A /* NotoSansKR-Regular.ttf */; };
+		2F4D88022BEE2D4F009C16CE /* KakaoSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 2F4D88012BEE2D4F009C16CE /* KakaoSDK */; };
+		2F4D88042BEE2D4F009C16CE /* KakaoSDKAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 2F4D88032BEE2D4F009C16CE /* KakaoSDKAuth */; };
+		2F4D88062BEE2D4F009C16CE /* KakaoSDKUser in Frameworks */ = {isa = PBXBuildFile; productRef = 2F4D88052BEE2D4F009C16CE /* KakaoSDKUser */; };
 		2F69039C2B60429700A7716D /* Color+.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F69039B2B60429700A7716D /* Color+.swift */; };
 		2F7A666B2B809617008010C6 /* TokenService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F7A666A2B809617008010C6 /* TokenService.swift */; };
 		2F7A666D2B809D7E008010C6 /* TokenModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F7A666C2B809D7E008010C6 /* TokenModel.swift */; };
@@ -65,7 +68,6 @@
 		2FF55CAB2B684D0B004EDB39 /* UserInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FF55CAA2B684D0B004EDB39 /* UserInfoViewController.swift */; };
 		2FF55CAD2B684D3A004EDB39 /* KakaoPostCodeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FF55CAC2B684D3A004EDB39 /* KakaoPostCodeViewController.swift */; };
 		2FF55CB22B684E42004EDB39 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2FF55CB12B684E42004EDB39 /* WebKit.framework */; };
-		2FFA04442B7131E3000B5E4C /* KakaoSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 2FFA04432B7131E3000B5E4C /* KakaoSDK */; };
 		893DF7D62B7B974200B09573 /* BaseEndpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 893DF7D52B7B974200B09573 /* BaseEndpoint.swift */; };
 		893DF7D82B7B979700B09573 /* URLSetting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 893DF7D72B7B979700B09573 /* URLSetting.swift */; };
 		893DF7DA2B7BA16200B09573 /* GetChallenge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 893DF7D92B7BA16200B09573 /* GetChallenge.swift */; };
@@ -301,13 +303,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				2FE57C2B2B5EC5890022C4F3 /* Alamofire in Frameworks */,
+				2F4D88022BEE2D4F009C16CE /* KakaoSDK in Frameworks */,
 				895A22D12B750BB900A5230D /* SwiftyJSON in Frameworks */,
 				8948F86A2B69D99500393D35 /* SCLAlertView in Frameworks */,
 				2F8C57C32B78D162002B4862 /* Tabman in Frameworks */,
 				2FE57C262B5EC56C0022C4F3 /* SnapKit in Frameworks */,
 				895AE87A2B7B15A6008F9125 /* Kingfisher in Frameworks */,
 				2FF55CB22B684E42004EDB39 /* WebKit.framework in Frameworks */,
-				2FFA04442B7131E3000B5E4C /* KakaoSDK in Frameworks */,
+				2F4D88062BEE2D4F009C16CE /* KakaoSDKUser in Frameworks */,
+				2F4D88042BEE2D4F009C16CE /* KakaoSDKAuth in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -785,10 +789,12 @@
 				2FE57C252B5EC56C0022C4F3 /* SnapKit */,
 				2FE57C2A2B5EC5890022C4F3 /* Alamofire */,
 				8948F8692B69D99500393D35 /* SCLAlertView */,
-				2FFA04432B7131E3000B5E4C /* KakaoSDK */,
 				895A22D02B750BB900A5230D /* SwiftyJSON */,
 				895AE8792B7B15A6008F9125 /* Kingfisher */,
 				2F8C57C22B78D162002B4862 /* Tabman */,
+				2F4D88012BEE2D4F009C16CE /* KakaoSDK */,
+				2F4D88032BEE2D4F009C16CE /* KakaoSDKAuth */,
+				2F4D88052BEE2D4F009C16CE /* KakaoSDKUser */,
 			);
 			productName = beilsang;
 			productReference = 2F08387C2B564085002E2551 /* beilsang.app */;
@@ -866,10 +872,10 @@
 				2FE57C242B5EC56C0022C4F3 /* XCRemoteSwiftPackageReference "SnapKit" */,
 				2FE57C292B5EC5890022C4F3 /* XCRemoteSwiftPackageReference "Alamofire" */,
 				8948F8682B69D99500393D35 /* XCRemoteSwiftPackageReference "SCLAlertView-Swift" */,
-				2FFA04422B7131E3000B5E4C /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */,
 				895A22CF2B750BB900A5230D /* XCRemoteSwiftPackageReference "SwiftyJSON" */,
 				895AE8782B7B15A6008F9125 /* XCRemoteSwiftPackageReference "Kingfisher" */,
 				2F8C57C12B78D162002B4862 /* XCRemoteSwiftPackageReference "Tabman" */,
+				2F4D88002BEE2D4F009C16CE /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */,
 			);
 			productRefGroup = 2F08387D2B564085002E2551 /* Products */;
 			projectDirPath = "";
@@ -1135,7 +1141,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -1192,7 +1198,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.4;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -1392,6 +1398,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		2F4D88002BEE2D4F009C16CE /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/kakao/kakao-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.22.1;
+			};
+		};
 		2F8C57C12B78D162002B4862 /* XCRemoteSwiftPackageReference "Tabman" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/uias/Tabman.git";
@@ -1414,14 +1428,6 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 5.8.1;
-			};
-		};
-		2FFA04422B7131E3000B5E4C /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/kakao/kakao-ios-sdk";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.20.0;
 			};
 		};
 		8948F8682B69D99500393D35 /* XCRemoteSwiftPackageReference "SCLAlertView-Swift" */ = {
@@ -1451,6 +1457,21 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		2F4D88012BEE2D4F009C16CE /* KakaoSDK */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2F4D88002BEE2D4F009C16CE /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */;
+			productName = KakaoSDK;
+		};
+		2F4D88032BEE2D4F009C16CE /* KakaoSDKAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2F4D88002BEE2D4F009C16CE /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */;
+			productName = KakaoSDKAuth;
+		};
+		2F4D88052BEE2D4F009C16CE /* KakaoSDKUser */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2F4D88002BEE2D4F009C16CE /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */;
+			productName = KakaoSDKUser;
+		};
 		2F8C57C22B78D162002B4862 /* Tabman */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 2F8C57C12B78D162002B4862 /* XCRemoteSwiftPackageReference "Tabman" */;
@@ -1465,11 +1486,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 2FE57C292B5EC5890022C4F3 /* XCRemoteSwiftPackageReference "Alamofire" */;
 			productName = Alamofire;
-		};
-		2FFA04432B7131E3000B5E4C /* KakaoSDK */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 2FFA04422B7131E3000B5E4C /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */;
-			productName = KakaoSDK;
 		};
 		8948F8692B69D99500393D35 /* SCLAlertView */ = {
 			isa = XCSwiftPackageProductDependency;
