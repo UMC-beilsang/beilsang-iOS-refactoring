@@ -15,9 +15,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                 let mainVC = TabBarViewController()
                 self.window?.rootViewController = mainVC
                 self.window?.makeKeyAndVisible()
-                print(accessToken)
+                print("accessToken: \(accessToken)")
                 let refreshToken = UserDefaults.standard.string(forKey: UserDefaultsKey.refreshToken)!
-                print(refreshToken)
+                print("refreshToken: \(refreshToken)")
                 print("found access Token")
             } else {
                 // 가입 절차 거치지 않은 유저

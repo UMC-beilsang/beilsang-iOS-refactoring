@@ -168,23 +168,26 @@ extension StartViewController {
                 print("signup to server success with data: \(data)")
                 UserDefaults.standard.set(true, forKey: UserDefaultsKey.existMember)
                 
-                let homeVC = TabBarViewController()
-                if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate {
-                    sceneDelegate.changeRootViewController(homeVC)
+                DispatchQueue.main.async {
+                    let homeVC = TabBarViewController()
+                    if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate {
+                        sceneDelegate.changeRootViewController(homeVC)
+                    }
                 }
+
             case .tokenExpired :
                 TokenManager.shared.refreshToken(refreshToken: refreshToken!) { _ in } callback: {
                     self.SignUpToServer()
                 }
             case .networkFail:
                 // 서버 통신 실패 처리
-                print("네트워크 페일")
+                print("Signup Service 네트워크 페일")
             case .requestErr(let error):
-                print("요청 페일 \(error)")
+                print("Signup Service 요청 페일 \(error)")
             case .pathErr:
-                print("경로 오류")
+                print("Signup Service 경로 오류")
             case .serverErr:
-                print("서버 오류")
+                print("Signup Service 서버 오류")
             }
         }
     }

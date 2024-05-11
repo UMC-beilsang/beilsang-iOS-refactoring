@@ -14,7 +14,6 @@ class TabBarViewController: UITabBarController {
         super.viewDidLoad()
         self.tabBar.tintColor = .beScPurple600
         self.tabBar.unselectedItemTintColor = .beIconDis
-
         
         let homeTab = UINavigationController(rootViewController: HomeMainViewController())
         homeAttribute(homeTab)
@@ -36,7 +35,9 @@ class TabBarViewController: UITabBarController {
         mypageTab.tabBarItem.imageInsets = UIEdgeInsets(top: 5, left: 0, bottom: -5, right: 0)
         mypageTab.tabBarItem.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: 5)
 
-        viewControllers = [findTab,homeTab, mypageTab]
+        viewControllers = [findTab, homeTab, mypageTab]
+        
+        selectedIndex = 1 // '홈' 탭을 기본적으로 선택
         
         self.delegate = self
     }
