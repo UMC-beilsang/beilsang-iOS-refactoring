@@ -192,17 +192,7 @@ extension LoginViewController {
                         self.kakaoName = name
                         self.kakaoEmail = email
                         //서버에 보내주기
-
                         self.kakaologinToServer(with: token, deviceToken: UserDefaultsKey.deviceToken)
-                        
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { // 1초 딜레이
-                            if UserDefaults.standard.bool(forKey: UserDefaultsKey.existMember) {
-                                self.presentTo(name: "main")
-                            } else {
-                                self.presentTo(name: "keyword")
-                            }
-                            
-                        }
                     }
                 }
             }
@@ -215,7 +205,7 @@ extension LoginViewController {
             if let error = error {
                 print(error)
             } else {
-                print("loginWithKakaoAccount() success.")
+                print("loginWithKakaoTalk() success.")
                 
                 UserApi.shared.me {(user, error) in
                     if let error = error {
@@ -231,14 +221,6 @@ extension LoginViewController {
                         
                         self.kakaoAccessToken = token
                         self.kakaologinToServer(with: token, deviceToken: UserDefaultsKey.deviceToken)
-                        
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { // 1초 딜레이
-                            if UserDefaults.standard.bool(forKey: UserDefaultsKey.existMember) {
-                                self.presentTo(name: "main")
-                            } else {
-                                self.presentTo(name: "keyword")
-                            }
-                        }
                     }
                 }
             }
@@ -270,7 +252,6 @@ extension LoginViewController : ASAuthorizationControllerDelegate, ASAuthorizati
                 
                 print("accessToken: \(accessToken)")
                 print("identityToken: \(identityToken)")
-                
                 self.appleloginToServer(with: identityToken, deviceToken: UserDefaultsKey.deviceToken)
                 print("useridentifier: \(userIdentifier)")
                 print("fullName: \(fullName?.description ?? "")")
@@ -305,6 +286,15 @@ extension LoginViewController {
                 UserDefaults.standard.set(data.data.accessToken, forKey: "serverToken")
                 UserDefaults.standard.set(data.data.refreshToken, forKey: "refreshToken")
                 UserDefaults.standard.set(data.data.existMember, forKey: "existMember")
+                UserDefaults.standard.set("kakao", forKey: "socialType")
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { // 1초 딜레이
+                    if UserDefaults.standard.bool(forKey: UserDefaultsKey.existMember) {
+                        self.presentTo(name: "main")
+                    } else {
+                        self.presentTo(name: "keyword")
+                    }
+                }
                 
             case .tokenExpired:
                 print("카카오 토큰 만료")
@@ -332,6 +322,7 @@ extension LoginViewController {
                 UserDefaults.standard.set(data.data.accessToken, forKey: "serverToken")
                 UserDefaults.standard.set(data.data.refreshToken, forKey: "refreshToken")
                 UserDefaults.standard.set(data.data.existMember, forKey: "existMember")
+                UserDefaults.standard.set("apple", forKey: "socialType")
                 
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { // 1초 딜레이
                     if UserDefaults.standard.bool(forKey: UserDefaultsKey.existMember) {

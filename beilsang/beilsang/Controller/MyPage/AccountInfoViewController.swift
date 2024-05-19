@@ -1096,35 +1096,40 @@ extension AccountInfoViewController{
         print("회원 탈퇴")
         alertViewResponder = withDrawAlert.showInfo("회원 탈퇴")
     }
-    @objc func logout(){
-        kakaoLogout()
-        
-        UserDefaults.standard.setValue(nil, forKey: UserDefaultsKey.serverToken)
-        UserDefaults.standard.setValue(nil, forKey: UserDefaultsKey.refreshToken)
-        UserDefaults.standard.synchronize()
-        
-        alertViewResponder?.close()
-        
-        let loginVC = LoginViewController()
-        if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate {
-            sceneDelegate.changeRootViewController(loginVC)
+    @objc func logout() {
+        if let socialType = UserDefaults.standard.string(forKey: "socialType") {
+            if socialType == "kakao" {
+                kakaoLogout()
+            }
+            else if socialType == "apple" {
+                appleLogout()
+            }
+            else {
+                print("logout Error, No social type")
+            }
+        } else {
+            print("logout Error, No social type")
         }
-        
     }
+
+    //회원 탈퇴 - 카카오인지 애플인지 구분
     @objc func withdraw(){
-        MyPageService.shared.DeleteWithDraw { response in
-            print(response.message)
+        if let socialType = UserDefaults.standard.string(forKey: "socialType") {
+            if socialType == "kakao" {
+                kakaoLogout()
+                kakaoWithdraw()
+            }
+            else if socialType == "apple" {
+                appleLogout()
+                appleWithdraw()
+            }
+            else {
+                print("logout Error, No social type")
+            }
+        } else {
+            print("logout Error, No social type")
         }
-        
-        kakaoLogout()
-        
-        alertViewResponder?.close()
-        
-        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-           let sceneDelegate = scene.delegate as? SceneDelegate {
-            sceneDelegate.window?.rootViewController = LoginViewController()
-            sceneDelegate.window?.makeKeyAndVisible()
-        }
+
     }
     @objc func close(){
         alertViewResponder?.close()
@@ -1412,9 +1417,63 @@ extension AccountInfoViewController{
                 print(error)
             }
             else {
-                print("logout() success.")
+                print("kakao logout() success.")
+            }
+        }
+        //토큰 삭제
+        UserDefaults.standard.setValue(nil, forKey: UserDefaultsKey.serverToken)
+        UserDefaults.standard.setValue(nil, forKey: UserDefaultsKey.refreshToken)
+        UserDefaults.standard.synchronize()
+        
+        //팝업창 닫기
+        alertViewResponder?.close()
+        
+        //로그인 VC로 이동
+        let loginVC = LoginViewController()
+        if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate {
+            sceneDelegate.changeRootViewController(loginVC)
+        }
+    }
+    
+    private func appleLogout(){
+        //기기에 저장되어있는 토큰 삭제
+        UserDefaults.standard.setValue(nil, forKey: UserDefaultsKey.serverToken)
+        UserDefaults.standard.setValue(nil, forKey: UserDefaultsKey.refreshToken)
+        UserDefaults.standard.synchronize()
+        
+        print("apple logout() success.")
+        
+        //팝업창 닫기
+        alertViewResponder?.close()
+        
+        //로그인 VC로 이동
+        let loginVC = LoginViewController()
+        if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate {
+            sceneDelegate.changeRootViewController(loginVC)
+        }
+    }
+    
+    private func kakaoWithdraw(){
+        kakaoLogout()
+        
+        //unlink -> 서버에서 삭제 
+        UserApi.shared.unlink {(error) in
+            if let error = error {
+                print("withdraw Error: \(error)")
+            } else {
+                MyPageService.shared.DeleteWithDraw { response in
+                    print(response.message)
+                }
+                print("withdraw Success!")
             }
         }
     }
+    
+    private func appleWithdraw(){
+        appleLogout()
+        
+    }
+    
+    
     
 }

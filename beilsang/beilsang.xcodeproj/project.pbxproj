@@ -25,6 +25,7 @@
 		2F4D88022BEE2D4F009C16CE /* KakaoSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 2F4D88012BEE2D4F009C16CE /* KakaoSDK */; };
 		2F4D88042BEE2D4F009C16CE /* KakaoSDKAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 2F4D88032BEE2D4F009C16CE /* KakaoSDKAuth */; };
 		2F4D88062BEE2D4F009C16CE /* KakaoSDKUser in Frameworks */ = {isa = PBXBuildFile; productRef = 2F4D88052BEE2D4F009C16CE /* KakaoSDKUser */; };
+		2F6317CC2BF6468A006ACC2C /* DeleteApple.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F6317CB2BF6468A006ACC2C /* DeleteApple.swift */; };
 		2F69039C2B60429700A7716D /* Color+.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F69039B2B60429700A7716D /* Color+.swift */; };
 		2F7A666B2B809617008010C6 /* TokenService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F7A666A2B809617008010C6 /* TokenService.swift */; };
 		2F7A666D2B809D7E008010C6 /* TokenModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F7A666C2B809D7E008010C6 /* TokenModel.swift */; };
@@ -182,6 +183,7 @@
 		2F48E08F2B5BB44C002F3D4A /* NotoSansKR-Thin.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "NotoSansKR-Thin.ttf"; sourceTree = "<group>"; };
 		2F48E0902B5BB44C002F3D4A /* NotoSansKR-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "NotoSansKR-Regular.ttf"; sourceTree = "<group>"; };
 		2F4CD90B2B71428000B2D02D /* beilsangRelease.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = beilsangRelease.entitlements; sourceTree = "<group>"; };
+		2F6317CB2BF6468A006ACC2C /* DeleteApple.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteApple.swift; sourceTree = "<group>"; };
 		2F69039B2B60429700A7716D /* Color+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+.swift"; sourceTree = "<group>"; };
 		2F7A666A2B809617008010C6 /* TokenService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenService.swift; sourceTree = "<group>"; };
 		2F7A666C2B809D7E008010C6 /* TokenModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenModel.swift; sourceTree = "<group>"; };
@@ -637,6 +639,7 @@
 				89608DBD2B7A440200B93421 /* GetDuplicateCheck.swift */,
 				89608DBF2B7A475B00B93421 /* GetMyPageFeedDetail.swift */,
 				893DF7D92B7BA16200B09573 /* GetChallenge.swift */,
+				2F6317CB2BF6468A006ACC2C /* DeleteApple.swift */,
 			);
 			path = MyPage;
 			sourceTree = "<group>";
@@ -984,6 +987,7 @@
 				8957B1482B7B755E00F99928 /* TabBarViewController.swift in Sources */,
 				895A22D62B751A6700A5230D /* GetMyPage.swift in Sources */,
 				89CC16E62B80A3F300C73B97 /* LearnMoreEventCollectionViewCell.swift in Sources */,
+				2F6317CC2BF6468A006ACC2C /* DeleteApple.swift in Sources */,
 				894A11492B60A68C002A9A32 /* MyPageViewController.swift in Sources */,
 				89854F882B7351E100CB6E4E /* NotificationViewController.swift in Sources */,
 				AF64A4212B7BCC680055D5B9 /* ChallengeRecommendModel.swift in Sources */,
