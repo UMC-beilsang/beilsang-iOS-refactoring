@@ -11,7 +11,7 @@ import Kingfisher
 
 class MyPageViewController: UIViewController, UIScrollViewDelegate {
     // MARK: - Properties
-    
+    let loadingIndicator = UIActivityIndicatorView(style: .large)
     let fullScrollView = UIScrollView()
     let fullContentView = UIView()
     var feedList : [FeedModel] = []
@@ -45,7 +45,7 @@ class MyPageViewController: UIViewController, UIScrollViewDelegate {
     // "안녕하세요, 00님" Label
     lazy var nameLabel: UILabel = {
         let label = UILabel()
-        var name = "앤"
+        var name = ""
         label.text = "안녕하세요, " + name + "님"
         label.textColor = .black
         label.font = UIFont(name: "NotoSansKR-SemiBold", size: 18)
@@ -296,6 +296,7 @@ class MyPageViewController: UIViewController, UIScrollViewDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
+        setLoadingIndicator()
         request()
         setupAttribute()
         viewConstraint()
@@ -305,6 +306,13 @@ class MyPageViewController: UIViewController, UIScrollViewDelegate {
 }
 
 extension MyPageViewController {
+    func setLoadingIndicator() {
+        loadingIndicator.center = self.view.center
+        self.view.addSubview(loadingIndicator)
+        
+        fullScrollView.isHidden = true
+        loadingIndicator.startAnimating()
+    }
     
     func request() {
         MyPageService.shared.getMyPage(baseEndPoint: .mypage, addPath: "") { response in
@@ -315,12 +323,17 @@ extension MyPageViewController {
             self.challengeCount.text = String(response.data.challenges)
             self.likeCount.text = String(response.data.likes)
             self.pointCount.text = String(response.data.points)
-            self.nameLabel.text = response.data.nickName
+            self.nameLabel.text = "안녕하세요, " + String(response.data.nickName) + "님"
             if let imageUrl = response.data.profileImage {
                 let url = URL(string: imageUrl)
                 self.profileImage.kf.setImage(with: url)
             }
             self.setFeedList(response.data.feedDTOs.feeds ?? [])
+            
+            UserDefaults.standard.set(response.data.nickName, forKey:"nickName")
+            
+            self.loadingIndicator.stopAnimating()
+            self.fullScrollView.isHidden = false
         }
     }
     

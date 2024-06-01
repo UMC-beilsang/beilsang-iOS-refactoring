@@ -400,18 +400,18 @@ class MyPageService {
         })
     }
     
-    // 회원탈퇴
-    func DeleteWithDraw(completionHandler: @escaping (_ data: WithDrawResponse) -> Void) {
+    // 카카오 회원탈퇴
+    func DeleteKakaoWithDraw(completionHandler: @escaping (_ data: WithDrawResponse) -> Void) {
         let accessToken = UserDefaults.standard.string(forKey: UserDefaultsKey.serverToken)!
         let refreshToken = UserDefaults.standard.string(forKey: UserDefaultsKey.refreshToken)!
         
         let headers: HTTPHeaders = [
-            "accept": "/",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "accept": "*/*"
         ]
         let body: Parameters = ["accessToken": accessToken]
         
-        let url = APIConstants.withDrawURL
+        let url = APIConstants.kakaoWithDrawURL
         print(url)
         
         AF.request(url, method: .delete, parameters: body, encoding: JSONEncoding.default, headers: headers).validate().responseDecodable(of: WithDrawResponse.self, completionHandler:{ response in
@@ -426,7 +426,49 @@ class MyPageService {
                 case 401 :
                     print("토큰 만료")
                     TokenManager.shared.refreshToken(refreshToken: refreshToken, completion: { _ in }) {
-                        self.DeleteWithDraw { reResponse in
+                        self.DeleteKakaoWithDraw { reResponse in
+                            completionHandler(reResponse)
+                        }
+                    }
+                default : print("네트워크 fail")
+                }
+                // 호출 실패 시 처리 위함
+            case .failure(let error):
+                print(error)
+                print("delete 요청 실패")
+            }
+        })
+    }
+    // 애플 회원탈퇴
+    func DeleteAppleWithDraw(completionHandler: @escaping (_ data: WithDrawResponse) -> Void) {
+        let accessToken = UserDefaults.standard.string(forKey: UserDefaultsKey.serverToken)!
+        let refreshToken = UserDefaults.standard.string(forKey: UserDefaultsKey.refreshToken)!
+        let authorizationCode = UserDefaults.standard.string(forKey: UserDefaultsKey.authorizationCode)!
+        
+        let headers: HTTPHeaders = [
+            "Content-Type": "application/json",
+            "accept": "*/*"
+        ]
+        
+        let body: Parameters = ["accessToken": accessToken,
+                                "authorizationCode": authorizationCode ]
+        
+        let url = APIConstants.appleWithDrawURL
+        print(url)
+        
+        AF.request(url, method: .delete, parameters: body, encoding: JSONEncoding.default, headers: headers).validate().responseDecodable(of: WithDrawResponse.self, completionHandler:{ response in
+            switch response.result{
+            case .success:
+                guard let statusCode = response.response?.statusCode else { return }
+                switch statusCode{
+                case ..<300 :
+                    guard let result = response.value else {return}
+                    completionHandler(result)
+                    print("delete 요청 성공")
+                case 401 :
+                    print("토큰 만료")
+                    TokenManager.shared.refreshToken(refreshToken: refreshToken, completion: { _ in }) {
+                        self.DeleteAppleWithDraw { reResponse in
                             completionHandler(reResponse)
                         }
                     }

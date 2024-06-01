@@ -412,7 +412,7 @@ class AccountInfoViewController: UIViewController, UIScrollViewDelegate {
         let label = UILabel()
         label.textAlignment = .center
         label.font = UIFont(name: "NotoSansKR-Regular", size: 11)
-        label.text = "email"
+        label.text = UserDefaults.standard.string(forKey: UserDefaultsKey.nickName)
         label.textColor = .beTextInfo
         return label
     }()
@@ -1116,11 +1116,9 @@ extension AccountInfoViewController{
     @objc func withdraw(){
         if let socialType = UserDefaults.standard.string(forKey: "socialType") {
             if socialType == "kakao" {
-                kakaoLogout()
                 kakaoWithdraw()
             }
             else if socialType == "apple" {
-                appleLogout()
                 appleWithdraw()
             }
             else {
@@ -1435,7 +1433,7 @@ extension AccountInfoViewController{
         }
     }
     
-    private func appleLogout(){
+    public func appleLogout(){
         //기기에 저장되어있는 토큰 삭제
         UserDefaults.standard.setValue(nil, forKey: UserDefaultsKey.serverToken)
         UserDefaults.standard.setValue(nil, forKey: UserDefaultsKey.refreshToken)
@@ -1454,26 +1452,32 @@ extension AccountInfoViewController{
     }
     
     private func kakaoWithdraw(){
-        kakaoLogout()
-        
         //unlink -> 서버에서 삭제 
         UserApi.shared.unlink {(error) in
             if let error = error {
                 print("withdraw Error: \(error)")
             } else {
-                MyPageService.shared.DeleteWithDraw { response in
+                MyPageService.shared.DeleteKakaoWithDraw { response in
                     print(response.message)
+                }
+                UserDefaults.standard.setValue(nil, forKey: UserDefaultsKey.serverToken)
+                UserDefaults.standard.setValue(nil, forKey: UserDefaultsKey.refreshToken)
+                UserDefaults.standard.synchronize()
+                
+                //팝업창 닫기
+                self.alertViewResponder?.close()
+                
+                //로그인 VC로 이동
+                let loginVC = LoginViewController()
+                if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate {
+                    sceneDelegate.changeRootViewController(loginVC)
                 }
                 print("withdraw Success!")
             }
         }
     }
     
-    private func appleWithdraw(){
-        appleLogout()
-        
+    private func appleWithdraw(){ 
+        AppleLoginManager.shared.startLogin()
     }
-    
-    
-    
 }

@@ -16,6 +16,7 @@
 		2F0838A12B564086002E2551 /* beilsangUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F0838A02B564086002E2551 /* beilsangUITests.swift */; };
 		2F0838A32B564086002E2551 /* beilsangUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F0838A22B564086002E2551 /* beilsangUITestsLaunchTests.swift */; };
 		2F2EFFF22BEF6CD700068F09 /* BaseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F2EFFF12BEF6CD700068F09 /* BaseModel.swift */; };
+		2F2F4F882C077DC600B410F1 /* AppleGetCodeManger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F2F4F872C077DC600B410F1 /* AppleGetCodeManger.swift */; };
 		2F48E0912B5BB44C002F3D4A /* NotoSansKR-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2F48E0862B5BB44B002F3D4A /* NotoSansKR-Light.ttf */; };
 		2F48E0932B5BB44C002F3D4A /* NotoSansKR-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2F48E0882B5BB44B002F3D4A /* NotoSansKR-Medium.ttf */; };
 		2F48E0962B5BB44C002F3D4A /* NotoSansKR-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2F48E08B2B5BB44B002F3D4A /* NotoSansKR-Bold.ttf */; };
@@ -25,7 +26,6 @@
 		2F4D88022BEE2D4F009C16CE /* KakaoSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 2F4D88012BEE2D4F009C16CE /* KakaoSDK */; };
 		2F4D88042BEE2D4F009C16CE /* KakaoSDKAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 2F4D88032BEE2D4F009C16CE /* KakaoSDKAuth */; };
 		2F4D88062BEE2D4F009C16CE /* KakaoSDKUser in Frameworks */ = {isa = PBXBuildFile; productRef = 2F4D88052BEE2D4F009C16CE /* KakaoSDKUser */; };
-		2F6317CC2BF6468A006ACC2C /* DeleteApple.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F6317CB2BF6468A006ACC2C /* DeleteApple.swift */; };
 		2F69039C2B60429700A7716D /* Color+.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F69039B2B60429700A7716D /* Color+.swift */; };
 		2F7A666B2B809617008010C6 /* TokenService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F7A666A2B809617008010C6 /* TokenService.swift */; };
 		2F7A666D2B809D7E008010C6 /* TokenModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F7A666C2B809D7E008010C6 /* TokenModel.swift */; };
@@ -39,6 +39,7 @@
 		2F7A669E2B81BBFC008010C6 /* RecentSearchCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F7A669D2B81BBFC008010C6 /* RecentSearchCollectionViewCell.swift */; };
 		2F7A66A12B81BC80008010C6 /* SearchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F7A66A02B81BC80008010C6 /* SearchService.swift */; };
 		2F7A66A42B825B1B008010C6 /* SearchData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F7A66A32B825B1B008010C6 /* SearchData.swift */; };
+		2F8A3A2F2BFA8DCC002926BE /* RevokeToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F8A3A2E2BFA8DCB002926BE /* RevokeToken.swift */; };
 		2F8C57A32B76884B002B4862 /* APIConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F8C57A22B76884B002B4862 /* APIConstants.swift */; };
 		2F8C57A92B7693C6002B4862 /* NetworkResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F8C57A82B7693C6002B4862 /* NetworkResult.swift */; };
 		2F8C57AC2B7696C5002B4862 /* LoginService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F8C57AB2B7696C5002B4862 /* LoginService.swift */; };
@@ -176,6 +177,7 @@
 		2F0838A22B564086002E2551 /* beilsangUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = beilsangUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		2F1DCE052B71495F002F1043 /* beilsangDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = beilsangDebug.entitlements; sourceTree = "<group>"; };
 		2F2EFFF12BEF6CD700068F09 /* BaseModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BaseModel.swift; sourceTree = "<group>"; };
+		2F2F4F872C077DC600B410F1 /* AppleGetCodeManger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleGetCodeManger.swift; sourceTree = "<group>"; };
 		2F48E0862B5BB44B002F3D4A /* NotoSansKR-Light.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "NotoSansKR-Light.ttf"; sourceTree = "<group>"; };
 		2F48E0882B5BB44B002F3D4A /* NotoSansKR-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "NotoSansKR-Medium.ttf"; sourceTree = "<group>"; };
 		2F48E08B2B5BB44B002F3D4A /* NotoSansKR-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "NotoSansKR-Bold.ttf"; sourceTree = "<group>"; };
@@ -183,7 +185,6 @@
 		2F48E08F2B5BB44C002F3D4A /* NotoSansKR-Thin.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "NotoSansKR-Thin.ttf"; sourceTree = "<group>"; };
 		2F48E0902B5BB44C002F3D4A /* NotoSansKR-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "NotoSansKR-Regular.ttf"; sourceTree = "<group>"; };
 		2F4CD90B2B71428000B2D02D /* beilsangRelease.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = beilsangRelease.entitlements; sourceTree = "<group>"; };
-		2F6317CB2BF6468A006ACC2C /* DeleteApple.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteApple.swift; sourceTree = "<group>"; };
 		2F69039B2B60429700A7716D /* Color+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+.swift"; sourceTree = "<group>"; };
 		2F7A666A2B809617008010C6 /* TokenService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenService.swift; sourceTree = "<group>"; };
 		2F7A666C2B809D7E008010C6 /* TokenModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenModel.swift; sourceTree = "<group>"; };
@@ -197,6 +198,7 @@
 		2F7A669D2B81BBFC008010C6 /* RecentSearchCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecentSearchCollectionViewCell.swift; sourceTree = "<group>"; };
 		2F7A66A02B81BC80008010C6 /* SearchService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchService.swift; sourceTree = "<group>"; };
 		2F7A66A32B825B1B008010C6 /* SearchData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchData.swift; sourceTree = "<group>"; };
+		2F8A3A2E2BFA8DCB002926BE /* RevokeToken.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RevokeToken.swift; sourceTree = "<group>"; };
 		2F8C57A22B76884B002B4862 /* APIConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIConstants.swift; sourceTree = "<group>"; };
 		2F8C57A82B7693C6002B4862 /* NetworkResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkResult.swift; sourceTree = "<group>"; };
 		2F8C57AB2B7696C5002B4862 /* LoginService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginService.swift; sourceTree = "<group>"; };
@@ -489,6 +491,7 @@
 				2F8C57BA2B780C29002B4862 /* SignUpService.swift */,
 				2F7A666A2B809617008010C6 /* TokenService.swift */,
 				2F7A66712B80A312008010C6 /* TokenManager.swift */,
+				2F2F4F872C077DC600B410F1 /* AppleGetCodeManger.swift */,
 			);
 			path = Service;
 			sourceTree = "<group>";
@@ -530,12 +533,12 @@
 			isa = PBXGroup;
 			children = (
 				2F2EFFF12BEF6CD700068F09 /* BaseModel.swift */,
+				AF44032E2B63DDBE006B68FE /* Home */,
 				AF7E946C2B7A401900338DA3 /* HomeNetwork */,
 				2F7A66702B80A246008010C6 /* Token */,
 				2F7A66982B81BBB6008010C6 /* Search */,
 				8953FC552B7A136600F9F6B1 /* Find */,
 				895A22D42B751A5A00A5230D /* MyPage */,
-				AF44032E2B63DDBE006B68FE /* Home */,
 				2FF55CAE2B684D4A004EDB39 /* Login */,
 				2F69039A2B60427100A7716D /* Utility */,
 				2F48E0852B5BB3D5002F3D4A /* Font */,
@@ -639,7 +642,7 @@
 				89608DBD2B7A440200B93421 /* GetDuplicateCheck.swift */,
 				89608DBF2B7A475B00B93421 /* GetMyPageFeedDetail.swift */,
 				893DF7D92B7BA16200B09573 /* GetChallenge.swift */,
-				2F6317CB2BF6468A006ACC2C /* DeleteApple.swift */,
+				2F8A3A2E2BFA8DCB002926BE /* RevokeToken.swift */,
 			);
 			path = MyPage;
 			sourceTree = "<group>";
@@ -967,6 +970,7 @@
 				2F7A668F2B81BAEF008010C6 /* SearchResultViewController.swift in Sources */,
 				2FAB99FF2B72CA1400853BF7 /* JoinChallengeViewController.swift in Sources */,
 				AF7E946E2B7A402600338DA3 /* ChallengeService.swift in Sources */,
+				2F8A3A2F2BFA8DCC002926BE /* RevokeToken.swift in Sources */,
 				AF64A4432B828F630055D5B9 /* ChallengeParticipateModel.swift in Sources */,
 				89ABFE692B70F77D00F86A9D /* FindFeedDetailCollectionViewCell.swift in Sources */,
 				89608DBE2B7A440200B93421 /* GetDuplicateCheck.swift in Sources */,
@@ -987,7 +991,6 @@
 				8957B1482B7B755E00F99928 /* TabBarViewController.swift in Sources */,
 				895A22D62B751A6700A5230D /* GetMyPage.swift in Sources */,
 				89CC16E62B80A3F300C73B97 /* LearnMoreEventCollectionViewCell.swift in Sources */,
-				2F6317CC2BF6468A006ACC2C /* DeleteApple.swift in Sources */,
 				894A11492B60A68C002A9A32 /* MyPageViewController.swift in Sources */,
 				89854F882B7351E100CB6E4E /* NotificationViewController.swift in Sources */,
 				AF64A4212B7BCC680055D5B9 /* ChallengeRecommendModel.swift in Sources */,
@@ -1022,6 +1025,7 @@
 				89608DBC2B7A36A200B93421 /* FeedModel.swift in Sources */,
 				AFDE65EB2B7249C30041D2D0 /* RegisterCertifyViewController.swift in Sources */,
 				2F69039C2B60429700A7716D /* Color+.swift in Sources */,
+				2F2F4F882C077DC600B410F1 /* AppleGetCodeManger.swift in Sources */,
 				895BA6182B6B341300FB514F /* MyChallengeFeedViewController.swift in Sources */,
 				2F7A66912B81BB30008010C6 /* TabManViewController.swift in Sources */,
 				2F7A669E2B81BBFC008010C6 /* RecentSearchCollectionViewCell.swift in Sources */,

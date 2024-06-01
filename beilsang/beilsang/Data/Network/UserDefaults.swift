@@ -12,8 +12,12 @@ struct UserDefaultsKey {
     static let socialType = "socialType"
     static let serverToken = "serverToken"
     static let refreshToken = "refreshToken"
+    static let authorizationCode = "authorizationCode"
+    static let kakaoAccessToken = "kakaoAccessToken"
+    static let appleRefreshToken = "appleRefreshToken"
     static let memberId = "memberId"
-    static let existMember = "existMember" 
+    static let nickName = "nickName"
+    static let existMember = "existMember"
     static let recentSearchTerms = "recentSearchTerms"
     static let deviceToken = "deviceToken"
 }

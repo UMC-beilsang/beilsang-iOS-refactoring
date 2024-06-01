@@ -198,7 +198,7 @@ class RegisterSecondViewController: UIViewController, UIScrollViewDelegate, UIVi
         let view = UIImageView()
         
         view.image = UIImage(named: "icon-check-black")
-        view.contentMode = .center
+        view.contentMode = .left
         view.tintColor = .beIconDef
         
         return view
@@ -447,8 +447,12 @@ class RegisterSecondViewController: UIViewController, UIScrollViewDelegate, UIVi
     
     // 알림창 나가기 버튼에 action 연결해서 alert 닫음
     @objc func cancleAlartClose(){
-        let challengeListVC = HomeMainViewController()
-        navigationController?.pushViewController(challengeListVC, animated: true)
+        if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate, let window = sceneDelegate.window {
+            let mainVC = TabBarViewController()
+            UIView.transition(with: window, duration: 1.5, options: .transitionCrossDissolve, animations: {
+                window.rootViewController = mainVC
+            }, completion: nil)
+        }
         
         ChallengeDataSingleton.shared.resetData()
         cancleAlertViewResponder?.close()
@@ -466,6 +470,7 @@ class RegisterSecondViewController: UIViewController, UIScrollViewDelegate, UIVi
             noticeButton.isEnabled = false
         } else {
             noticeRegisterButtonEnabled()
+
         }
     }
     
@@ -504,6 +509,7 @@ class RegisterSecondViewController: UIViewController, UIScrollViewDelegate, UIVi
         
         // 버튼 누르면 모달창 나타남
         present(modalVC, animated: true, completion: nil)
+        
     }
     
     @objc func examplePhotoButtonClicked() {
@@ -629,7 +635,10 @@ extension RegisterSecondViewController {
         
         fullScrollView.addSubview(fullContentView)
         
-        [topViewBorder, detailLabel, detailTextView, detailFieldAlertImage, detailFieldAlertLabel, noticeTitleLabel, noticeButton, toolTipButton, toolTipLabel, noticeCollectionView, examplePhotoLabel, examplePhotoImage, examplePhotoButton, pointLabel, pointUnitLabel, pointMinusButton, pointIntLabel, pointPlusButton].forEach { view in
+        // 컬렉션뷰에 toolTipLabel이 가려지는거 방지
+        view.addSubview(toolTipLabel)
+        
+        [topViewBorder, detailLabel, detailTextView, detailFieldAlertImage, detailFieldAlertLabel, noticeTitleLabel, noticeButton, toolTipButton, noticeCollectionView, examplePhotoLabel, examplePhotoImage, examplePhotoButton, pointLabel, pointUnitLabel, pointMinusButton, pointIntLabel, pointPlusButton].forEach { view in
             fullContentView.addSubview(view)
         }
         
@@ -726,15 +735,15 @@ extension RegisterSecondViewController {
             make.height.equalTo(64)
         }
         
+        noticeButtonLabel.snp.makeConstraints { make in
+            make.centerY.equalTo(noticeButton.snp.centerY)
+            make.centerX.equalToSuperview().offset(0)
+        }
+        
         noticeButtonImage.snp.makeConstraints { make in
             make.width.height.equalTo(32)
             make.centerY.equalTo(noticeButton.snp.centerY)
-            make.leading.equalTo(noticeButton.snp.leading).offset(63)
-        }
-        
-        noticeButtonLabel.snp.makeConstraints { make in
-            make.centerY.equalTo(noticeButton.snp.centerY)
-            make.leading.equalTo(noticeButtonImage.snp.trailing).offset(12)
+            make.trailing.equalTo(noticeButtonLabel.snp.leading).offset(-12)
         }
         
         noticeButtonCountLabel.snp.makeConstraints { make in
@@ -866,7 +875,6 @@ extension RegisterSecondViewController: UIImagePickerControllerDelegate, UINavig
     // MARK: - 이미지 피커 설정
     func setImagePicker() {
         exampleImagePicker.delegate = self
-        
         examplePhotoImage.isHidden = true
     }
     
@@ -928,7 +936,7 @@ extension RegisterSecondViewController: UIImagePickerControllerDelegate, UINavig
             
             detailFieldAlertImage.isHidden = false
             detailFieldAlertLabel.isHidden = false
-            detailFieldAlertLabel.text = "후기는 20자 이상이어야 합니다."
+            detailFieldAlertLabel.text = "유의사항은 20자 이상이어야 합니다."
             
             isNext[0] = false
         } else if updatedText.count > 80 {
@@ -938,7 +946,7 @@ extension RegisterSecondViewController: UIImagePickerControllerDelegate, UINavig
             
             detailFieldAlertImage.isHidden = false
             detailFieldAlertLabel.isHidden = false
-            detailFieldAlertLabel.text = "후기는 80자를 넘을 수 없습니다."
+            detailFieldAlertLabel.text = "유의사항은 80자를 넘을 수 없습니다."
             
             isNext[0] = false
             
@@ -1166,7 +1174,7 @@ extension RegisterSecondViewController {
         lazy var title: UILabel = {
             let view = UILabel()
             
-            view.text = "챌린지를 인증할 때 참가자들이 유의해/n야하는 내용을 알려주세요!"
+            view.text = "챌린지를 인증할 때 참가자들이 유의해\n야하는 내용을 알려주세요!"
             view.numberOfLines = 2
             view.textColor = .beTextWhite
             view.textAlignment = .left

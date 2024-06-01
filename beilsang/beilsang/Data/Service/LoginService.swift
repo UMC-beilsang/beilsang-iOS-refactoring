@@ -7,6 +7,7 @@
 
 import Foundation
 import Alamofire
+import SwiftyJSON
 
 class LoginService {
     
@@ -51,7 +52,7 @@ class LoginService {
             "Content-Type": "application/json",
             "accept": "*/*"
         ]
-        let body: Parameters = ["idToken": idToken, "devicetToken": deviceToken]
+        let body: Parameters = ["idToken": idToken, "deviceToken": deviceToken]
         
         let dataRequest = AF.request(url,
                                      method: .post,
@@ -72,6 +73,41 @@ class LoginService {
             }
         }
     }
+    
+//    // MARK: - 애플 리프레시 토큰 발급
+//    func getAppleRefreshToken(code: String, completionHandler: @escaping (AppleTokenResponse) -> Void) {
+//        let url = "https://appleid.apple.com/auth/token"
+//        let header: HTTPHeaders = ["Content-Type": "application/x-www-form-urlencoded"]
+//        let parameters: Parameters = [
+//            "client_id": "com.beilsang.apps",
+//            "client_secret": "eyJraWQiOiJTUFczODVaM1k5IiwiYWxnIjoiRVMyNTYifQ.eyJpc3MiOiJSQzVGWThOSk43IiwiaWF0IjoxNzE2ODEyNDA5LCJleHAiOjE3MTk0MDQ0MDksImF1ZCI6Imh0dHBzOi8vYXBwbGVpZC5hcHBsZS5jb20iLCJzdWIiOiJjb20uYmVpbHNhbmcuYXBwcyJ9.qrcL7TPl4SfZnFHaGDIdzWrdYsrRKv7E_0FH-0XA8loIVBe7fSBLMpOcYVXu5Ej2SiALOy1mY8jeD9xp2j6bBQ",
+//            "code": code,
+//            "grant_type": "authorization_code"
+//        ]
+//
+//        AF.request(url,
+//                   method: .post,
+//                   parameters: parameters,
+//                   headers: header)
+//        .validate(statusCode: 200..<300)
+//        .responseData { response in
+//            switch response.result {
+//            case .success:
+//                guard let data = response.data else { return }
+//                let responseData = JSON(data)
+//                print(responseData)
+//
+//                guard let output = try? JSONDecoder().decode(AppleTokenResponse.self, from: data) else {
+//                    print("Error: JSON Data Parsing failed")
+//                    return
+//                }
+//
+//                completionHandler(output)
+//            case .failure:
+//                print("애플 토큰 발급 실패 - \(response.error.debugDescription)")
+//            }
+//        }
+//    }
     
     private func judgeStatus(by statusCode: Int, _ data: Data) -> NetworkResult<Any> {
         switch statusCode {

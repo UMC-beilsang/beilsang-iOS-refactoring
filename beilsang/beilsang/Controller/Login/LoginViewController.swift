@@ -192,7 +192,7 @@ extension LoginViewController {
                         self.kakaoName = name
                         self.kakaoEmail = email
                         //서버에 보내주기
-                        self.kakaologinToServer(with: token, deviceToken: UserDefaultsKey.deviceToken)
+                        self.kakaologinToServer(with: token, deviceToken: UserDefaults.standard.string(forKey: UserDefaultsKey.deviceToken))
                     }
                 }
             }
@@ -245,22 +245,34 @@ extension LoginViewController : ASAuthorizationControllerDelegate, ASAuthorizati
             let fullName = appleIDCredential.fullName
             let email = appleIDCredential.email
             
-            if let accessTokenData = appleIDCredential.authorizationCode,
-               let accessToken = String(data: accessTokenData, encoding: .utf8),
+            if let authorizationCodeData = appleIDCredential.authorizationCode,
+               let authorizationCode = String(data: authorizationCodeData, encoding: .utf8),
                let identityTokenData = appleIDCredential.identityToken,
                let identityToken = String(data: identityTokenData, encoding: .utf8) {
+                //authorizationCode 저장
+                UserDefaults.standard.set(authorizationCode, forKey:"authorizationCode")
                 
-                print("accessToken: \(accessToken)")
+                print("authorizationCode: \(authorizationCode)")
                 print("identityToken: \(identityToken)")
-                self.appleloginToServer(with: identityToken, deviceToken: UserDefaultsKey.deviceToken)
                 print("useridentifier: \(userIdentifier)")
                 print("fullName: \(fullName?.description ?? "")")
                 print("email: \(email?.description ?? "")")
+                
+//                LoginService.shared.getAppleRefreshToken(code: authorizationCode) { data in
+//                    // 응답받은 데이터를 유저디폴트에 저장함
+//                    if let appleRefreshToken : String  = data.refreshToken {
+//                        UserDefaults.standard.set(appleRefreshToken, forKey: "AppleRefreshToken")
+//                        
+//                        print("ApplerefreshToken : \(appleRefreshToken)")
+//                    }
+//                }
+                
+                self.appleloginToServer(with: identityToken, deviceToken: UserDefaults.standard.string(forKey: UserDefaultsKey.deviceToken))
             }
         default:
             break
         }
-    
+        
     }
     
     func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
@@ -323,6 +335,7 @@ extension LoginViewController {
                 UserDefaults.standard.set(data.data.refreshToken, forKey: "refreshToken")
                 UserDefaults.standard.set(data.data.existMember, forKey: "existMember")
                 UserDefaults.standard.set("apple", forKey: "socialType")
+                //클라이언트 시크릿 받아서 유저디폴트에 저장
                 
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { // 1초 딜레이
                     if UserDefaults.standard.bool(forKey: UserDefaultsKey.existMember) {
