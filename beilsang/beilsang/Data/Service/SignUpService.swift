@@ -12,7 +12,7 @@ class SignUpService {
     static let shared = SignUpService()
     private init() {}
     
-    var jwtToken = UserDefaults.standard.string(forKey: UserDefaultsKey.serverToken)
+    var jwtToken = KeyChain.read(key: Const.KeyChainKey.serverToken)
     
     func nameCheck(name : String?, completionHandler: @escaping (_ data: nameCheckResponse) -> Void) {
         DispatchQueue.main.async {

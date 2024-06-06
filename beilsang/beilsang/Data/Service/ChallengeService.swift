@@ -16,8 +16,8 @@ class ChallengeService {
     
     // 홈 메인화면 추천 챌린지
     func challengeRecommend(completionHandler : @escaping (_ data: ChallengeRecommends) -> Void) {
-        let accessToken = UserDefaults.standard.string(forKey: UserDefaultsKey.serverToken)!
-        let refreshToken = UserDefaults.standard.string(forKey: UserDefaultsKey.refreshToken)!
+        let accessToken = KeyChain.read(key: Const.KeyChainKey.serverToken)!
+        let refreshToken = KeyChain.read(key: Const.KeyChainKey.refreshToken)!
         
         DispatchQueue.main.async {
             let url = "https://beilsang.com/api/challenges/recommends"
@@ -62,8 +62,9 @@ class ChallengeService {
     
     // 챌린지 참여 중인지 여부
     func challengeEnrolled(EnrollChallengeId: Int, completionHandler : @escaping (_ data: ChallengeEnrolled) -> Void) {
-        let accessToken = UserDefaults.standard.string(forKey: UserDefaultsKey.serverToken)!
-        let refreshToken = UserDefaults.standard.string(forKey: UserDefaultsKey.refreshToken)!
+        let accessToken = KeyChain.read(key: Const.KeyChainKey.serverToken)!
+        let refreshToken = KeyChain.read(key: Const.KeyChainKey.refreshToken)!
+        
         let enrollChallengeId = EnrollChallengeId
         
         DispatchQueue.main.async {
@@ -108,8 +109,8 @@ class ChallengeService {
     
     // 챌린지 리스트 화면
     func challengeCategories(categoryName: String, completionHandler : @escaping (_ data: ChallengeCategory) -> Void) {
-        let accessToken = UserDefaults.standard.string(forKey: UserDefaultsKey.serverToken)!
-        let refreshToken = UserDefaults.standard.string(forKey: UserDefaultsKey.refreshToken)!
+        let accessToken = KeyChain.read(key: Const.KeyChainKey.serverToken)!
+        let refreshToken = KeyChain.read(key: Const.KeyChainKey.refreshToken)!
         let categoryName = categoryName
         
         DispatchQueue.main.async {
@@ -154,8 +155,8 @@ class ChallengeService {
     
     // 챌린지 리스트 화면 - 전체(api 다른 거 써서 따로)
     func challengeCategoriesAll(completionHandler : @escaping (_ data: ChallengeCategory) -> Void) {
-        let accessToken = UserDefaults.standard.string(forKey: UserDefaultsKey.serverToken)!
-        let refreshToken = UserDefaults.standard.string(forKey: UserDefaultsKey.refreshToken)!
+        let accessToken = KeyChain.read(key: Const.KeyChainKey.serverToken)!
+        let refreshToken = KeyChain.read(key: Const.KeyChainKey.refreshToken)!
         
         DispatchQueue.main.async {
             let url = "https://beilsang.com/api/challenges"
@@ -199,8 +200,8 @@ class ChallengeService {
     
     // 챌린지 리스트 화면 - 참여중
     func challengeCategoriesEnrolled(completionHandler : @escaping (_ data: ChallengeStatus) -> Void) {
-        let accessToken = UserDefaults.standard.string(forKey: UserDefaultsKey.serverToken)!
-        let refreshToken = UserDefaults.standard.string(forKey: UserDefaultsKey.refreshToken)!
+        let accessToken = KeyChain.read(key: Const.KeyChainKey.serverToken)!
+        let refreshToken = KeyChain.read(key: Const.KeyChainKey.refreshToken)!
         
         DispatchQueue.main.async {
             let url = "https://beilsang.com/api/challenges/참여중/ALL"
@@ -245,9 +246,8 @@ class ChallengeService {
     
     // 챌린지 등록화면
     func challengePost(completionHandler : @escaping (_ data: ChallengePost) -> Void) {
-        let accessToken = UserDefaults.standard.string(forKey: UserDefaultsKey.serverToken)!
-        let refreshToken = UserDefaults.standard.string(forKey: UserDefaultsKey.refreshToken)!
-        
+        let accessToken = KeyChain.read(key: Const.KeyChainKey.serverToken)!
+        let refreshToken = KeyChain.read(key: Const.KeyChainKey.refreshToken)!
         let url = "https://beilsang.com/api/challenges"
         
         // HTTP Headers : 요청 헤더
@@ -328,8 +328,8 @@ class ChallengeService {
     
     // 챌린지 세부 화면
     func challengeDetail(detailChallengeId: Int, completionHandler : @escaping (_ data: ChallengeDetail) -> Void) {
-        let accessToken = UserDefaults.standard.string(forKey: UserDefaultsKey.serverToken)!
-        let refreshToken = UserDefaults.standard.string(forKey: UserDefaultsKey.refreshToken)!
+        let accessToken = KeyChain.read(key: Const.KeyChainKey.serverToken)!
+        let refreshToken = KeyChain.read(key: Const.KeyChainKey.refreshToken)!
         let detailChallengeId = detailChallengeId
         
         DispatchQueue.main.async {
@@ -374,8 +374,8 @@ class ChallengeService {
     
     // 챌린지 인증 가이드(유의사항)
     func challengeGuide(guideChallengeId: Int, completionHandler : @escaping (_ data: ChallengeGuide) -> Void) {
-        let accessToken = UserDefaults.standard.string(forKey: UserDefaultsKey.serverToken)!
-        let refreshToken = UserDefaults.standard.string(forKey: UserDefaultsKey.refreshToken)!
+        let accessToken = KeyChain.read(key: Const.KeyChainKey.serverToken)!
+        let refreshToken = KeyChain.read(key: Const.KeyChainKey.refreshToken)!
         let guideChallengeId = guideChallengeId
         
         DispatchQueue.main.async {
@@ -420,8 +420,8 @@ class ChallengeService {
     
     // 챌린지 인증하기(등록)
     func reviewPost(reviewChallengeId: Int, completionHandler : @escaping (_ data: ChallengeCertify) -> Void) {
-        let accessToken = UserDefaults.standard.string(forKey: UserDefaultsKey.serverToken)!
-        let refreshToken = UserDefaults.standard.string(forKey: UserDefaultsKey.refreshToken)!
+        let accessToken = KeyChain.read(key: Const.KeyChainKey.serverToken)!
+        let refreshToken = KeyChain.read(key: Const.KeyChainKey.refreshToken)!
         let reviewChallengeId = reviewChallengeId
         
         let url = "https://beilsang.com/api/feeds/\(reviewChallengeId)"
@@ -484,8 +484,8 @@ class ChallengeService {
     
     // 챌린지 참여하기 등록
     func challengeParticipatePost(joinChallengeId: Int, completionHandler : @escaping (_ data: ChallengeParticipate) -> Void) {
-        let accessToken = UserDefaults.standard.string(forKey: UserDefaultsKey.serverToken)!
-        let refreshToken = UserDefaults.standard.string(forKey: UserDefaultsKey.refreshToken)!
+        let accessToken = KeyChain.read(key: Const.KeyChainKey.serverToken)!
+        let refreshToken = KeyChain.read(key: Const.KeyChainKey.refreshToken)!
         
         let joinChallengeId = joinChallengeId
         
@@ -535,8 +535,8 @@ class ChallengeService {
     
     // 챌린지 북마크(like) 등록: post
     func challengeBookmarkPost(likeChallengeId: Int, completionHandler : @escaping (_ data: BaseModel) -> Void) {
-        let accessToken = UserDefaults.standard.string(forKey: UserDefaultsKey.serverToken)!
-        let refreshToken = UserDefaults.standard.string(forKey: UserDefaultsKey.refreshToken)!
+        let accessToken = KeyChain.read(key: Const.KeyChainKey.serverToken)!
+        let refreshToken = KeyChain.read(key: Const.KeyChainKey.refreshToken)!
         let likeChallengeId = likeChallengeId
         
         let url = "https://beilsang.com/api/challenges/\(likeChallengeId)/likes"
@@ -581,8 +581,8 @@ class ChallengeService {
     
     // 챌린지 북마크(like) 취소: delete
     func challengeBookmarkDelete(dislikeChallengeId: Int, completionHandler : @escaping (_ data: BaseModel) -> Void) {
-        let accessToken = UserDefaults.standard.string(forKey: UserDefaultsKey.serverToken)!
-        let refreshToken = UserDefaults.standard.string(forKey: UserDefaultsKey.refreshToken)!
+        let accessToken = KeyChain.read(key: Const.KeyChainKey.serverToken)!
+        let refreshToken = KeyChain.read(key: Const.KeyChainKey.refreshToken)!
         let dislikeChallengeId = dislikeChallengeId
         
         let url = "https://beilsang.com/api/challenges/\(dislikeChallengeId)/likes"
@@ -624,8 +624,8 @@ class ChallengeService {
     
     // 참여중 챌린지 화면 피드 정보
     func challengeFeed(joinFeedChallengeId: Int, completionHandler : @escaping (_ data: ChallengeJoinFeed) -> Void) {
-        let accessToken = UserDefaults.standard.string(forKey: UserDefaultsKey.serverToken)!
-        let refreshToken = UserDefaults.standard.string(forKey: UserDefaultsKey.refreshToken)!
+        let accessToken = KeyChain.read(key: Const.KeyChainKey.serverToken)!
+        let refreshToken = KeyChain.read(key: Const.KeyChainKey.refreshToken)!
         
         DispatchQueue.main.async {
             let url = "https://beilsang.com/api/feeds/gallery/\(joinFeedChallengeId)"
@@ -669,8 +669,8 @@ class ChallengeService {
     
     // 참여중 챌린지 두 개만 get
     func challengeJoinTwo(completionHandler : @escaping (_ data: ChallengeJoinTwo) -> Void) {
-        let accessToken = UserDefaults.standard.string(forKey: UserDefaultsKey.serverToken)!
-        let refreshToken = UserDefaults.standard.string(forKey: UserDefaultsKey.refreshToken)!
+        let accessToken = KeyChain.read(key: Const.KeyChainKey.serverToken)!
+        let refreshToken = KeyChain.read(key: Const.KeyChainKey.refreshToken)!
         DispatchQueue.main.async {
             let url = "https://beilsang.com/api/challenges/ongoing"
             // HTTP Headers : 요청 헤더

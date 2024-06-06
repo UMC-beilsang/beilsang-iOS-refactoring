@@ -376,8 +376,12 @@ class RegisterThirdViewController: UIViewController, UIScrollViewDelegate {
     
     // 알림창 나가기 버튼에 action 연결해서 alert 닫음
     @objc func cancleAlartClose(){
-        let challengeListVC = HomeMainViewController()
-        navigationController?.pushViewController(challengeListVC, animated: true)
+        if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate, let window = sceneDelegate.window {
+            let mainVC = TabBarViewController()
+            UIView.transition(with: window, duration: 1.5, options: .transitionCrossDissolve, animations: {
+                window.rootViewController = mainVC
+            }, completion: nil)
+        }
         
         ChallengeDataSingleton.shared.resetData()
         cancleAlertViewResponder?.close()
@@ -423,9 +427,11 @@ class RegisterThirdViewController: UIViewController, UIScrollViewDelegate {
     @objc func beforeButtonClicked() {
         print("이전")
         
-        let beforeVC = RegisterSecondViewController()
-        beforeVC.hidesBottomBarWhenPushed = true
-        navigationController?.pushViewController(beforeVC, animated: true)
+        navigationController?.popViewController(animated: true)
+        
+//        let beforeVC = RegisterSecondViewController()
+//        beforeVC.hidesBottomBarWhenPushed = true
+//        navigationController?.pushViewController(beforeVC, animated: true)
     }
     
     // alert 띄움
@@ -462,6 +468,8 @@ extension RegisterThirdViewController {
             registerCompleteVC.completeChallengeId = self.registerChallengeId
             registerCompleteVC.hidesBottomBarWhenPushed = true
             self.navigationController?.pushViewController(registerCompleteVC, animated: true)
+            //RegisterCompleteVC 네비게이션 바 숨기기
+            registerCompleteVC.navigationController?.isNavigationBarHidden = true
         }
     }
 }

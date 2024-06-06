@@ -225,20 +225,44 @@ extension ChallengeListViewController {
             print("전체")
             ChallengeService.shared.challengeCategoriesAll { response in
                 self.setChallengesList(response.data!.challenges)
+                self.fullContentViewHeightUpdate()
             }
         } else if categoryLabelText == "참여중" {
             print("참여중")
             ChallengeService.shared.challengeCategoriesEnrolled { response in
                 self.setChallengesList(response.data!.challenges.challenges)
+                self.fullContentViewHeightUpdate()
             }
         } else {
             print("카테고리")
             let category = CategoryConverter.shared.convertToEnglish(categoryLabelText ?? "")
             ChallengeService.shared.challengeCategories(categoryName: category ?? "") { response in
                 self.setChallengesList(response.data!.challenges)
+                self.fullContentViewHeightUpdate()
             }
         }
     }
+    
+    //fullScrollView 높이 업데이트
+    private func fullContentViewHeightUpdate() {
+        let baseHeight = 180 // 기본 높이
+        let itemHeight = 140 // 각 셀의 높이
+        let spacing = 24 // 셀 간 간격
+        var totalHeight = baseHeight // 전체 높이는 기본 높이로 시작
+
+        if challengeData.count > 0 {
+            // 셀의 총 높이 계산 (셀 개수 * 셀 높이)
+            // 셀 사이 간격 추가 (셀 개수 - 1) * 간격
+            totalHeight += (itemHeight * challengeData.count) + ((challengeData.count - 1) * spacing)
+        }
+
+        self.fullContentView.snp.updateConstraints { make in
+            make.height.equalTo(totalHeight)
+        }
+
+        self.view.layoutIfNeeded()
+    }
+
     
     @MainActor
     private func setChallengesList(_ response: [ChallengeCategoryData]) {
@@ -306,5 +330,10 @@ extension ChallengeListViewController: UICollectionViewDataSource, UICollectionV
                 self.navigationController?.pushViewController(nextVC, animated: true)
             }
         }
+    }
+    
+    //셀 간격
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        return 24 
     }
 }

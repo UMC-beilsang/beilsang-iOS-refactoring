@@ -77,7 +77,6 @@ class RegisterModalViewController: UIViewController {
             completion?(text)
         }
         noticeRegisterField.resignFirstResponder()
-        
         dismiss(animated: true, completion: nil)
     }
     

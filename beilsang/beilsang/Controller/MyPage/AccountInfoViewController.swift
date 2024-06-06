@@ -412,7 +412,7 @@ class AccountInfoViewController: UIViewController, UIScrollViewDelegate {
         let label = UILabel()
         label.textAlignment = .center
         label.font = UIFont(name: "NotoSansKR-Regular", size: 11)
-        label.text = UserDefaults.standard.string(forKey: UserDefaultsKey.nickName)
+        label.text = UserDefaults.standard.string(forKey: Const.UserDefaultsKey.nickName)
         label.textColor = .beTextInfo
         return label
     }()
@@ -1419,8 +1419,13 @@ extension AccountInfoViewController{
             }
         }
         //토큰 삭제
-        UserDefaults.standard.setValue(nil, forKey: UserDefaultsKey.serverToken)
-        UserDefaults.standard.setValue(nil, forKey: UserDefaultsKey.refreshToken)
+        KeyChain.delete(key: Const.KeyChainKey.serverToken)
+        KeyChain.delete(key: Const.KeyChainKey.refreshToken)
+        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.deviceToken)
+        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.nickName)
+        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.existMember)
+        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.recentSearchTerms)
+        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.socialType)
         UserDefaults.standard.synchronize()
         
         //팝업창 닫기
@@ -1435,8 +1440,13 @@ extension AccountInfoViewController{
     
     public func appleLogout(){
         //기기에 저장되어있는 토큰 삭제
-        UserDefaults.standard.setValue(nil, forKey: UserDefaultsKey.serverToken)
-        UserDefaults.standard.setValue(nil, forKey: UserDefaultsKey.refreshToken)
+        KeyChain.delete(key: Const.KeyChainKey.serverToken)
+        KeyChain.delete(key: Const.KeyChainKey.refreshToken)
+        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.deviceToken)
+        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.nickName)
+        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.existMember)
+        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.recentSearchTerms)
+        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.socialType)
         UserDefaults.standard.synchronize()
         
         print("apple logout() success.")
@@ -1460,8 +1470,13 @@ extension AccountInfoViewController{
                 MyPageService.shared.DeleteKakaoWithDraw { response in
                     print(response.message)
                 }
-                UserDefaults.standard.setValue(nil, forKey: UserDefaultsKey.serverToken)
-                UserDefaults.standard.setValue(nil, forKey: UserDefaultsKey.refreshToken)
+                KeyChain.delete(key: Const.KeyChainKey.serverToken)
+                KeyChain.delete(key: Const.KeyChainKey.refreshToken)
+                UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.deviceToken)
+                UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.nickName)
+                UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.existMember)
+                UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.recentSearchTerms)
+                UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.socialType)
                 UserDefaults.standard.synchronize()
                 
                 //팝업창 닫기
