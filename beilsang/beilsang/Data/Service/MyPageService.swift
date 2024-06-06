@@ -18,8 +18,8 @@ class MyPageService {
     // MARK: - get
     // 마이페이지 뷰 get
     func getMyPage(baseEndPoint:BaseEndpoint, addPath:String?,  completionHandler: @escaping (_ data: GetMyPage) -> Void) {
-        let accessToken = UserDefaults.standard.string(forKey: UserDefaultsKey.serverToken)!
-        let refreshToken = UserDefaults.standard.string(forKey: UserDefaultsKey.refreshToken)!
+        let accessToken = KeyChain.read(key: Const.KeyChainKey.serverToken)!
+        let refreshToken = KeyChain.read(key: Const.KeyChainKey.refreshToken)!
         
         DispatchQueue.main.async {
             let headers: HTTPHeaders = [
@@ -57,8 +57,8 @@ class MyPageService {
     }
     // 포인트 뷰 get
     func getPoint(baseEndPoint:BaseEndpoint, addPath:String?,  completionHandler: @escaping (_ data: GetPoint) -> Void) {
-        let accessToken = UserDefaults.standard.string(forKey: UserDefaultsKey.serverToken)!
-        let refreshToken = UserDefaults.standard.string(forKey: UserDefaultsKey.refreshToken)!
+        let accessToken = KeyChain.read(key: Const.KeyChainKey.serverToken)!
+        let refreshToken = KeyChain.read(key: Const.KeyChainKey.refreshToken)!
         
         let headers: HTTPHeaders = [
             "accept": "application/json",
@@ -94,8 +94,8 @@ class MyPageService {
     }
     // 마이 챌린지 피드의 피드 리스트 get
     func getFeedList(baseEndPoint:BaseEndpoint, addPath:String?,  completionHandler: @escaping (_ data: GetFeedModel) -> Void) {
-        let accessToken = UserDefaults.standard.string(forKey: UserDefaultsKey.serverToken)!
-        let refreshToken = UserDefaults.standard.string(forKey: UserDefaultsKey.refreshToken)!
+        let accessToken = KeyChain.read(key: Const.KeyChainKey.serverToken)!
+        let refreshToken = KeyChain.read(key: Const.KeyChainKey.refreshToken)!
         DispatchQueue.main.async {
             let headers: HTTPHeaders = [
                 "accept": "application/json",
@@ -131,8 +131,8 @@ class MyPageService {
     }
     // 찜 챌린지, 카테고리별 챌린지 리스트(발견)
     func getChallengeList(baseEndPoint:BaseEndpoint, addPath:String?,  completionHandler: @escaping (_ data: GetChallenge) -> Void) {
-        let accessToken = UserDefaults.standard.string(forKey: UserDefaultsKey.serverToken)!
-        let refreshToken = UserDefaults.standard.string(forKey: UserDefaultsKey.refreshToken)!
+        let accessToken = KeyChain.read(key: Const.KeyChainKey.serverToken)!
+        let refreshToken = KeyChain.read(key: Const.KeyChainKey.refreshToken)!
         DispatchQueue.main.async {
             let headers: HTTPHeaders = [
                 "accept": "application/json",
@@ -169,8 +169,8 @@ class MyPageService {
     }
     // 카테고리 별 챌린지 리스트
     func getMyPageChallengeList(baseEndPoint:BaseEndpoint, addPath:String?,  completionHandler: @escaping (_ data: GetMyPageChallenge) -> Void) {
-        let accessToken = UserDefaults.standard.string(forKey: UserDefaultsKey.serverToken)!
-        let refreshToken = UserDefaults.standard.string(forKey: UserDefaultsKey.refreshToken)!
+        let accessToken = KeyChain.read(key: Const.KeyChainKey.serverToken)!
+        let refreshToken = KeyChain.read(key: Const.KeyChainKey.refreshToken)!
         DispatchQueue.main.async {
             let headers: HTTPHeaders = [
                 "accept": "application/json",
@@ -208,8 +208,8 @@ class MyPageService {
     }
     // 닉네임 중복 체크
     func getDuplicateCheck(baseEndPoint:BaseEndpoint, addPath:String?,  completionHandler: @escaping (_ data: GetDuplicateCheck) -> Void) {
-        let accessToken = UserDefaults.standard.string(forKey: UserDefaultsKey.serverToken)!
-        let refreshToken = UserDefaults.standard.string(forKey: UserDefaultsKey.refreshToken)!
+        let accessToken = KeyChain.read(key: Const.KeyChainKey.serverToken)!
+        let refreshToken = KeyChain.read(key: Const.KeyChainKey.refreshToken)!
         DispatchQueue.main.async {
             let headers: HTTPHeaders = [
                 "accept": "application/json",
@@ -245,8 +245,8 @@ class MyPageService {
     }
     // 피드 상세 정보 보기
     func getMyPageFeedDetail(baseEndPoint:BaseEndpoint, addPath:String?,  completionHandler: @escaping (_ data: GetMyPageFeedDetail) -> Void) {
-        let accessToken = UserDefaults.standard.string(forKey: UserDefaultsKey.serverToken)!
-        let refreshToken = UserDefaults.standard.string(forKey: UserDefaultsKey.refreshToken)!
+        let accessToken = KeyChain.read(key: Const.KeyChainKey.serverToken)!
+        let refreshToken = KeyChain.read(key: Const.KeyChainKey.refreshToken)!
         DispatchQueue.main.async {
             let headers: HTTPHeaders = [
                 "accept": "application/json",
@@ -284,8 +284,8 @@ class MyPageService {
     // MARK: - post
     // 피드 찜 버튼 누르기
     func postLikeButton(baseEndPoint:BaseEndpoint, addPath:String?, completionHandler: @escaping (_ data: BaseModel) -> Void) {
-        let accessToken = UserDefaults.standard.string(forKey: UserDefaultsKey.serverToken)!
-        let refreshToken = UserDefaults.standard.string(forKey: UserDefaultsKey.refreshToken)!
+        let accessToken = KeyChain.read(key: Const.KeyChainKey.serverToken)!
+        let refreshToken = KeyChain.read(key: Const.KeyChainKey.refreshToken)!
         
         let headers: HTTPHeaders = [
             "accept": "application/json",
@@ -324,8 +324,8 @@ class MyPageService {
     // MARK: - patch
     // AccountInfoView
     func patchAccountInfo(baseEndPoint:BaseEndpoint, addPath:String?, parameter: Dictionary<String, Any>, completionHandler: @escaping (_ data: PatchAccountInfo) -> Void) {
-        let accessToken = UserDefaults.standard.string(forKey: UserDefaultsKey.serverToken)!
-        let refreshToken = UserDefaults.standard.string(forKey: UserDefaultsKey.refreshToken)!
+        let accessToken = KeyChain.read(key: Const.KeyChainKey.serverToken)!
+        let refreshToken = KeyChain.read(key: Const.KeyChainKey.refreshToken)!
         
         let headers: HTTPHeaders = [
             "accept": "application/json",
@@ -363,8 +363,8 @@ class MyPageService {
     // MARK: - delete
     // 피드 찜 버튼 누르기
     func deleteLikeButton(baseEndPoint:BaseEndpoint, addPath:String?, completionHandler: @escaping (_ data: BaseModel) -> Void) {
-        let accessToken = UserDefaults.standard.string(forKey: UserDefaultsKey.serverToken)!
-        let refreshToken = UserDefaults.standard.string(forKey: UserDefaultsKey.refreshToken)!
+        let accessToken = KeyChain.read(key: Const.KeyChainKey.serverToken)!
+        let refreshToken = KeyChain.read(key: Const.KeyChainKey.refreshToken)!
         
         let headers: HTTPHeaders = [
             "accept": "application/json",
@@ -402,8 +402,8 @@ class MyPageService {
     
     // 카카오 회원탈퇴
     func DeleteKakaoWithDraw(completionHandler: @escaping (_ data: WithDrawResponse) -> Void) {
-        let accessToken = UserDefaults.standard.string(forKey: UserDefaultsKey.serverToken)!
-        let refreshToken = UserDefaults.standard.string(forKey: UserDefaultsKey.refreshToken)!
+        let accessToken = KeyChain.read(key: Const.KeyChainKey.serverToken)!
+        let refreshToken = KeyChain.read(key: Const.KeyChainKey.refreshToken)!
         
         let headers: HTTPHeaders = [
             "Content-Type": "application/json",
@@ -441,9 +441,9 @@ class MyPageService {
     }
     // 애플 회원탈퇴
     func DeleteAppleWithDraw(completionHandler: @escaping (_ data: WithDrawResponse) -> Void) {
-        let accessToken = UserDefaults.standard.string(forKey: UserDefaultsKey.serverToken)!
-        let refreshToken = UserDefaults.standard.string(forKey: UserDefaultsKey.refreshToken)!
-        let authorizationCode = UserDefaults.standard.string(forKey: UserDefaultsKey.authorizationCode)!
+        let accessToken = KeyChain.read(key: Const.KeyChainKey.serverToken)!
+        let refreshToken = KeyChain.read(key: Const.KeyChainKey.refreshToken)!
+        let authorizationCode = KeyChain.read(key: Const.KeyChainKey.authorizationCode)
         
         let headers: HTTPHeaders = [
             "Content-Type": "application/json",

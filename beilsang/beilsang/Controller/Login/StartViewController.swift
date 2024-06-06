@@ -157,8 +157,8 @@ class StartViewController: UIViewController {
 extension StartViewController {
     func SignUpToServer() {
         // SignUpService를 사용하여 서버에 Post
-        let accessToken = UserDefaults.standard.string(forKey: UserDefaultsKey.serverToken)
-        let refreshToken = UserDefaults.standard.string(forKey: UserDefaultsKey.refreshToken)
+        let accessToken = KeyChain.read(key: Const.KeyChainKey.serverToken)
+        let refreshToken = KeyChain.read(key: Const.KeyChainKey.refreshToken)
         
         SignUpService.shared.signUp(accessToken: accessToken! , gender: SignUpData.shared.gender, nickName: SignUpData.shared.nickName, birth: SignUpData.shared.birth, address: SignUpData.shared.address, keyword: SignUpData.shared.keyword, discoveredPath: SignUpData.shared.discoveredPath, resolution: SignUpData.shared.resolution, recommendNickname: SignUpData.shared.recommendNickname){ result in
             switch result {
@@ -166,7 +166,7 @@ extension StartViewController {
                 // 서버에서 받은 데이터 처리
                 guard let data = data as? SignUpResponse else { return }
                 print("signup to server success with data: \(data)")
-                UserDefaults.standard.set(true, forKey: UserDefaultsKey.existMember)
+                UserDefaults.standard.set(true, forKey: Const.UserDefaultsKey.existMember)
                 
                 DispatchQueue.main.async {
                     let homeVC = TabBarViewController()

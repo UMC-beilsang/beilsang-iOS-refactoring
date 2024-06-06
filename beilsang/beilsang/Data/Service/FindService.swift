@@ -14,8 +14,8 @@ class FindService {
     private init() {}
     // MARK: - get
     func getRecommendChallenge(baseEndPoint:BaseEndpoint, addPath:String?,  completionHandler: @escaping (_ data: GetRecommendChallenge) -> Void) {
-        let accessToken = UserDefaults.standard.string(forKey: UserDefaultsKey.serverToken)!
-        let refreshToken = UserDefaults.standard.string(forKey: UserDefaultsKey.refreshToken)!
+        let accessToken = KeyChain.read(key: Const.KeyChainKey.serverToken)!
+        let refreshToken = KeyChain.read(key: Const.KeyChainKey.refreshToken)!
         
         DispatchQueue.main.async {
             let headers: HTTPHeaders = [

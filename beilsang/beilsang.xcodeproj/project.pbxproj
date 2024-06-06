@@ -45,10 +45,11 @@
 		2F8C57AC2B7696C5002B4862 /* LoginService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F8C57AB2B7696C5002B4862 /* LoginService.swift */; };
 		2F8C57AE2B769C17002B4862 /* LoginModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F8C57AD2B769C17002B4862 /* LoginModel.swift */; };
 		2F8C57B02B777643002B4862 /* String+.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F8C57AF2B777643002B4862 /* String+.swift */; };
-		2F8C57B52B77B448002B4862 /* UserDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F8C57B42B77B448002B4862 /* UserDefaults.swift */; };
 		2F8C57BB2B780C29002B4862 /* SignUpService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F8C57BA2B780C29002B4862 /* SignUpService.swift */; };
 		2F8C57BD2B780C61002B4862 /* SignUpModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F8C57BC2B780C61002B4862 /* SignUpModel.swift */; };
 		2F8C57C32B78D162002B4862 /* Tabman in Frameworks */ = {isa = PBXBuildFile; productRef = 2F8C57C22B78D162002B4862 /* Tabman */; };
+		2F9D0EC82C0DCE8900C9C859 /* KeyChain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F9D0EC72C0DCE8900C9C859 /* KeyChain.swift */; };
+		2F9D0ECC2C0DD21300C9C859 /* Const.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F9D0ECB2C0DD21300C9C859 /* Const.swift */; };
 		2FAB99F32B72C8EF00853BF7 /* GalleryData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FAB99F22B72C8EF00853BF7 /* GalleryData.swift */; };
 		2FAB99F72B72C97C00853BF7 /* RecommendCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FAB99F62B72C97C00853BF7 /* RecommendCollectionViewCell.swift */; };
 		2FAB99F92B72C99300853BF7 /* CautionCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FAB99F82B72C99300853BF7 /* CautionCollectionViewCell.swift */; };
@@ -204,9 +205,10 @@
 		2F8C57AB2B7696C5002B4862 /* LoginService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginService.swift; sourceTree = "<group>"; };
 		2F8C57AD2B769C17002B4862 /* LoginModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginModel.swift; sourceTree = "<group>"; };
 		2F8C57AF2B777643002B4862 /* String+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+.swift"; sourceTree = "<group>"; };
-		2F8C57B42B77B448002B4862 /* UserDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDefaults.swift; sourceTree = "<group>"; };
 		2F8C57BA2B780C29002B4862 /* SignUpService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpService.swift; sourceTree = "<group>"; };
 		2F8C57BC2B780C61002B4862 /* SignUpModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpModel.swift; sourceTree = "<group>"; };
+		2F9D0EC72C0DCE8900C9C859 /* KeyChain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyChain.swift; sourceTree = "<group>"; };
+		2F9D0ECB2C0DD21300C9C859 /* Const.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Const.swift; sourceTree = "<group>"; };
 		2FAB99F22B72C8EF00853BF7 /* GalleryData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryData.swift; sourceTree = "<group>"; };
 		2FAB99F62B72C97C00853BF7 /* RecommendCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecommendCollectionViewCell.swift; sourceTree = "<group>"; };
 		2FAB99F82B72C99300853BF7 /* CautionCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CautionCollectionViewCell.swift; sourceTree = "<group>"; };
@@ -406,6 +408,7 @@
 			isa = PBXGroup;
 			children = (
 				2F8C57A72B768C67002B4862 /* Extension */,
+				2F9D0EC72C0DCE8900C9C859 /* KeyChain.swift */,
 			);
 			path = Utility;
 			sourceTree = "<group>";
@@ -461,11 +464,11 @@
 		2F8C57AA2B769571002B4862 /* Network */ = {
 			isa = PBXGroup;
 			children = (
-				2F8C57B42B77B448002B4862 /* UserDefaults.swift */,
 				2F8C57A22B76884B002B4862 /* APIConstants.swift */,
 				2F8C57A82B7693C6002B4862 /* NetworkResult.swift */,
 				893DF7D52B7B974200B09573 /* BaseEndpoint.swift */,
 				893DF7D72B7B979700B09573 /* URLSetting.swift */,
+				2F9D0ECB2C0DD21300C9C859 /* Const.swift */,
 			);
 			path = Network;
 			sourceTree = "<group>";
@@ -733,10 +736,10 @@
 				AF4403402B63EA3F006B68FE /* ChallengeListViewController.swift */,
 				2FAB99FC2B72C9F000853BF7 /* ChallengeDetailViewController.swift */,
 				2FAB99FE2B72CA1400853BF7 /* JoinChallengeViewController.swift */,
-				AF4403422B66B0F6006B68FE /* RegisterCompleteViewController.swift */,
-				AF4403462B6A2E34006B68FE /* RegisterSecondViewController.swift */,
 				AF4403442B66B11E006B68FE /* RegisterFirstViewController.swift */,
+				AF4403462B6A2E34006B68FE /* RegisterSecondViewController.swift */,
 				AF4403482B6ABA5E006B68FE /* RegisterThirdViewController.swift */,
+				AF4403422B66B0F6006B68FE /* RegisterCompleteViewController.swift */,
 				AF44034D2B6D3A76006B68FE /* RegisterModalViewController.swift */,
 				AFDE65EA2B7249C30041D2D0 /* RegisterCertifyViewController.swift */,
 				AFDE65EC2B728FAF0041D2D0 /* RegisterCertifyModalViewController.swift */,
@@ -949,7 +952,6 @@
 				AF44034E2B6D3A76006B68FE /* RegisterModalViewController.swift in Sources */,
 				AF44033F2B63E4CD006B68FE /* ChallengeListCollectionViewCell.swift in Sources */,
 				AF4403472B6A2E34006B68FE /* RegisterSecondViewController.swift in Sources */,
-				2F8C57B52B77B448002B4862 /* UserDefaults.swift in Sources */,
 				AF64A4392B7E89060055D5B9 /* ChallengeCertifySingleton.swift in Sources */,
 				2F8C57B02B777643002B4862 /* String+.swift in Sources */,
 				2F7A66A12B81BC80008010C6 /* SearchService.swift in Sources */,
@@ -966,6 +968,7 @@
 				AF4403302B63DDE0006B68FE /* CategoryKeyword.swift in Sources */,
 				8963CD182B6B918B0072440E /* PointViewController.swift in Sources */,
 				8963CD162B6B7CDA0072440E /* LikeViewController.swift in Sources */,
+				2F9D0EC82C0DCE8900C9C859 /* KeyChain.swift in Sources */,
 				89A08A332B656156009263F5 /* MyChallengeViewController.swift in Sources */,
 				2F7A668F2B81BAEF008010C6 /* SearchResultViewController.swift in Sources */,
 				2FAB99FF2B72CA1400853BF7 /* JoinChallengeViewController.swift in Sources */,
@@ -1048,6 +1051,7 @@
 				AF4403412B63EA3F006B68FE /* ChallengeListViewController.swift in Sources */,
 				2F8C57A92B7693C6002B4862 /* NetworkResult.swift in Sources */,
 				2F0838822B564085002E2551 /* SceneDelegate.swift in Sources */,
+				2F9D0ECC2C0DD21300C9C859 /* Const.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -73,11 +73,10 @@ class RegisterCompleteViewController: UIViewController {
     }()
     
     var completeChallengeId : Int? = nil
-
+    
     // MARK: - lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         view.backgroundColor = .white
         
         setLayout()
@@ -86,12 +85,35 @@ class RegisterCompleteViewController: UIViewController {
     // MARK: - actions
     // 게시물 확인하기 버튼이 눌렸을 때 - 챌린지 세부화면(DetailVC)으로 이동
     @objc func toDetailButtonClicked() {
-        print("게시물 확인하기")
-        let nextVC = JoinChallengeViewController()
-        nextVC.joinChallengeId = completeChallengeId
-        nextVC.hidesBottomBarWhenPushed = true
-        navigationController?.pushViewController(nextVC, animated: true)
+        // 게시물 확인을 위해 TabBarViewController로 이동
+        print("게시물 확인")
+        
+        if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate, let window = sceneDelegate.window {
+            let mainVC = TabBarViewController()
+            
+            // JoinChallengeViewController 생성 및 설정
+            let nextVC = JoinChallengeViewController()
+            nextVC.joinChallengeId = self.completeChallengeId
+            nextVC.hidesBottomBarWhenPushed = true
+            
+            // 화면 전환
+            UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: {
+                window.rootViewController = mainVC
+            }, completion: { _ in
+                // TabBarViewController가 로드된 후 원하는 탭으로 이동하여 JoinChallengeViewController를 푸시
+                DispatchQueue.main.async {
+                    // 원하는 탭 설정, 여기서는 홈 탭으로 가정
+                    mainVC.selectedIndex = 1
+                    
+                    if let navController = mainVC.selectedViewController as? UINavigationController {
+                        // JoinChallengeViewController를 네비게이션 컨트롤러에 푸시
+                        navController.pushViewController(nextVC, animated: true)
+                    }
+                }
+            })
+        }
     }
+
     
     // 홈으로 버튼이 눌렸을 때 - 홈(HomeMainVC)으로 이동
     @objc func toHomeButtonClicked() {

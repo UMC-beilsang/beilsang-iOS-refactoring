@@ -9,32 +9,28 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         window = UIWindow(windowScene: windowScene)
-        if let accessToken = UserDefaults.standard.string(forKey: UserDefaultsKey.serverToken) {
-            // existmember 확인
-            if UserDefaults.standard.bool(forKey: UserDefaultsKey.existMember) {
-                let mainVC = TabBarViewController()
-                self.window?.rootViewController = mainVC
-                self.window?.makeKeyAndVisible()
-                print("accessToken: \(accessToken)")
-                let refreshToken = UserDefaults.standard.string(forKey: UserDefaultsKey.refreshToken)!
-                print("refreshToken: \(refreshToken)")
-                print("found access Token")
-            } else {
-                // 가입 절차 거치지 않은 유저
-                let keywordVC = UINavigationController(rootViewController: KeywordViewController())
-                self.window?.rootViewController = keywordVC
-                self.window?.makeKeyAndVisible()
-                print("No exist member")
-            }
-        } else {
-            // 액세스 토큰이 없으면 로그인 화면으로 이동
-            let mainVC = LoginViewController()
+        // 앱이 처음 실행되었는지 확인
+        let firstLaunch = UserDefaults.standard.bool(forKey: Const.UserDefaultsKey.firshLaunch)
+        if firstLaunch == false {
+            // 첫 실행이면, UserDefaults의 FirstLaunch를 true로 설정하고 모든 키체인 항목 삭제
+            UserDefaults.standard.set(true, forKey: Const.UserDefaultsKey.firshLaunch)
+            KeyChain.delete(key: Const.KeyChainKey.serverToken)
+            KeyChain.delete(key: Const.KeyChainKey.refreshToken)
+        }
+        
+        if KeyChain.read(key: Const.KeyChainKey.serverToken) != nil{
+            // 로그인 상태 확인 로직
+            let mainVC = TabBarViewController()
             self.window?.rootViewController = mainVC
-            self.window?.makeKeyAndVisible()
-            print("Not found access Token")
+        } else {
+            // 로그인 화면으로 이동
+            print("No access Token, firsth Launch.")
+            let loginVC = LoginViewController()
+            self.window?.rootViewController = loginVC
         }
         window?.makeKeyAndVisible()
     }
+    
     func changeRootViewController(_ newRootViewController: UIViewController) {
         guard let window = self.window else { return }
         UIView.transition(with: window, duration: 0.5, options: .transitionCrossDissolve, animations: {

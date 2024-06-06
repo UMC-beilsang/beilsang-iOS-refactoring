@@ -192,7 +192,7 @@ extension LoginViewController {
                         self.kakaoName = name
                         self.kakaoEmail = email
                         //서버에 보내주기
-                        self.kakaologinToServer(with: token, deviceToken: UserDefaults.standard.string(forKey: UserDefaultsKey.deviceToken))
+                        self.kakaologinToServer(with: token, deviceToken: UserDefaults.standard.string(forKey: Const.UserDefaultsKey.deviceToken))
                     }
                 }
             }
@@ -220,7 +220,7 @@ extension LoginViewController {
                         }
                         
                         self.kakaoAccessToken = token
-                        self.kakaologinToServer(with: token, deviceToken: UserDefaultsKey.deviceToken)
+                        self.kakaologinToServer(with: token, deviceToken: Const.UserDefaultsKey.deviceToken)
                     }
                 }
             }
@@ -250,7 +250,7 @@ extension LoginViewController : ASAuthorizationControllerDelegate, ASAuthorizati
                let identityTokenData = appleIDCredential.identityToken,
                let identityToken = String(data: identityTokenData, encoding: .utf8) {
                 //authorizationCode 저장
-                UserDefaults.standard.set(authorizationCode, forKey:"authorizationCode")
+                KeyChain.create(key: Const.KeyChainKey.authorizationCode, token: authorizationCode)
                 
                 print("authorizationCode: \(authorizationCode)")
                 print("identityToken: \(identityToken)")
@@ -267,7 +267,7 @@ extension LoginViewController : ASAuthorizationControllerDelegate, ASAuthorizati
 //                    }
 //                }
                 
-                self.appleloginToServer(with: identityToken, deviceToken: UserDefaults.standard.string(forKey: UserDefaultsKey.deviceToken))
+                self.appleloginToServer(with: identityToken, deviceToken: UserDefaults.standard.string(forKey: Const.UserDefaultsKey.deviceToken))
             }
         default:
             break
@@ -295,13 +295,15 @@ extension LoginViewController {
                 print("Kakao login to server success with data: \(data)")
                 
                 //서버에서 보내준 accessToken,refreshToken, existMember 저장
-                UserDefaults.standard.set(data.data.accessToken, forKey: "serverToken")
-                UserDefaults.standard.set(data.data.refreshToken, forKey: "refreshToken")
-                UserDefaults.standard.set(data.data.existMember, forKey: "existMember")
-                UserDefaults.standard.set("kakao", forKey: "socialType")
+                KeyChain.create(key: Const.KeyChainKey.serverToken, token: data.data.accessToken)
+                KeyChain.create(key: Const.KeyChainKey.refreshToken, token: data.data.refreshToken)
+//                UserDefaults.standard.set(data.data.accessToken, forKey: "serverToken")
+//                UserDefaults.standard.set(data.data.refreshToken, forKey: "refreshToken")
+                UserDefaults.standard.set(data.data.existMember, forKey: Const.UserDefaultsKey.existMember)
+                UserDefaults.standard.set("kakao", forKey: Const.UserDefaultsKey.socialType)
                 
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { // 1초 딜레이
-                    if UserDefaults.standard.bool(forKey: UserDefaultsKey.existMember) {
+                    if UserDefaults.standard.bool(forKey: Const.UserDefaultsKey.existMember) {
                         self.presentTo(name: "main")
                     } else {
                         self.presentTo(name: "keyword")
@@ -331,14 +333,16 @@ extension LoginViewController {
                 
                 print("Apple login to server success with data: \(data)")
                 
-                UserDefaults.standard.set(data.data.accessToken, forKey: "serverToken")
-                UserDefaults.standard.set(data.data.refreshToken, forKey: "refreshToken")
-                UserDefaults.standard.set(data.data.existMember, forKey: "existMember")
-                UserDefaults.standard.set("apple", forKey: "socialType")
+                KeyChain.create(key: Const.KeyChainKey.serverToken, token: data.data.accessToken)
+                KeyChain.create(key: Const.KeyChainKey.refreshToken, token: data.data.refreshToken)
+                //                UserDefaults.standard.set(data.data.accessToken, forKey: "serverToken")
+                //                UserDefaults.standard.set(data.data.refreshToken, forKey: "refreshToken")
+                UserDefaults.standard.set(data.data.existMember, forKey: Const.UserDefaultsKey.existMember)
+                UserDefaults.standard.set("apple", forKey: Const.UserDefaultsKey.socialType)
                 //클라이언트 시크릿 받아서 유저디폴트에 저장
                 
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { // 1초 딜레이
-                    if UserDefaults.standard.bool(forKey: UserDefaultsKey.existMember) {
+                    if UserDefaults.standard.bool(forKey: Const.UserDefaultsKey.existMember) {
                         self.presentTo(name: "main")
                     } else {
                         self.presentTo(name: "keyword")

@@ -1083,8 +1083,8 @@ class UserInfoViewController: UIViewController {
     //MARK: - SignUpData parsing
     func SignUpDataParse() {
         SignUpData.shared.nickName = nameField.text ?? ""
-        UserDefaults.standard.setValue(nameField.text, forKey: UserDefaultsKey.memberId)
-        print(UserDefaults.standard.string(forKey: UserDefaultsKey.memberId)!)
+        UserDefaults.standard.setValue(nameField.text, forKey: Const.UserDefaultsKey.memberId)
+        print(UserDefaults.standard.string(forKey: Const.UserDefaultsKey.memberId)!)
         
         if let formattedBirth = formatDate(dateString: birthField.text ?? ""){
             SignUpData.shared.birth = formattedBirth

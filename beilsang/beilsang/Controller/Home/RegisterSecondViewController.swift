@@ -578,8 +578,9 @@ class RegisterSecondViewController: UIViewController, UIScrollViewDelegate, UIVi
     @objc func beforeButtonClicked() {
         print("이전")
         
-        let beforeVC = RegisterFirstViewController()
-        navigationController?.pushViewController(beforeVC, animated: true)
+        navigationController?.popViewController(animated: true)
+//        let beforeVC = RegisterFirstViewController()
+//        navigationController?.pushViewController(beforeVC, animated: true)
     }
     
     @objc func nextButtonClicked() {
@@ -936,7 +937,7 @@ extension RegisterSecondViewController: UIImagePickerControllerDelegate, UINavig
             
             detailFieldAlertImage.isHidden = false
             detailFieldAlertLabel.isHidden = false
-            detailFieldAlertLabel.text = "유의사항은 20자 이상이어야 합니다."
+            detailFieldAlertLabel.text = "세부 설명은 20자 이상이어야 합니다."
             
             isNext[0] = false
         } else if updatedText.count > 80 {
@@ -946,7 +947,7 @@ extension RegisterSecondViewController: UIImagePickerControllerDelegate, UINavig
             
             detailFieldAlertImage.isHidden = false
             detailFieldAlertLabel.isHidden = false
-            detailFieldAlertLabel.text = "유의사항은 80자를 넘을 수 없습니다."
+            detailFieldAlertLabel.text = "세부 설명은 80자를 넘을 수 없습니다."
             
             isNext[0] = false
             
