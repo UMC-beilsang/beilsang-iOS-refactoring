@@ -50,7 +50,11 @@ class ChallengeService {
                                 completionHandler(reResponse)
                             }
                         }
+                    case 500:
+                        print("추천 챌린지 없음")
+
                     default : print("네트워크 fail")
+    
                     }
                     
                     print(error)

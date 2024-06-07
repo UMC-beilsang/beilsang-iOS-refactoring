@@ -614,6 +614,12 @@ extension MyPageViewController: UICollectionViewDataSource, UICollectionViewDele
 extension MyPageViewController{
     private func setNavigationBar() {
         self.navigationItem.titleView = attributeTitleView()
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = UIColor.white // 원하는 배경색 설정
+        
+        navigationController?.navigationBar.standardAppearance = appearance
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
         setBackButton()
         
     }
@@ -648,22 +654,27 @@ extension MyPageViewController {
     @objc func edit() {
         let accountInfoVC = AccountInfoViewController()
         accountInfoVC.nameField.attributedPlaceholder = NSAttributedString(string: nameLabel.layer.name ?? "2~8자 이내로 입력해 주세요")
+        accountInfoVC.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(accountInfoVC, animated: true)
     }
     @objc func challenge() {
         let myChallengeVC = MyChallengeViewController()
+        myChallengeVC.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(myChallengeVC, animated: true)
     }
     @objc func like() {
         let likeVC = LikeViewController()
+        likeVC.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(likeVC, animated: true)
     }
     @objc func point() {
         let pointVC = PointViewController()
+        pointVC.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(pointVC, animated: true)
     }
     @objc func challengeFeed() {
         let myChallengeFeedVC = MyChallengeFeedViewController()
+        myChallengeFeedVC.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(myChallengeFeedVC, animated: true)
     }
 }

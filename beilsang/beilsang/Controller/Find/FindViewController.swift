@@ -455,6 +455,12 @@ extension FindViewController {
 extension FindViewController{
     private func setNavigationBar() {
         self.navigationItem.titleView = attributeTitleView()
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = UIColor.white // 원하는 배경색 설정
+        
+        navigationController?.navigationBar.standardAppearance = appearance
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
         setBackButton()
     }
     private func attributeTitleView() -> UIView {
@@ -479,6 +485,7 @@ extension FindViewController{
     @objc func tabBarButtonTapped() {
         print("알림버튼")
         let notificationVC = NotificationViewController()
+        notificationVC.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(notificationVC, animated: true)
     }
 }
@@ -638,6 +645,7 @@ extension FindViewController: UICollectionViewDataSource, UICollectionViewDelega
             
             let challengeDetailVC = ChallengeDetailViewController()
             challengeDetailVC.detailChallengeId = cell.challengeId
+            challengeDetailVC.hidesBottomBarWhenPushed = true
             navigationController?.pushViewController(challengeDetailVC, animated: true)
         case challengeFeedBoxCollectionView:
             // 챌린지 피드 선택
@@ -807,6 +815,7 @@ extension FindViewController: CustomFeedCellDelegate {
     func didTapRecommendButton(id: Int) {
         let challengeDetailVC = ChallengeDetailViewController()
         challengeDetailVC.detailChallengeId = id
+        challengeDetailVC.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(challengeDetailVC, animated: true)
     }
     // 피드 상세정보 보기 request

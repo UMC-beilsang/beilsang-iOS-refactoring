@@ -45,7 +45,7 @@ class JoinChallengeViewController: UIViewController {
     
     lazy var reportLabel: UILabel = {
         let view = UILabel()
-        view.text = "해당 인증 사진을 신고하는 게 맞을까요? \n 신고시 본 챌린저는 챌린지 실패로 처리됩니다"
+        view.text = "해당 챌린지의 신고 사유가 무엇인가요? \n 하단 링크를 통해 알려 주세요!"
         view.font = UIFont(name: "NotoSansKR-Medium", size: 12)
         view.numberOfLines = 2
         view.textColor = .beTextInfo
@@ -88,7 +88,7 @@ class JoinChallengeViewController: UIViewController {
     
     lazy var menu: UIMenu = {
         let menuAction = UIAction(title: "신고하기", image: nil, identifier: nil, discoverabilityTitle: nil, attributes: [], state: .off) { action in
-            self.alertViewResponder = self.reportAlert.showInfo("챌린지 인증 신고하기")
+            self.alertViewResponder = self.reportAlert.showInfo("해당 챌린지 신고하기")
         }
         
         return UIMenu(title: "", options: [], children: [menuAction])
@@ -875,6 +875,7 @@ extension JoinChallengeViewController {
             
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "yyyy-MM-dd"
+            dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
             
             if let date = dateFormatter.date(from: response.data.startDate) {
                 // 서버에서 넘겨준 startDate를 오늘 날짜와 비교
@@ -883,7 +884,7 @@ extension JoinChallengeViewController {
                 if result == .orderedAscending {
                     self.notStartedLabel.text = "아직 챌린지가 시작되지 않았어요👀"
                 } else {
-                    self.notStartedLabel.text = "아직 인증 갤러리 피드가 없어요👀"
+                    self.notStartedLabel.text = "아직 인증 피드가 없어요👀"
                 }
             }
         }

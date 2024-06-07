@@ -402,6 +402,7 @@ extension MyChallengeViewController: UICollectionViewDataSource, UICollectionVie
             
             let challengeDetailVC = JoinChallengeViewController()
             challengeDetailVC.joinChallengeId = cell.challengeListChallengeId
+            challengeDetailVC.hidesBottomBarWhenPushed = true
             navigationController?.pushViewController(challengeDetailVC, animated: true)
         default:
             return
