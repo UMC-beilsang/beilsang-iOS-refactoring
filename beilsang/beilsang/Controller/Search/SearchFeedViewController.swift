@@ -435,10 +435,12 @@ extension SearchFeedViewController: UICollectionViewDataSource, UICollectionView
             if isEnrolled {
                 let nextVC = JoinChallengeViewController()
                 nextVC.joinChallengeId = challengeId
+                nextVC.hidesBottomBarWhenPushed = true
                 navigationController?.pushViewController(nextVC, animated: true)
             } else {
                 let nextVC = ChallengeDetailViewController()
                 nextVC.detailChallengeId = challengeId
+                nextVC.hidesBottomBarWhenPushed = true
                 navigationController?.pushViewController(nextVC, animated: true)
             }
         }

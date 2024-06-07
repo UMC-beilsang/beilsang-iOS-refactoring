@@ -409,7 +409,7 @@ class MyPageService {
             "Content-Type": "application/json",
             "accept": "*/*"
         ]
-        let body: Parameters = ["accessToken": accessToken]
+        let body: Parameters = ["accesstoken": accessToken]
         
         let url = APIConstants.kakaoWithDrawURL
         print(url)
@@ -443,7 +443,7 @@ class MyPageService {
     func DeleteAppleWithDraw(completionHandler: @escaping (_ data: WithDrawResponse) -> Void) {
         let accessToken = KeyChain.read(key: Const.KeyChainKey.serverToken)!
         let refreshToken = KeyChain.read(key: Const.KeyChainKey.refreshToken)!
-        let authorizationCode = KeyChain.read(key: Const.KeyChainKey.authorizationCode)
+        let authorizationCode = KeyChain.read(key: Const.KeyChainKey.authorizationCode)!
         
         let headers: HTTPHeaders = [
             "Content-Type": "application/json",
@@ -451,7 +451,7 @@ class MyPageService {
         ]
         
         let body: Parameters = ["accessToken": accessToken,
-                                "authorizationCode": authorizationCode ]
+                                "authorizationCode": authorizationCode]
         
         let url = APIConstants.appleWithDrawURL
         print(url)

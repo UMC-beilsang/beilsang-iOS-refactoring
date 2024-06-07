@@ -8,6 +8,7 @@
 import SnapKit
 import UIKit
 import Kingfisher
+import SCLAlertView
 
 // [홈] 챌린지 리스트
 // 홈 메인 화면에서 카테고리를 누른 경우
@@ -17,6 +18,92 @@ class ChallengeListViewController: UIViewController, UIScrollViewDelegate {
     // 전체 화면 scrollview
     let fullScrollView = UIScrollView()
     let fullContentView = UIView()
+    
+    var pointAlertViewResponder: SCLAlertViewResponder? = nil
+    
+    //포인트 없음 팝업
+    lazy var pointAlert: SCLAlertView = {
+        
+        let apperance = SCLAlertView.SCLAppearance(
+            kWindowWidth: 342, kWindowHeight : 272,
+            kTitleFont: UIFont(name: "NotoSansKR-SemiBold", size: 18)!,
+            kTextFont: UIFont(name: "NotoSansKR-Regular", size: 14)!,
+            kButtonFont: UIFont(name: "NotoSansKR-Medium", size: 14)!,
+            showCloseButton: false,
+            showCircularIcon: false,
+            dynamicAnimatorActive: false
+        )
+        let alert = SCLAlertView(appearance: apperance)
+        
+        return alert
+    }()
+    
+    lazy var pointAlertSubView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .white
+        
+        return view
+    }()
+    
+    lazy var pointAlertLabel: UILabel = {
+        let view = UILabel()
+        view.text = "챌린지를 만들 수 있는 최소 포인트가 부족해요🤔 \n 다른 챌린지에 참여하고 포인트를 쌓아봐요!"
+        view.font = UIFont(name: "NotoSansKR-Medium", size: 12)
+        view.numberOfLines = 2
+        view.textColor = .beTextInfo
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.textAlignment = .center
+        
+        return view
+    }()
+    
+    lazy var pointBox: UIView = {
+        let view = UIView()
+        view.backgroundColor = .beBgSub
+        view.layer.cornerRadius = 4
+        return view
+    }()
+    
+    lazy var pointLabel1: UILabel = {
+        let label = UILabel()
+        label.textAlignment = .center
+        label.text = "현재 포인트"
+        label.font = UIFont(name: "NotoSansKR-Medium", size: 12)
+        label.textColor = .beTextInfo
+        return label
+    }()
+    
+    lazy var pointLabel2: UILabel = {
+        let label = UILabel()
+        label.textAlignment = .center
+        label.font = UIFont(name: "NotoSansKR-Regular", size: 11)
+        label.text = ""
+        label.textColor = .beTextInfo
+        return label
+    }()
+    
+    lazy var pointAlertCloseButton : UIButton = {
+        let button = UIButton()
+        button.backgroundColor = .beBgSub
+        button.setTitleColor(.beTextEx, for: .normal)
+        button.setTitle("닫기", for: .normal)
+        button.titleLabel?.font = UIFont(name: "NotoSansKR-Medium", size: 14)
+        button.layer.cornerRadius = 10
+        button.addTarget(self, action: #selector(close), for: .touchUpInside)
+        
+        return button
+    }()
+    
+    lazy var pointAlertHomeButton : UIButton = {
+        let button = UIButton()
+        button.backgroundColor = .beScPurple600
+        button.setTitleColor(.white, for: .normal)
+        button.setTitle("홈으로", for: .normal)
+        button.titleLabel?.font = UIFont(name: "NotoSansKR-Medium", size: 14)
+        button.layer.cornerRadius = 10
+        button.addTarget(self, action: #selector(home), for: .touchUpInside)
+        return button
+    }()
     
     // topview - navigation
     lazy var navigationButton: UIBarButtonItem = {
@@ -112,9 +199,7 @@ class ChallengeListViewController: UIViewController, UIScrollViewDelegate {
     
     @objc func plusButtonClicked() {
         print("플러스 버튼")
-        let registerChallengeVC = RegisterFirstViewController()
-        registerChallengeVC.hidesBottomBarWhenPushed = true
-        navigationController?.pushViewController(registerChallengeVC, animated: true)
+        checkPoint()
     }
     
     @objc func searchButtonClicked() {
@@ -129,6 +214,21 @@ class ChallengeListViewController: UIViewController, UIScrollViewDelegate {
         challengeTipVC.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(challengeTipVC, animated: true)
     }
+    
+    @objc func close(){
+        pointAlertViewResponder?.close()
+    }
+    
+    @objc func home(){
+        if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate, let window = sceneDelegate.window {
+            let mainVC = TabBarViewController()
+            UIView.transition(with: window, duration: 1.5, options: .transitionCrossDissolve, animations: {
+                window.rootViewController = mainVC
+            }, completion: nil)
+        }
+        pointAlertViewResponder?.close()
+    }
+
 }
 
 // MARK: - Layout
@@ -164,6 +264,11 @@ extension ChallengeListViewController {
         
         [topViewBorder, challengeTipButton, challengeCollectionView].forEach { view in
             fullContentView.addSubview(view)
+        }
+        
+        pointAlert.customSubview = pointAlertSubView
+        [pointAlertLabel, pointAlertCloseButton, pointAlertHomeButton, pointBox, pointLabel1, pointLabel2].forEach { view in
+            pointAlertSubView.addSubview(view)
         }
     }
     
@@ -215,6 +320,48 @@ extension ChallengeListViewController {
             make.trailing.equalTo(fullScrollView.snp.trailing)
             make.bottom.equalTo(fullScrollView.snp.bottom)
         }
+        
+        // 포인트 팝업
+        pointAlertSubView.snp.makeConstraints{ make in
+            make.width.equalTo(318)
+            make.height.equalTo(200)
+        }
+        
+        pointBox.snp.makeConstraints { make in
+            make.width.equalTo(280)
+            make.height.equalTo(64)
+            make.centerX.equalTo(pointAlertSubView.snp.centerX)
+            make.top.equalToSuperview()
+        }
+        
+        pointLabel1.snp.makeConstraints { make in
+            make.top.equalTo(pointBox.snp.top).offset(14)
+            make.centerX.equalToSuperview()
+        }
+        
+        pointLabel2.snp.makeConstraints { make in
+            make.top.equalTo(pointLabel1.snp.bottom)
+            make.centerX.equalToSuperview()
+        }
+        
+        pointAlertLabel.snp.makeConstraints { make in
+            make.top.equalTo(pointBox.snp.bottom).offset(16)
+            make.centerX.equalToSuperview()
+        }
+        
+        pointAlertCloseButton.snp.makeConstraints { make in
+            make.width.equalTo(156)
+            make.height.equalTo(48)
+            make.trailing.equalTo(pointAlertSubView.snp.centerX).offset(-3)
+            make.top.equalTo(pointAlertLabel.snp.bottom).offset(28)
+        }
+        
+        pointAlertHomeButton.snp.makeConstraints { make in
+            make.width.equalTo(156)
+            make.height.equalTo(48)
+            make.leading.equalTo(pointAlertSubView.snp.centerX).offset(3)
+            make.centerY.equalTo(pointAlertCloseButton)
+        }
     }
 }
 
@@ -241,6 +388,25 @@ extension ChallengeListViewController {
                 self.fullContentViewHeightUpdate()
             }
         }
+    }
+    
+    public func checkPoint() {
+        MyPageService.shared.getPoint(baseEndPoint: .mypage, addPath: "/points"){
+            response in
+            if response.data.total < 100 {
+                self.pointAlertUp()
+                self.pointLabel2.text = String(response.data.total)
+            }
+            else{
+                let registerChallengeVC = RegisterFirstViewController()
+                registerChallengeVC.hidesBottomBarWhenPushed = true
+                self.navigationController?.pushViewController(registerChallengeVC, animated: true)
+            }
+        }
+    }
+    
+    func pointAlertUp() {
+        pointAlertViewResponder = pointAlert.showInfo("포인트 부족")
     }
     
     //fullScrollView 높이 업데이트

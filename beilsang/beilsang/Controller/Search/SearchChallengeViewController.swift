@@ -443,6 +443,7 @@ extension SearchChallengeViewController: UICollectionViewDataSource, UICollectio
             let challengeId = challengeList[indexPath.row].challengeId
             let challengeDetailVC = ChallengeDetailViewController()
             challengeDetailVC.detailChallengeId = challengeId
+            challengeDetailVC.hidesBottomBarWhenPushed = true
             self.navigationController?.pushViewController(challengeDetailVC, animated: true)
         }
         else if collectionView == recommendCollectionView {
@@ -457,10 +458,12 @@ extension SearchChallengeViewController: UICollectionViewDataSource, UICollectio
             if isEnrolled {
                 let nextVC = JoinChallengeViewController()
                 nextVC.joinChallengeId = challengeId
+                nextVC.hidesBottomBarWhenPushed = true
                 navigationController?.pushViewController(nextVC, animated: true)
             } else {
                 let nextVC = ChallengeDetailViewController()
                 nextVC.detailChallengeId = challengeId
+                nextVC.hidesBottomBarWhenPushed = true
                 navigationController?.pushViewController(nextVC, animated: true)
             }
         }

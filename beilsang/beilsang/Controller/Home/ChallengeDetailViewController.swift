@@ -242,7 +242,7 @@ class ChallengeDetailViewController: UIViewController {
     
     lazy var menu: UIMenu = {
         let menuAction = UIAction(title: "신고하기", image: nil, identifier: nil, discoverabilityTitle: nil, attributes: [], state: .off) { action in
-            self.alertViewResponder = self.reportAlert.showInfo("챌린지 인증 신고하기")
+            self.alertViewResponder = self.reportAlert.showInfo("해당 챌린지 신고하기")
         }
         
         return UIMenu(title: "", options: [], children: [menuAction])
@@ -1153,8 +1153,7 @@ class ChallengeDetailViewController: UIViewController {
     }
     
     @objc func popJoinButtonTapped() {
-        print("참여해벌임")
-        
+        print("참여")
         participatePost()
         
         alertViewResponder?.close()
@@ -1343,11 +1342,12 @@ extension ChallengeDetailViewController {
             self.challenegeParticipateMember = response.data.memberDTO
             print(response)
             
-            let challengeId = response.data.challengePreviewDTO.challengeId
-            let joinVC = JoinChallengeViewController()
-            joinVC.joinChallengeId = challengeId
-            joinVC.hidesBottomBarWhenPushed = true
-            self.navigationController?.pushViewController(joinVC, animated: true)
+            if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate, let window = sceneDelegate.window {
+                let mainVC = TabBarViewController()
+                UIView.transition(with: window, duration: 1.5, options: .transitionCrossDissolve, animations: {
+                    window.rootViewController = mainVC
+                }, completion: nil)
+            }
         }
     }
 }

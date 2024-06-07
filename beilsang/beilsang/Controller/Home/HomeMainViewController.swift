@@ -82,10 +82,7 @@ class HomeMainViewController: UIViewController, UIScrollViewDelegate {
     }()
     
     // participatingChallengeView - before
-    let mainBeforeVC = MainBeforeViewController()
-    
-    // participatingChallengeView - after
-    let mainAfterVC = MainAfterViewController()
+    let mainChallengeVC = MainChallengeViewController()
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -95,7 +92,6 @@ class HomeMainViewController: UIViewController, UIScrollViewDelegate {
         
         setupAttribute()
         setNavigationBar()
-        setChallengeStatus()
         setCollectionView()
     }
     
@@ -108,8 +104,6 @@ extension HomeMainViewController {
         setFullScrollView()
         setAddViews()
         setLayout()
-        setUI()
-        
         setupPageView()
         setAddChild()
     }
@@ -125,17 +119,10 @@ extension HomeMainViewController {
     
     func setAddChild() {
         addChild(pageViewController)
-        addChild(mainBeforeVC)
-        addChild(mainAfterVC)
+        addChild(mainChallengeVC)
         
         pageViewController.didMove(toParent: self)
-        mainBeforeVC.didMove(toParent: self)
-        mainAfterVC.didMove(toParent: self)
-    }
-    
-    func setUI() {
-        mainBeforeVC.view.isHidden = true
-        mainAfterVC.view.isHidden = true
+        mainChallengeVC.didMove(toParent: self)
     }
     
     func setFullScrollView() {
@@ -145,11 +132,10 @@ extension HomeMainViewController {
     
     func setAddViews() {
         view.addSubview(fullScrollView)
-//        view.addSubview(topView)
         
         fullScrollView.addSubview(fullContentView)
         
-        [pageViewController.view, pageControl, categoryCollectionView, borderline, mainBeforeVC.view, mainAfterVC.view].forEach { view in
+        [pageViewController.view, pageControl, categoryCollectionView, borderline, mainChallengeVC.view].forEach { view in
             fullContentView.addSubview(view)
         }
         
@@ -160,7 +146,6 @@ extension HomeMainViewController {
     
     func setLayout() {
         fullScrollView.snp.makeConstraints { make in
-//            make.top.equalTo(topView.snp.bottom)
             make.top.bottom.leading.trailing.equalToSuperview()
         }
         
@@ -207,16 +192,10 @@ extension HomeMainViewController {
             make.height.equalTo(8)
         }
         
-        mainBeforeVC.view.snp.makeConstraints { make in
+        mainChallengeVC.view.snp.makeConstraints { make in
             make.top.equalTo(borderline.snp.bottom)
             make.width.equalTo(fullScrollView.snp.width)
-            make.height.equalTo(235)
-        }
-        
-        mainAfterVC.view.snp.makeConstraints { make in
-            make.top.equalTo(borderline.snp.bottom)
-            make.width.equalTo(fullScrollView.snp.width)
-            make.height.equalTo(456)
+            make.height.equalTo(500)
             make.bottom.equalToSuperview()
         }
     }
@@ -226,6 +205,12 @@ extension HomeMainViewController {
 extension HomeMainViewController{
     private func setNavigationBar() {
         self.navigationItem.titleView = attributeTitleView()
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = UIColor.white // 원하는 배경색 설정
+        
+        navigationController?.navigationBar.standardAppearance = appearance
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
         setBackButton()
     }
     private func attributeTitleView() -> UIView {
@@ -248,6 +233,7 @@ extension HomeMainViewController{
     @objc func tabBarNotiButtonTapped() {
         print("알림버튼")
         let notificationVC = NotificationViewController()
+        notificationVC.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(notificationVC, animated: true)
     }
     // 사이드 버튼 액션 - 검색
@@ -256,25 +242,6 @@ extension HomeMainViewController{
         let searchVC = SearchViewController()
         searchVC.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(searchVC, animated: true)
-    }
-}
-
-// MARK: - network
-extension HomeMainViewController {
-    func setChallengeStatus() {
-        ChallengeService.shared.challengeCategoriesEnrolled { response in
-            let isEnrolled = !(response.data?.challenges.challenges.isEmpty ?? true)
-            print(isEnrolled)
-            self.setChallengeParticipate(isEnrolled: isEnrolled)
-        }
-    }
-    
-    func setChallengeParticipate(isEnrolled: Bool) {
-        if isEnrolled {
-            mainAfterVC.view.isHidden = false
-        } else {
-            mainBeforeVC.view.isHidden = false
-        }
     }
 }
 

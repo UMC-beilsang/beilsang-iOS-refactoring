@@ -1,21 +1,23 @@
 //
-//  MainAfterViewController.swift
+//  MainChallengeViewController.swift
 //  beilsang
 //
-//  Created by 곽은채 on 1/26/24.
+//  Created by Seyoung on 6/6/24.
 //
 
-import SnapKit
 import UIKit
+import SnapKit
 import Kingfisher
 
 // [홈] 메인화면
-// 카테고리 하단의 서비스 이용 후 화면(참여 중인 챌린지, 앤님을 위해 준비한 챌린지)
-class MainAfterViewController: UIViewController {
+class MainChallengeViewController: UIViewController {
     
     // MARK: - properties
-    // "참여 중인 챌린지" 레이블
-    lazy var participatingChallenge: UILabel = {
+    var challengeRecommendData : [ChallengeRecommendsData] = []
+    var challengeJoinData : [ChallengeJoinTwoData] = []
+    
+    // 참여중인 챌린지
+    lazy var participatingChallengeLabel: UILabel = {
         let view = UILabel()
         
         view.text = "참여 중인 챌린지💪"
@@ -26,7 +28,34 @@ class MainAfterViewController: UIViewController {
         return view
     }()
     
-    // "전체 보기" 버튼
+    // 참여중인 챌린지가 없는 경우
+    lazy var notParticipatingLabel: UILabel = {
+        let view = UILabel()
+        
+        view.text = "아직 참여중인 챌린지가 없어요👀"
+        view.textAlignment = .center
+        view.textColor = .beTextInfo
+        view.font = UIFont(name: "Noto Sans KR", size: 12)
+        
+        return view
+    }()
+    
+    lazy var participateChallengeButton: UIButton = {
+        let view = UIButton()
+        
+        view.layer.borderWidth = 1
+        view.layer.borderColor = UIColor.beBgDiv.cgColor
+        view.setTitle("챌린지 참여하러 가기", for: .normal)
+        view.setTitleColor(.beTextDef, for: .normal)
+        view.titleLabel?.font = UIFont(name: "Noto Sans KR", size: 14)
+        view.contentHorizontalAlignment = .center
+        view.layer.cornerRadius = 20
+        view.addTarget(self, action: #selector(challengeButtonClicked), for: .touchUpInside)
+        
+        return view
+    }()
+    
+    // 참여 중인 챌린지가 있는 경우
     lazy var viewAllButton: UIButton = {
         let view = UIButton()
         
@@ -41,13 +70,10 @@ class MainAfterViewController: UIViewController {
         return view
     }()
     
-    // 참여 중 챌린지 콜렉션 뷰
     lazy var challengeParticipatingCollectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
-  
-    // oo님을 위해 준비한 챌린지 - oo
-    // var username = UserDefaults.standard.string(forKey: UserDefaultsKey.memberId)
-    // oo님을 위해 준비한 챌린지 - 레이블
-    lazy var recommendChallenge: UILabel = {
+    
+    //추천 챌린지
+    lazy var recommendChallengeLabel: UILabel = {
         let view = UILabel()
         
         view.textAlignment = .left
@@ -57,35 +83,70 @@ class MainAfterViewController: UIViewController {
         return view
     }()
     
-    // 추천 챌린지 리스트 콜렉션 뷰
+    //추천 챌린지가 있는 경우
     lazy var challengeRecommendCollectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
     
-    // var challengeParticipateData
-    var challengeRecommendData : [ChallengeRecommendsData] = []
-    var challengeJoinData : [ChallengeJoinTwoData] = []
+    //추천 챌린지가 없는 경우
+    lazy var notRecommendChallengeLabel: UILabel = {
+        let view = UILabel()
+        
+        view.text = "아직 추천할 수 있는 챌린지가 없어요 👀"
+        view.textAlignment = .center
+        view.textColor = .beTextInfo
+        view.font = UIFont(name: "Noto Sans KR", size: 12)
+        
+        return view
+    }()
     
-    // MARK: - Lifecycle
+    lazy var joinChallengeButton: UIButton = {
+        let view = UIButton()
+        
+        view.layer.borderWidth = 1
+        view.layer.borderColor = UIColor.beBgDiv.cgColor
+        view.setTitle("챌린지 만들러 가기", for: .normal)
+        view.setTitleColor(.beTextDef, for: .normal)
+        view.titleLabel?.font = UIFont(name: "Noto Sans KR", size: 14)
+        view.contentHorizontalAlignment = .center
+        view.layer.cornerRadius = 20
+        view.addTarget(self, action: #selector(challengeButtonClicked), for: .touchUpInside)
+        
+        return view
+    }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        setBasicLayout()
+        nickNamerequest()
+        challengeJoin(){
+            count in
+            if count == 0 {
+                self.setNoChallengeViewLayout()
+            } else {
+                self.setChallengeViewLayout()
+            }
+        }
+        challengeRecommend { count in
+            if count == 0 {
+                self.setNoRecommendChallengeViewLayout()
+            } else {
+                self.setRecommendChallengeViewLayout()
+            }
+        }
         
-        challengeRecommend()
-        challengeJoin()
-        request()
-        setAddViews()
-        setLayout()
         setCollectionView()
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        print("MainAfterVC Reloaded")
+    // MARK: - actions
+    @objc func challengeButtonClicked() {
+        print("챌린지 참여하러 가기")
         
-        self.challengeParticipatingCollectionView.reloadData()
-        self.challengeRecommendCollectionView.reloadData()
+        let labelText = "전체"
+        let challengeListVC = ChallengeListViewController()
+        challengeListVC.categoryLabelText = labelText
+        challengeListVC.hidesBottomBarWhenPushed = true
+        navigationController?.pushViewController(challengeListVC, animated: true)
     }
     
-    // MARK: - actions
-    // 챌린지 리스트 화면 - 전체
     @objc func viewAllButtonClicked() {
         print("전체 보기")
         
@@ -98,81 +159,142 @@ class MainAfterViewController: UIViewController {
 }
 
 // MARK: - Layout setting
-extension MainAfterViewController {
-    func setAddViews() {
-        [participatingChallenge, viewAllButton, challengeParticipatingCollectionView, recommendChallenge, challengeRecommendCollectionView].forEach { view in
-            self.view.addSubview(view)
+extension MainChallengeViewController {
+    // 기본
+    func setBasicLayout() {
+        view.addSubview(participatingChallengeLabel)
+        view.addSubview(recommendChallengeLabel)
+        
+        participatingChallengeLabel.snp.makeConstraints { make in
+            make.top.equalToSuperview().offset(24)
+            make.leading.equalToSuperview().offset(16)
+        }
+        
+        recommendChallengeLabel.snp.makeConstraints{ make in
+            make.top.equalTo(participatingChallengeLabel.snp.bottom).offset(180)
+            make.leading.equalToSuperview().offset(16)
         }
     }
     
-    func setLayout() {
-        participatingChallenge.snp.makeConstraints { make in
-            make.top.equalTo(view.snp.top).offset(24)
-            make.leading.equalTo(view.snp.leading).offset(16)
+    //참여중인 챌린지가 없는 경우
+    func setNoChallengeViewLayout(){
+        view.addSubview(notParticipatingLabel)
+        view.addSubview(participateChallengeButton)
+
+        notParticipatingLabel.snp.makeConstraints { make in
+            make.top.equalTo(participatingChallengeLabel.snp.bottom).offset(48)
+            make.centerX.equalToSuperview()
         }
         
+        participateChallengeButton.snp.makeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.top.equalTo(notParticipatingLabel.snp.bottom).offset(12)
+            make.width.equalTo(240)
+            make.height.equalTo(40)
+        }
+    }
+    
+    //참여중인 챌린지가 있는 경우
+    func setChallengeViewLayout() {
+        view.addSubview(viewAllButton)
+        view.addSubview(challengeParticipatingCollectionView)
+        
         viewAllButton.snp.makeConstraints { make in
-            make.centerY.equalTo(participatingChallenge.snp.centerY)
-            make.trailing.equalTo(view.snp.trailing).offset(-16)
+            make.centerY.equalTo(participatingChallengeLabel.snp.centerY)
+            make.trailing.equalToSuperview().offset(-16)
             make.width.equalTo(70)
             make.height.equalTo(21)
         }
         
         challengeParticipatingCollectionView.snp.makeConstraints { make in
-            make.top.equalTo(participatingChallenge.snp.bottom).offset(12)
-            make.leading.equalTo(view.snp.leading).offset(16)
-            make.trailing.equalTo(view.snp.trailing).offset(-16)
+            make.top.equalTo(participatingChallengeLabel.snp.bottom).offset(12)
+            make.leading.equalToSuperview().offset(16)
+            make.trailing.equalToSuperview().offset(-16)
             make.height.equalTo(140)
         }
-        
-        recommendChallenge.snp.makeConstraints { make in
-            make.top.equalTo(challengeParticipatingCollectionView.snp.bottom).offset(28)
-            make.leading.equalTo(view.snp.leading).offset(16)
+    }
+    
+    //추천 챌린지가 없는 경우
+    func setNoRecommendChallengeViewLayout(){
+        view.addSubview(notRecommendChallengeLabel)
+        view.addSubview(joinChallengeButton)
+
+        notRecommendChallengeLabel.snp.makeConstraints { make in
+            make.top.equalTo(recommendChallengeLabel.snp.bottom).offset(48)
+            make.centerX.equalToSuperview()
         }
         
+        joinChallengeButton.snp.makeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.top.equalTo(notRecommendChallengeLabel.snp.bottom).offset(12)
+            make.width.equalTo(240)
+            make.height.equalTo(40)
+        }
+    }
+    
+    //추천 챌린지가 있는 경우
+    func setRecommendChallengeViewLayout() {
+        view.addSubview(challengeRecommendCollectionView)
+        
         challengeRecommendCollectionView.snp.makeConstraints { make in
-            make.top.equalTo(recommendChallenge.snp.bottom).offset(12)
-            make.leading.equalTo(view.snp.leading).offset(16)
-            make.trailing.equalTo(view.snp.trailing).offset(-16)
+            make.top.equalTo(recommendChallengeLabel.snp.bottom).offset(12)
+            make.leading.equalToSuperview().offset(16)
+            make.trailing.equalToSuperview().offset(-16)
             make.height.equalTo(140)
         }
     }
 }
 
 // MARK: - 참여중 챌린지, 추천 챌린지 api 세팅
-extension MainAfterViewController {
-    func challengeRecommend() {
+extension MainChallengeViewController {
+    func challengeRecommend(completion: @escaping (Int) -> Void) {
+        var completionNumber: Int = 0
         ChallengeService.shared.challengeRecommend() { response in
-            self.setRecommendData(response.data!.recommendChallengeDTOList)
+            // 성공적으로 데이터를 받아왔을 때
+            if let challenges = response.data?.recommendChallengeDTOList {
+                self.setRecommendData(challenges)
+                completionNumber = challenges.count
+            } else {
+                // 데이터를 받아오지 못했거나 네트워크 실패 시
+                completionNumber = 0
+            }
         }
+        completion(completionNumber)
     }
+
     @MainActor
     private func setRecommendData(_ response: [ChallengeRecommendsData]) {
         self.challengeRecommendData = response
         self.challengeRecommendCollectionView.reloadData()
     }
     
-    func challengeJoin() {
+    func challengeJoin(completion: @escaping (Int) -> Void) {
         ChallengeService.shared.challengeJoinTwo() { response in
-            self.setJoinData(response.data!.challenges)
+            guard let challenges = response.data?.challenges else {
+                completion(0) // 데이터가 없을 경우 0을 반환
+                return
+            }
+            self.setJoinData(challenges)
             print(response)
+            completion(challenges.count) // 챌린지의 개수를 콜백을 통해 반환
         }
     }
+    
     @MainActor
     private func setJoinData(_ response: [ChallengeJoinTwoData]) {
         self.challengeJoinData = response
         self.challengeParticipatingCollectionView.reloadData()
     }
     
-    func request() {
+    func nickNamerequest() {
         MyPageService.shared.getMyPage(baseEndPoint: .mypage, addPath: "") { response in
-            self.recommendChallenge.text = "\(response.data.nickName)님을 위해 준비한 챌린지✨"
+            self.recommendChallengeLabel.text = "\(response.data.nickName)님을 위해 준비한 챌린지✨"
         }
     }
 }
 
 // MARK: - collectionView setting(챌린지 리스트)
-extension MainAfterViewController: UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
+extension MainChallengeViewController: UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
     // 콜렉션뷰 세팅
     func setCollectionView() {
         challengeParticipatingCollectionView.delegate = self
@@ -259,3 +381,4 @@ extension MainAfterViewController: UICollectionViewDataSource, UICollectionViewD
         }
     }
 }
+

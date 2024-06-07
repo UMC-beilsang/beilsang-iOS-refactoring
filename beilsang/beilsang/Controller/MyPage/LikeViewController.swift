@@ -263,6 +263,7 @@ extension LikeViewController: UICollectionViewDataSource, UICollectionViewDelega
             
             let challengeDetailVC = ChallengeDetailViewController()
             challengeDetailVC.detailChallengeId = cell.challengeListChallengeId
+            challengeDetailVC.hidesBottomBarWhenPushed = true
             navigationController?.pushViewController(challengeDetailVC, animated: true)
         default:
             return

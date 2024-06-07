@@ -1462,32 +1462,35 @@ extension AccountInfoViewController{
     }
     
     private func kakaoWithdraw(){
-        //unlink -> 서버에서 삭제 
+        //unlink -> 서버에서 삭제
         UserApi.shared.unlink {(error) in
             if let error = error {
                 print("withdraw Error: \(error)")
             } else {
                 MyPageService.shared.DeleteKakaoWithDraw { response in
                     print(response.message)
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { // 1.5초 딜레이
+                        KeyChain.delete(key: Const.KeyChainKey.serverToken)
+                        KeyChain.delete(key: Const.KeyChainKey.refreshToken)
+                        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.deviceToken)
+                        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.nickName)
+                        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.existMember)
+                        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.recentSearchTerms)
+                        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.socialType)
+                        UserDefaults.standard.synchronize()
+                        
+                        //팝업창 닫기
+                        self.alertViewResponder?.close()
+                        
+                        //로그인 VC로 이동
+                        let loginVC = LoginViewController()
+                        if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate {
+                            sceneDelegate.changeRootViewController(loginVC)
+                        }
+                        print("withdraw Success!")
+                    }
                 }
-                KeyChain.delete(key: Const.KeyChainKey.serverToken)
-                KeyChain.delete(key: Const.KeyChainKey.refreshToken)
-                UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.deviceToken)
-                UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.nickName)
-                UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.existMember)
-                UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.recentSearchTerms)
-                UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.socialType)
-                UserDefaults.standard.synchronize()
-                
-                //팝업창 닫기
-                self.alertViewResponder?.close()
-                
-                //로그인 VC로 이동
-                let loginVC = LoginViewController()
-                if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate {
-                    sceneDelegate.changeRootViewController(loginVC)
-                }
-                print("withdraw Success!")
             }
         }
     }
