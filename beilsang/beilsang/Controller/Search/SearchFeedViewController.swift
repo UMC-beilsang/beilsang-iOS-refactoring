@@ -12,10 +12,10 @@ import Kingfisher
 class SearchFeedViewController: UIViewController, UIScrollViewDelegate {
     
     //MARK: - Properties
-    
     let width = UIScreen.main.bounds.width
     let height = UIScreen.main.bounds.height
     var challengeRecommendData : [ChallengeRecommendsData] = []
+    let loadingIndicator = UIActivityIndicatorView(style: .large)
     
     var feedList : [Feed] = []
     
@@ -124,7 +124,8 @@ class SearchFeedViewController: UIViewController, UIScrollViewDelegate {
     lazy var recommendTitleLabel: UILabel = {
         let view = UILabel()
         //수정 예정
-        view.text = "앤님이 좋아할 챌린지를 추천드려요! 🙌"
+        let nickname: String = UserDefaults.standard.string(forKey: Const.UserDefaultsKey.nickName)!
+        view.text = "\(nickname)님이 좋아할 챌린지를 추천드려요! 🙌"
         view.font = UIFont(name: "NotoSansKR-Medium", size: 14)
         view.numberOfLines = 0
         view.textColor = .beTextSub
@@ -163,15 +164,23 @@ class SearchFeedViewController: UIViewController, UIScrollViewDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         super.viewDidLoad()
+        setLoadingIndicator()
         request()
         challengeRecommend()
     
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { // 1초 딜레이
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { // 1초 딜레이
             self.changeVC()
         }
     }
     
     // MARK: - UI Setup
+    private func setLoadingIndicator() {
+        loadingIndicator.center = self.view.center
+        self.view.addSubview(loadingIndicator)
+        
+        fullScrollView.isHidden = true
+        loadingIndicator.startAnimating()
+    }
     
     private func setupUI() {
         feedCollectionView.isScrollEnabled = false
@@ -232,6 +241,8 @@ class SearchFeedViewController: UIViewController, UIScrollViewDelegate {
             self.fullScrollView.addSubview(changedContentView)
             setupNewUI()
             setupNewLayout()
+            self.loadingIndicator.stopAnimating()
+            self.fullScrollView.isHidden = false
         }
         else{
             print("FeedList is not empty")
@@ -240,6 +251,8 @@ class SearchFeedViewController: UIViewController, UIScrollViewDelegate {
             }
             self.setupUI()
             self.setupLayout()
+            self.loadingIndicator.stopAnimating()
+            self.fullScrollView.isHidden = false
         }
     }
     

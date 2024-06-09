@@ -12,7 +12,7 @@ import Kingfisher
 class SearchViewController: UIViewController {
     
     var searchBar: UISearchBar!
-    var dataList = UserDefaults.standard.array(forKey: "recentSearchTerms") as? [String] ?? []
+    var dataList = UserDefaults.standard.array(forKey: Const.UserDefaultsKey.recentSearchTerms) as? [String] ?? []
     
     lazy var backButton: UIButton = {
         let button = UIButton()
@@ -60,7 +60,6 @@ class SearchViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        var dataList = UserDefaults.standard.array(forKey: "recentSearchTerms") as? [String] ?? []
         setSearchBar()
         setupUI()
         setupLayout()
@@ -100,29 +99,11 @@ class SearchViewController: UIViewController {
     // MARK: - Actions
     
     @objc func backButtonTapped() {
-        // SearchResultViewController를 찾아서 제거
-        for child in self.children {
-            if child is SearchResultViewController {
-                child.removeFromParent()
-                child.view.removeFromSuperview()
-                
-                if let recentSearchTerms = UserDefaults.standard.array(forKey: "recentSearchTerms") as? [String] {
-                    // 데이터 소스 업데이트
-                    // 예를 들어, recentSearchTermsArray라는 배열이 있다면, 이 배열에 recentSearchTerms를 할당
-                    dataList = recentSearchTerms
-                }
-                recentTermCollectionView.reloadData()
-
-                return
-            }
-        }
-
-        // SearchResultViewController가 없으면 이전 뷰 컨트롤러로 돌아감
         navigationController?.popViewController(animated: true)
     }
     
     @objc func allClear() {
-        UserDefaults.standard.set([], forKey: "recentSearchTerms")
+        UserDefaults.standard.set([], forKey: Const.UserDefaultsKey.recentSearchTerms)
         dataList.removeAll()
         recentTermCollectionView.reloadData()
     }
@@ -151,7 +132,7 @@ extension SearchViewController {
         
         searchBar = UISearchBar(frame: CGRect(x: 0, y: 0, width: width - 80, height: 48))
         searchBar.delegate = self
-        searchBar.placeholder = "   누구나 즐길 수 있는 대중교통 챌린지!  🚌"
+        searchBar.placeholder = "누구나 즐길 수 있는 친환경 챌린지!🌱"
         searchBar.searchTextField.font = UIFont(name: "NotoSansKR-Medium", size: 14)
     }
 }
@@ -201,9 +182,9 @@ extension SearchViewController: UICollectionViewDataSource, UICollectionViewDele
 extension SearchViewController: UISearchBarDelegate {
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         if let searchText = searchBar.text {
-            var recentSearchTerms = UserDefaults.standard.array(forKey: "recentSearchTerms") as? [String] ?? []
+            var recentSearchTerms = UserDefaults.standard.array(forKey: Const.UserDefaultsKey.recentSearchTerms) as? [String] ?? []
             recentSearchTerms.append(searchText)
-            UserDefaults.standard.set(recentSearchTerms, forKey: "recentSearchTerms")
+            UserDefaults.standard.set(recentSearchTerms, forKey: Const.UserDefaultsKey.recentSearchTerms)
         }
 
         searchBar.resignFirstResponder()
@@ -212,7 +193,7 @@ extension SearchViewController: UISearchBarDelegate {
         SearchGlobalData.shared.searchText = searchBar.text
         
         // 현재 자식 뷰 컨트롤러 제거
-        self.children.forEach { $0.removeFromParent() }
+        self.children.forEach { $0.removeFromParent()}
         
         // 새로운 뷰 컨트롤러 추가
         self.addChild(searchResultViewController)
