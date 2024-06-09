@@ -12,6 +12,7 @@ import UIKit
 class HomeMainViewController: UIViewController, UIScrollViewDelegate {
     
     // MARK: - Properties
+    let loadingIndicator = UIActivityIndicatorView(style: .large)
     
     // 전체 화면 scrollview
     let fullScrollView = UIScrollView()
@@ -87,18 +88,29 @@ class HomeMainViewController: UIViewController, UIScrollViewDelegate {
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         view.backgroundColor = .white
         
+        setLoadingIndicator()
         setupAttribute()
         setNavigationBar()
         setCollectionView()
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            self.fullScrollView.isHidden = false
+            self.loadingIndicator.stopAnimating()
+        }
     }
-    
 }
 
 // MARK: - Layout
 extension HomeMainViewController {
+    func setLoadingIndicator() {
+        loadingIndicator.center = self.view.center
+        self.view.addSubview(loadingIndicator)
+        
+        fullScrollView.isHidden = true
+        loadingIndicator.startAnimating()
+    }
     
     func setupAttribute() {
         setFullScrollView()
