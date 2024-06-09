@@ -21,7 +21,7 @@ class SearchResultViewController: UIViewController, UIScrollViewDelegate {
         
         request()
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { // 1초 딜레이
+        DispatchQueue.main.asyncAfter(deadline: .now()) { // 1초 딜레이
             self.goToChildView()
             
             if self.challengeList.isEmpty {
@@ -88,6 +88,5 @@ extension SearchResultViewController {
     @MainActor
     func setChallenge(_ response: [Challenge]) {
         self.challengeList = response
-        
     }
 }
