@@ -457,6 +457,7 @@ extension FindViewController{
         self.navigationItem.titleView = attributeTitleView()
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
+        appearance.configureWithTransparentBackground()
         appearance.backgroundColor = UIColor.white // 원하는 배경색 설정
         
         navigationController?.navigationBar.standardAppearance = appearance
