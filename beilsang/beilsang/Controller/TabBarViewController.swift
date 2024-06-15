@@ -14,15 +14,17 @@ class TabBarViewController: UITabBarController {
         super.viewDidLoad()
         self.tabBar.tintColor = .beScPurple600
         self.tabBar.unselectedItemTintColor = .beIconDis
+        self.tabBar.backgroundColor = .white
+        self.tabBar.scrollEdgeAppearance = UITabBarAppearance()
         
         let homeTab = UINavigationController(rootViewController: HomeMainViewController())
         homeAttribute(homeTab)
-        homeTab.tabBarItem.imageInsets = UIEdgeInsets(top: 5, left: 0, bottom: -5, right: 0)
+        homeTab.tabBarItem.imageInsets = UIEdgeInsets(top: 5, left: 0, bottom: 0, right: 0)
         homeTab.tabBarItem.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: 5)
         
         let findTab = UINavigationController(rootViewController: FindViewController())
         findAttribute(findTab)
-        findTab.tabBarItem.imageInsets = UIEdgeInsets(top: 5, left: 0, bottom: -5, right: 0)
+        findTab.tabBarItem.imageInsets = UIEdgeInsets(top: 5, left: 0, bottom: 0, right: 0)
         findTab.tabBarItem.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: 5)
         
 //        let moreTab = UINavigationController(rootViewController: LearnMoreViewController())
@@ -32,7 +34,8 @@ class TabBarViewController: UITabBarController {
 //
         let mypageTab = UINavigationController(rootViewController: MyPageViewController())
         mypageAttribute(mypageTab)
-        mypageTab.tabBarItem.imageInsets = UIEdgeInsets(top: 5, left: 0, bottom: -5, right: 0)
+        mypageTab.tabBarItem.imageInsets = UIEdgeInsets(top: 5, left: 0, bottom: 0
+                                                        , right: 0)
         mypageTab.tabBarItem.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: 5)
 
         viewControllers = [findTab, homeTab, mypageTab]

@@ -33,7 +33,7 @@ class AppleLoginManager: NSObject, ASAuthorizationControllerDelegate, ASAuthoriz
                let identityTokenData = appleIDCredential.identityToken,
                let identityToken = String(data: identityTokenData, encoding: .utf8) {
                 //authorizationCode 저장
-                UserDefaults.standard.set(authorizationCode, forKey:"authorizationCode")
+                KeyChain.create(key: Const.KeyChainKey.authorizationCode, token: authorizationCode)
                 
                 // MyPageService를 통해 애플 탈퇴 처리
                 MyPageService.shared.DeleteAppleWithDraw { response in
