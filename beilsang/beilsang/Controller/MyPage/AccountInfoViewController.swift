@@ -11,8 +11,11 @@ import SCLAlertView
 import KakaoSDKCommon
 import KakaoSDKAuth
 import KakaoSDKUser
+import AVFoundation
+import Photos
+import Kingfisher
 
-class AccountInfoViewController: UIViewController, UIScrollViewDelegate {
+class AccountInfoViewController: UIViewController, UIScrollViewDelegate, UINavigationControllerDelegate, KakaoPostCodeViewControllerDelegate {
     // MARK: - Properties
     
     let fullScrollView = UIScrollView()
@@ -21,52 +24,62 @@ class AccountInfoViewController: UIViewController, UIScrollViewDelegate {
     let datePicker = UIDatePicker()
     let pickerView = UIPickerView()
     let genderOptions = ["남자", "여자", "기타"]
-    var selectedGender: String?
-    var nickName: String?
     let kakaoZipCodeVC = KakaoPostCodeViewController()
+    let profileImagePicker = UIImagePickerController()
+    
     var isFirstInput = true
     var textFieldValid = true
-    var nameDuplicate = true
-    var isNext = [false, false, false, false]
+    var nameDuplicate = false
+    var isProfileImageChanged = false
+    var saveButtonEnabled = false
+    
+    var originalProfileImage: UIImage?
+    var selectedGender: String?
+    var nickName: String?
     
     let agreeImage = UIImage(named: "agree")
     let disagreeImage = UIImage(named: "disagree")
     
     private var isProgressBarVisible = true
     private var lastContentOffset: CGFloat = 0
-    var isAgree = [false, false]
     
     lazy var profileShadowView: UIImageView = {
         let view = UIImageView()
         view.layer.shadowColor = UIColor.black.withAlphaComponent(0.2).cgColor
         view.layer.shadowOpacity = 1
+        view.clipsToBounds = true
         view.image = UIImage(named: "Mask group")
         view.layer.cornerRadius = 48
         view.layer.shadowOffset = CGSize(width: 0, height: 0)
         view.layer.shadowRadius = 4
+        originalProfileImage = view.image
 //        view.layer.shadowPath = UIBezierPath(roundedRect: view.bounds,
 //                               cornerRadius: view.layer.cornerRadius).cgPath
         return view
     }()
+    
     lazy var editProfileImageView: UIView = {
         let view = UIView()
         view.layer.cornerRadius = 9
         view.backgroundColor = .beBgSub
         return view
     }()
+    
     lazy var editProfileImageLabel: UILabel = {
         let label = UILabel()
         label.text = "수정"
         label.textColor = .beButtonNavi
         label.font = UIFont(name: "NotoSansKR-Medium", size: 12)
+        
         return label
     }()
     lazy var editProfileImageButton: UIButton = {
         let button = UIButton()
         button.backgroundColor = .clear
+        button.addTarget(self, action: #selector(representativePhotoButtonClicked), for: .touchDown)
+        
         return button
-    }()// MARK: - Properties
-    
+    }()
     
     // 닉네임
     
@@ -97,6 +110,8 @@ class AccountInfoViewController: UIViewController, UIScrollViewDelegate {
         view.clearsOnBeginEditing = false
         view.leftView = UIView(frame: CGRect(x: 0.0, y: 0.0, width: 19.0, height: 0.0))
         view.leftViewMode = .always
+        let originalNickName = UserDefaults.standard.string(forKey: Const.UserDefaultsKey.nickName)
+        view.text = originalNickName
         let placeholderText = "2~8자 이내로 입력해 주세요"
         let attributes: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 14)
@@ -183,6 +198,8 @@ class AccountInfoViewController: UIViewController, UIScrollViewDelegate {
         view.clearsOnBeginEditing = false
         view.leftView = UIView(frame: CGRect(x: 0.0, y: 0.0, width: 19.0, height: 0.0))
         view.leftViewMode = .always
+        let originalBirth = UserDefaults.standard.string(forKey: Const.UserDefaultsKey.birth)
+        view.text = originalBirth
         let placeholderText = "생년월일 입력하기"
         let attributes: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 14)
@@ -223,6 +240,8 @@ class AccountInfoViewController: UIViewController, UIScrollViewDelegate {
         view.clearsOnBeginEditing = false
         view.leftView = UIView(frame: CGRect(x: 0.0, y: 0.0, width: 19.0, height: 0.0))
         view.leftViewMode = .always
+        let originalGender = UserDefaults.standard.string(forKey: Const.UserDefaultsKey.gender)
+        view.text = originalGender
         let placeholderText = "성별 입력하기"
         let attributes: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 14)
@@ -262,6 +281,8 @@ class AccountInfoViewController: UIViewController, UIScrollViewDelegate {
         view.clearsOnBeginEditing = false
         view.leftView = UIView(frame: CGRect(x: 0.0, y: 0.0, width: 19.0, height: 0.0))
         view.leftViewMode = .always
+        let originalZipCode = UserDefaults.standard.string(forKey: Const.UserDefaultsKey.zipCode)
+        view.text = originalZipCode
         let placeholderText = "우편번호 입력하기"
         let attributes: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 14)
@@ -302,6 +323,8 @@ class AccountInfoViewController: UIViewController, UIScrollViewDelegate {
         view.clearsOnBeginEditing = false
         view.leftView = UIView(frame: CGRect(x: 0.0, y: 0.0, width: 19.0, height: 0.0))
         view.leftViewMode = .always
+        let originalAddress = UserDefaults.standard.string(forKey: Const.UserDefaultsKey.address)
+        view.text = originalAddress
         let placeholderText = "도로명 주소 입력하기"
         let attributes: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 14)
@@ -329,6 +352,8 @@ class AccountInfoViewController: UIViewController, UIScrollViewDelegate {
         view.clearsOnBeginEditing = false
         view.leftView = UIView(frame: CGRect(x: 0.0, y: 0.0, width: 19.0, height: 0.0))
         view.leftViewMode = .always
+        let originalAddress = UserDefaults.standard.string(forKey: Const.UserDefaultsKey.addressDetail)
+        view.text = originalAddress
         let placeholderText = "상세 주소 입력하기"
         let attributes: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 14)
@@ -604,7 +629,11 @@ class AccountInfoViewController: UIViewController, UIScrollViewDelegate {
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        kakaoZipCodeVC.delegate = self
+        kakaoZipCodeVC.accountInfoVC = self
         view.backgroundColor = .white
+        profileImageRequest()
+        setImagePicker()
         setupAttribute()
         viewConstraint()
         setNavigationBar()
@@ -618,6 +647,13 @@ class AccountInfoViewController: UIViewController, UIScrollViewDelegate {
 
 extension AccountInfoViewController {
     func request() {
+        UserDefaults.standard.setValue(nameField.text, forKey: Const.UserDefaultsKey.nickName)
+        UserDefaults.standard.setValue(genderField.text ?? "", forKey: Const.UserDefaultsKey.gender)
+        UserDefaults.standard.setValue(birthField.text ?? "", forKey: Const.UserDefaultsKey.birth)
+        UserDefaults.standard.setValue(addressField.text, forKey: Const.UserDefaultsKey.address)
+        UserDefaults.standard.setValue(addressDetailField.text, forKey: Const.UserDefaultsKey.addressDetail)
+        UserDefaults.standard.setValue(zipCodeField.text ?? "", forKey: Const.UserDefaultsKey.zipCode)
+        
         var gender = ""
         if genderField.text == "남자"{
             gender = "MAN"
@@ -626,10 +662,46 @@ extension AccountInfoViewController {
         } else if genderField.text == "기타"{
             gender = "OTHER"
         }
+        
         let parameters = AccountInfoData(nickName: nameField.text ?? "", birth: birthField.text ?? "" , gender: gender , address: (addressField.text ?? "") + (addressDetailField.text ?? ""))
-        print(parameters)
+        
         MyPageService.shared.patchAccountInfo(baseEndPoint: .profile, addPath: "", parameter: parameters.toDictionary ?? [:] ) { response in
             print(response.message )
+        }
+        
+        guard let image = profileShadowView.image else { return }
+        let imageData = image.jpegData(compressionQuality: 0.3)
+        
+        if let parameter = imageData {
+            MyPageService.shared.patchProfileImage(imageData: parameter) { response in
+                print(response?.message ?? "")
+                print("이미지 성공")
+            }
+        }
+        
+        if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate, let window = sceneDelegate.window {
+            let mainVC = TabBarViewController()
+            UIView.transition(with: window, duration: 1.5, options: .transitionCrossDissolve, animations: {
+                window.rootViewController = mainVC
+            }, completion: nil)
+        }
+    }
+
+    func profileImageRequest() {
+        MyPageService.shared.getMyPage(baseEndPoint: .mypage, addPath: "") { response in
+            if let imageUrl = response.data.profileImage {
+                let url = URL(string: imageUrl)
+                self.profileShadowView.kf.setImage(with: url, completionHandler: { result in
+                    switch result {
+                    case .success(let value):
+                        // 이미지 로드 성공 시 원본 이미지 설정
+                        self.originalProfileImage = value.image
+                    case .failure(let error):
+                        // 이미지 로드 실패 시 에러 처리
+                        print("이미지 로드 실패: \(error.localizedDescription)")
+                    }
+                })
+            }
         }
     }
 
@@ -637,7 +709,6 @@ extension AccountInfoViewController {
         setFullScrollView()
         setLayout()
         setScrollViewLayout()
-        
     }
     
     func setFullScrollView() {
@@ -1015,15 +1086,12 @@ extension AccountInfoViewController{
     // MARK: - nameDuplicateCheck
     
     func nameDuplicateCheck() {
-        
         let serverInput = requestDuplicateCheck()
         
         if serverInput  {
             nameInfoViewChanged(state: "avaliable")
             textFieldChanged(textField: nameField, state: "basic")
             nameDuplicate = true
-            
-            isNext[0] = true
             
             updateSaveButtonState()
         }
@@ -1041,12 +1109,35 @@ extension AccountInfoViewController{
         MyPageService.shared.getDuplicateCheck(baseEndPoint: .join, addPath: "?name=\(nameField.text ?? "")" ) { response in
             dupCheck = response.data
         }
+        print(dupCheck)
+        
         return dupCheck
     }
     // MARK: - save Button
     
     func updateSaveButtonState() {
-        if isNext.contains(true) {
+        let originalNickname = UserDefaults.standard.string(forKey: Const.UserDefaultsKey.nickName)
+        let originalBirth = UserDefaults.standard.string(forKey: Const.UserDefaultsKey.birth)
+        let originalGender = UserDefaults.standard.string(forKey: Const.UserDefaultsKey.gender)
+        //zipCode는 주소가 바뀌면 알아서 바뀌기 때문에 검사하지 않음
+        let originalAddress = UserDefaults.standard.string(forKey: Const.UserDefaultsKey.address)
+        let originalAddressDetail = UserDefaults.standard.string(forKey: Const.UserDefaultsKey.addressDetail)
+        
+        let isNicknameChanged = nameDuplicate && nameField.text != originalNickname
+        let isOtherFieldChanged = birthField.text != originalBirth || genderField.text != originalGender || addressField.text != originalAddress || addressDetailField.text != originalAddressDetail
+        
+        if isNicknameChanged {
+            saveButtonEnabled = true
+        } else {
+            if nameDuplicate {
+                saveButtonEnabled = isOtherFieldChanged || isProfileImageChanged
+            }
+            else{
+                saveButtonEnabled = false
+            }
+        }
+        
+        if saveButtonEnabled {
             saveButton.backgroundColor = .beScPurple600
             saveButton.isEnabled = true
         } else {
@@ -1056,7 +1147,18 @@ extension AccountInfoViewController{
     }
     
     // MARK: - Actions
-    
+    @objc func representativePhotoButtonClicked() {
+        // 권한을 확인하고 권한 요청을 처리하는 함수 호출
+        checkAndRequestPermissions { granted in
+            if granted {
+                // 권한이 허용된 경우 액션 시트를 표시
+                self.showPhotoSelectionActionSheet()
+            } else {
+                // 권한이 거부된 경우 경고 알림 표시
+                self.showPermissionDeniedAlert()
+            }
+        }
+    }
     
     @objc private func handleTap() {
         view.endEditing(true)
@@ -1069,6 +1171,11 @@ extension AccountInfoViewController{
         kakaoZipCodeVC.accountInfoVC = self
         present(kakaoZipCodeVC, animated: true)
     }
+    
+    func didDismissKakaoPostCodeViewController() {
+        updateSaveButtonState()
+    }
+    
     
     @objc private func zipCodeFieldTapped() {
         zipCodeSearch()
@@ -1137,7 +1244,6 @@ extension AccountInfoViewController{
         alertViewResponder?.close()
     }
     @objc func save() {
-        isNext = [false, false, false, false]
         updateSaveButtonState()
         nameDuplicateButton.isEnabled = false
         nameDuplicateButton.backgroundColor = .beBgDiv
@@ -1266,7 +1372,8 @@ extension AccountInfoViewController: UITextFieldDelegate {
     
     func textFieldDidBeginEditing(_ textField: UITextField) {
         if textField == nameField  {
-            
+            nameDuplicate = false
+            updateSaveButtonState()
             if isFirstInput { //첫입력일때
                 textFieldChanged(textField: nameField, state: "avaliable")
                 isFirstInput = false
@@ -1308,7 +1415,8 @@ extension AccountInfoViewController: UITextFieldDelegate {
                 
             }
             else if userInput.isEmpty { //공백일때
-                textFieldChanged(textField: nameField, state: "basic") //text필드는 다시 베이직으로 바뀜
+                textFieldChanged(textField: nameField, state: "basic")
+                nameDuplicateButtonChanged(state: "inavaliable")//text필드는 다시 베이직으로 바뀜
                 
                 textFieldValid = true
             }
@@ -1325,18 +1433,11 @@ extension AccountInfoViewController: UITextFieldDelegate {
         else if textField == birthField {
             textFieldChanged(textField: birthField, state: "basic")
             
-            if let birthDate = birthField.text, !birthDate.isEmpty {
-                isNext[1] = true
-            }
-            
             updateSaveButtonState()
             
         }
         else if textField == genderField {
             textFieldChanged(textField: genderField, state: "basic")
-            if let gender = genderField.text, !gender.isEmpty {
-                isNext[2] = true
-            }
             
             updateSaveButtonState()
             
@@ -1344,10 +1445,10 @@ extension AccountInfoViewController: UITextFieldDelegate {
         }
         else if textField == addressDetailField {
             textFieldChanged(textField: addressDetailField, state: "basic")
-            
-
+            updateSaveButtonState()
         }
     }
+    
     func textFieldDidChangeSelection(_ textField: UITextField) { //change됐을때도
          
         if textField == nameField {
@@ -1406,6 +1507,7 @@ extension AccountInfoViewController: UITextViewDelegate {
     }
 }
 
+
 // MARK: - Logout, Withdraw
 extension AccountInfoViewController{
     private func kakaoLogout() {
@@ -1423,9 +1525,16 @@ extension AccountInfoViewController{
         KeyChain.delete(key: Const.KeyChainKey.refreshToken)
         UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.deviceToken)
         UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.nickName)
+        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.gender)
+        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.birth)
+        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.zipCode)
+        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.address)
+        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.addressDetail)
         UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.existMember)
         UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.recentSearchTerms)
         UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.socialType)
+        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.firshLaunch)
+        
         UserDefaults.standard.synchronize()
         
         //팝업창 닫기
@@ -1444,9 +1553,16 @@ extension AccountInfoViewController{
         KeyChain.delete(key: Const.KeyChainKey.refreshToken)
         UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.deviceToken)
         UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.nickName)
+        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.gender)
+        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.birth)
+        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.zipCode)
+        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.address)
+        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.addressDetail)
         UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.existMember)
         UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.recentSearchTerms)
         UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.socialType)
+        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.firshLaunch)
+        
         UserDefaults.standard.synchronize()
         
         print("apple logout() success.")
@@ -1475,9 +1591,16 @@ extension AccountInfoViewController{
                         KeyChain.delete(key: Const.KeyChainKey.refreshToken)
                         UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.deviceToken)
                         UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.nickName)
+                        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.gender)
+                        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.birth)
+                        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.zipCode)
+                        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.address)
+                        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.addressDetail)
                         UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.existMember)
                         UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.recentSearchTerms)
                         UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.socialType)
+                        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.firshLaunch)
+                        
                         UserDefaults.standard.synchronize()
                         
                         //팝업창 닫기
@@ -1497,5 +1620,113 @@ extension AccountInfoViewController{
     
     private func appleWithdraw(){ 
         AppleLoginManager.shared.startLogin()
+    }
+}
+
+extension AccountInfoViewController: UIImagePickerControllerDelegate {
+    // MARK: - 이미지 피커 설정
+    func setImagePicker() {
+        profileImagePicker.delegate = self
+    }
+    
+    func openGallery(imagePicker: UIImagePickerController) {
+        imagePicker.sourceType = .photoLibrary
+        present(imagePicker, animated: true, completion: nil)
+    }
+    
+    func openCamera(imagePicker: UIImagePickerController) {
+        if UIImagePickerController.isSourceTypeAvailable(.camera) {
+            imagePicker.sourceType = .camera
+            present(imagePicker, animated: true, completion: nil)
+        } else {
+            print("카메라를 사용할 수 없습니다.")
+        }
+    }
+    
+    func checkAndRequestPermissions(completion: @escaping (Bool) -> Void) {
+        let cameraStatus = AVCaptureDevice.authorizationStatus(for: .video)
+        let albumStatus = PHPhotoLibrary.authorizationStatus()
+        
+        let group = DispatchGroup()
+        var cameraGranted = false
+        var albumGranted = false
+        
+        // 카메라 권한 확인 및 요청
+        group.enter()
+        switch cameraStatus {
+        case .notDetermined:
+            AVCaptureDevice.requestAccess(for: .video) { granted in
+                cameraGranted = granted
+                group.leave()
+            }
+        case .authorized:
+            cameraGranted = true
+            group.leave()
+        default:
+            group.leave()
+        }
+        
+        // 앨범 권한 확인 및 요청
+        group.enter()
+        switch albumStatus {
+        case .notDetermined:
+            PHPhotoLibrary.requestAuthorization { status in
+                albumGranted = (status == .authorized)
+                group.leave()
+            }
+        case .authorized:
+            albumGranted = true
+            group.leave()
+        default:
+            group.leave()
+        }
+        
+        group.notify(queue: .main) {
+            completion(cameraGranted && albumGranted)
+        }
+    }
+
+    func showPhotoSelectionActionSheet() {
+        let alert = UIAlertController(title: nil, message: "사진을 선택하세요", preferredStyle: .actionSheet)
+        alert.addAction(UIAlertAction(title: "사진 앨범", style: .default, handler: { _ in
+            self.openGallery(imagePicker: self.profileImagePicker)
+        }))
+        alert.addAction(UIAlertAction(title: "카메라", style: .default, handler: { _ in
+            self.openCamera(imagePicker: self.profileImagePicker)
+        }))
+        alert.addAction(UIAlertAction(title: "취소", style: .cancel, handler: nil))
+        present(alert, animated: true, completion: nil)
+    }
+
+    func showPermissionDeniedAlert() {
+        let alert = UIAlertController(
+            title: "권한 필요",
+            message: "사진 앨범이나 카메라에 접근할 수 있는 권한이 필요합니다. 설정에서 권한을 허용해주세요.",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "설정으로 이동", style: .default, handler: { _ in
+            if let appSettings = URL(string: UIApplication.openSettingsURLString) {
+                UIApplication.shared.open(appSettings, options: [:], completionHandler: nil)
+            }
+        }))
+        alert.addAction(UIAlertAction(title: "취소", style: .cancel, handler: nil))
+        present(alert, animated: true, completion: nil)
+    }
+    
+    // 이미지 피커에서 이미지를 선택한 후 호출되는 메소드
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        if let image = info[.originalImage] as? UIImage {
+            if picker == profileImagePicker {
+                profileShadowView.image = image
+                isProfileImageChanged = image != originalProfileImage
+            }
+        }
+        picker.dismiss(animated: true, completion: nil)
+        updateSaveButtonState()
+    }
+    
+    // 이미지 피커에서 취소 버튼을 누른 후 호출되는 메소드
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        picker.dismiss(animated: true, completion: nil)
     }
 }

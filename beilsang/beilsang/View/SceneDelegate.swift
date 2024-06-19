@@ -18,10 +18,24 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             KeyChain.delete(key: Const.KeyChainKey.refreshToken)
         }
         
+        let isExistMember = UserDefaults.standard.bool(forKey: Const.UserDefaultsKey.existMember)
+        let navigationController = UINavigationController()
+    
+        window?.rootViewController = navigationController
+        
         if KeyChain.read(key: Const.KeyChainKey.serverToken) != nil{
             // 로그인 상태 확인 로직
-            let mainVC = TabBarViewController()
-            self.window?.rootViewController = mainVC
+            if isExistMember == false {
+                let keywordVC = KeywordViewController()
+                DispatchQueue.main.async {
+                    navigationController.pushViewController(keywordVC, animated: true)
+                }
+            }
+            else {
+                // 로그인 상태이면 TabBarViewController로 이동
+                let mainVC = TabBarViewController()
+                self.window?.rootViewController = mainVC
+            }
         } else {
             // 로그인 화면으로 이동
             print("No access Token, firsth Launch.")

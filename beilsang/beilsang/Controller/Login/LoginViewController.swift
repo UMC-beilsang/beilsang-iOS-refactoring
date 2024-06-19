@@ -102,26 +102,30 @@ class LoginViewController: UIViewController {
     }
     
     private func setupLayout() {
+        let screenHeight = UIScreen.main.bounds.height
+        let screenWidth = UIScreen.main.bounds.width
+        
         logoColorImage.snp.makeConstraints{ make in
             make.centerX.equalToSuperview()
-            make.top.equalTo(256)
+            make.top.equalToSuperview().offset(screenHeight * 0.3)
             make.height.equalTo(120)
             make.width.equalTo(100)
         }
         
-        kakaoButton.snp.makeConstraints{ make in
-            make.centerX.equalToSuperview()
-            make.width.equalTo(358)
-            make.height.equalTo(56)
-            make.top.equalTo(logoColorImage.snp.bottom).offset(250)
-    
-        }
-        
         appleButton.snp.makeConstraints{ make in
             make.centerX.equalToSuperview()
-            make.width.equalTo(kakaoButton)
+            make.bottom.equalToSuperview().offset(-(screenHeight * 0.1))
+            make.leading.equalToSuperview().offset(16)
+            make.trailing.equalToSuperview().offset(-16)
             make.height.equalTo(56)
-            make.top.equalTo(kakaoButton.snp.bottom).offset(12)
+        }
+        
+        kakaoButton.snp.makeConstraints{ make in
+            make.centerX.equalToSuperview()
+            make.leading.equalToSuperview().offset(16)
+            make.trailing.equalToSuperview().offset(-16)
+            make.height.equalTo(56)
+            make.bottom.equalTo(appleButton.snp.top).offset(-12)
         }
         
         bubbleView.snp.makeConstraints{ make in

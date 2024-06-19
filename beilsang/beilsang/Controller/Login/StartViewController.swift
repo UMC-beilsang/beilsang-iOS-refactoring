@@ -160,7 +160,7 @@ extension StartViewController {
         let accessToken = KeyChain.read(key: Const.KeyChainKey.serverToken)
         let refreshToken = KeyChain.read(key: Const.KeyChainKey.refreshToken)
         
-        SignUpService.shared.signUp(accessToken: accessToken! , gender: SignUpData.shared.gender, nickName: SignUpData.shared.nickName, birth: SignUpData.shared.birth, address: SignUpData.shared.address, keyword: SignUpData.shared.keyword, discoveredPath: SignUpData.shared.discoveredPath, resolution: SignUpData.shared.resolution, recommendNickname: SignUpData.shared.recommendNickname){ result in
+        SignUpService.shared.signUp(accessToken: accessToken! , gender: SignUpData.shared.gender ?? "", nickName: SignUpData.shared.nickName, birth: SignUpData.shared.birth ?? "", address: SignUpData.shared.address, keyword: SignUpData.shared.keyword, discoveredPath: SignUpData.shared.discoveredPath, resolution: SignUpData.shared.resolution ?? "", recommendNickname: SignUpData.shared.recommendNickname){ result in
             switch result {
             case .success(let data):
                 // 서버에서 받은 데이터 처리

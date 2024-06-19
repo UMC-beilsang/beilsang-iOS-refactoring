@@ -9,6 +9,10 @@ import UIKit
 import WebKit
 import SnapKit
 
+protocol KakaoPostCodeViewControllerDelegate: AnyObject {
+    func didDismissKakaoPostCodeViewController()
+}
+
 class KakaoPostCodeViewController: UIViewController {
 
     // MARK: - Properties
@@ -19,6 +23,7 @@ class KakaoPostCodeViewController: UIViewController {
     
     weak var userInfoVC: UserInfoViewController?
     weak var accountInfoVC: AccountInfoViewController?
+    weak var delegate: KakaoPostCodeViewControllerDelegate?
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -30,7 +35,7 @@ class KakaoPostCodeViewController: UIViewController {
     private func configureUI() {
         view.backgroundColor = .white
         setAttributes()
-        setContraints()
+        setConstraints()
     }
 
     private func setAttributes() {
@@ -49,10 +54,9 @@ class KakaoPostCodeViewController: UIViewController {
         let request = URLRequest(url: url)
         webView.load(request)
         indicator.startAnimating()
-        
     }
 
-    private func setContraints() {
+    private func setConstraints() {
         guard let webView = webView else { return }
         view.addSubview(webView)
         webView.translatesAutoresizingMaskIntoConstraints = false
@@ -69,7 +73,9 @@ class KakaoPostCodeViewController: UIViewController {
     }
     
     @objc private func dismissKakaoZipCode() {
-        dismiss(animated: true, completion: nil)
+        dismiss(animated: true, completion: { [weak self] in
+            self?.delegate?.didDismissKakaoPostCodeViewController()
+        })
     }
 }
 
@@ -85,7 +91,7 @@ extension KakaoPostCodeViewController: WKScriptMessageHandler {
         accountInfoVC?.addressField.text = address
         accountInfoVC?.zipCodeField.text = zipCode
         
-        dismiss(animated: true, completion: nil)
+        dismissKakaoZipCode()
     }
 }
 
@@ -98,4 +104,5 @@ extension KakaoPostCodeViewController: WKNavigationDelegate {
         indicator.stopAnimating()
     }
 }
+
 

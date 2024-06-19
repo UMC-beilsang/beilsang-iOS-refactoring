@@ -518,6 +518,9 @@ extension RegisterThirdViewController {
     }
     
     func setLayout() {
+        let height = UIScreen.main.bounds.height
+        let width = UIScreen.main.bounds.width
+        
         fullScrollView.snp.makeConstraints { make in
             make.top.equalTo(view.safeAreaLayoutGuide.snp.top)
             make.leading.trailing.width.equalToSuperview()
@@ -550,6 +553,7 @@ extension RegisterThirdViewController {
         agree1Label.snp.makeConstraints { make in
             make.centerY.equalTo(agree1Button.snp.centerY)
             make.leading.equalTo(agree1Button.snp.trailing).offset(12)
+            make.trailing.equalToSuperview().offset(-16)
         }
         
         agree2Button.snp.makeConstraints { make in
@@ -561,6 +565,7 @@ extension RegisterThirdViewController {
         agree2Label.snp.makeConstraints { make in
             make.top.equalTo(agree2Button.snp.top)
             make.leading.equalTo(agree2Button.snp.trailing).offset(12)
+            make.trailing.equalToSuperview().offset(-16)
         }
         
         agree3Button.snp.makeConstraints { make in
@@ -572,6 +577,7 @@ extension RegisterThirdViewController {
         agree3Label.snp.makeConstraints { make in
             make.centerY.equalTo(agree3Button.snp.centerY)
             make.leading.equalTo(agree3Button.snp.trailing).offset(12)
+            make.trailing.equalToSuperview().offset(-16)
         }
         
         agree4Button.snp.makeConstraints { make in
@@ -583,6 +589,7 @@ extension RegisterThirdViewController {
         agree4Label.snp.makeConstraints { make in
             make.top.equalTo(agree4Button.snp.top)
             make.leading.equalTo(agree3Button.snp.trailing).offset(12)
+            make.trailing.equalToSuperview().offset(-16)
         }
         
         agree5Button.snp.makeConstraints { make in
@@ -593,12 +600,13 @@ extension RegisterThirdViewController {
         
         agree5Label.snp.makeConstraints { make in
             make.top.equalTo(agree5Button.snp.top)
+            make.trailing.equalToSuperview().offset(-16)
             make.leading.equalTo(agree5Button.snp.trailing).offset(12)
         }
         
-        bottomView.snp.makeConstraints { make in
+        bottomView.snp.makeConstraints{ make in
+            make.height.equalTo(height * 0.12)
             make.leading.trailing.bottom.equalToSuperview()
-            make.height.equalTo(80)
         }
         
         beforeButton.snp.makeConstraints { make in
@@ -606,11 +614,11 @@ extension RegisterThirdViewController {
             make.leading.equalTo(bottomView.snp.leading).offset(38)
         }
         
-        makeButton.snp.makeConstraints { make in
-            make.centerY.equalTo(bottomView.snp.centerY)
-            make.trailing.equalTo(bottomView.snp.trailing).offset(-32)
-            make.height.equalTo(52)
-            make.width.equalTo(160)
+        makeButton.snp.makeConstraints{ make in
+            make.top.equalToSuperview().offset(16)
+            make.trailing.equalToSuperview().offset(-32)
+            make.width.equalTo(width * 0.41)
+            make.bottom.equalToSuperview().offset(-16)
         }
     }
     

@@ -471,7 +471,7 @@ class JoinChallengeViewController: UIViewController {
     }
     
     private func setupLayout() {
-        
+        let height = UIScreen.main.bounds.height
         let width = UIScreen.main.bounds.width
         
         verticalScrollView.snp.makeConstraints { make in
@@ -629,12 +629,12 @@ class JoinChallengeViewController: UIViewController {
         
         bottomView.snp.makeConstraints{ make in
             make.bottom.equalToSuperview()
-            make.height.equalTo(96)
+            make.height.equalTo(height * 0.12)
             make.leading.trailing.equalToSuperview()
         }
         
         bookMarkButton.snp.makeConstraints{ make in
-            make.top.equalToSuperview().offset(15)
+            make.top.equalToSuperview().offset(height * 0.018)
             make.leading.equalToSuperview().offset(28)
             make.height.width.equalTo(30)
         }
@@ -645,10 +645,10 @@ class JoinChallengeViewController: UIViewController {
         }
         
         proofButton.snp.makeConstraints{ make in
-            make.top.equalToSuperview().offset(14)
-            make.trailing.equalToSuperview().offset(-28)
-            make.width.equalTo(140)
-            make.height.equalTo(52)
+            make.top.equalToSuperview().offset(16)
+            make.trailing.equalToSuperview().offset(-32)
+            make.width.equalTo(width * 0.41)
+            make.bottom.equalToSuperview().offset(-16)
         }
         
         //신고하기 팝업

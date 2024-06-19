@@ -1113,10 +1113,18 @@ class UserInfoViewController: UIViewController {
     @objc private func nextAction() {
         SignUpDataParse()
         
-        print("Gender : \(SignUpData.shared.gender)")
-        print("birth : \(SignUpData.shared.birth)")
+        print("Gender : \(SignUpData.shared.gender ?? "")")
+        print("birth : \(SignUpData.shared.birth ?? "")")
         print("nickName : \(SignUpData.shared.nickName)")
         print("address : \(SignUpData.shared.address ?? "")")
+        
+        UserDefaults.standard.setValue(nameField.text, forKey: Const.UserDefaultsKey.memberId)
+        UserDefaults.standard.setValue(SignUpData.shared.nickName, forKey: Const.UserDefaultsKey.nickName)
+        UserDefaults.standard.setValue(genderField.text, forKey: Const.UserDefaultsKey.gender)
+        UserDefaults.standard.setValue(SignUpData.shared.birth, forKey: Const.UserDefaultsKey.birth)
+        UserDefaults.standard.setValue(addressField.text, forKey: Const.UserDefaultsKey.address)
+        UserDefaults.standard.setValue(addressDetailField.text, forKey: Const.UserDefaultsKey.addressDetail)
+        UserDefaults.standard.setValue(zipCodeField.text, forKey: Const.UserDefaultsKey.zipCode)
         
         let routeViewController = RouteViewController()
         self.navigationController?.pushViewController(routeViewController, animated: true)
@@ -1289,6 +1297,7 @@ extension UserInfoViewController: UITextFieldDelegate {
             }
             else if userInput.isEmpty { //공백일때
                 textFieldChanged(textField: nameField, state: "basic") //text필드는 다시 베이직으로 바뀜
+                nameDuplicateButtonChanged(state: "inavaliable")
                 
                 textFieldValid = true
             }

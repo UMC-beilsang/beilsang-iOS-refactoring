@@ -462,9 +462,9 @@ extension MyPageViewController {
             make.centerY.equalTo(feedCount)
         }
         commentBox.snp.makeConstraints { make in
-            make.width.equalTo(358)
             make.height.equalTo(60)
             make.leading.equalToSuperview().offset(16)
+            make.trailing.equalToSuperview().offset(-16)
             make.top.equalTo(rectangleBox).offset(198)
         }
         comment.snp.makeConstraints { make in
@@ -603,12 +603,8 @@ extension MyPageViewController: UICollectionViewDataSource, UICollectionViewDele
     }
     //cell 크기 설정
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let width : CGFloat = 173
-        let height: CGFloat = 140
-        return CGSize(width: width, height: height)
+        return CGSize(width: (self.view.frame.width-44)/2, height: 140)
     }
-    
-    
 }
 // MARK: - 네비게이션 바 커스텀
 extension MyPageViewController{
