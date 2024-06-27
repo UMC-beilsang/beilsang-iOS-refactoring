@@ -196,7 +196,7 @@ extension LoginViewController {
                         self.kakaoName = name
                         self.kakaoEmail = email
                         //서버에 보내주기
-                        self.kakaologinToServer(with: token, deviceToken: UserDefaults.standard.string(forKey: Const.UserDefaultsKey.deviceToken))
+                        self.kakaologinToServer(with: token, FCMToken: UserDefaults.standard.string(forKey: Const.UserDefaultsKey.FCMToken))
                     }
                 }
             }
@@ -224,7 +224,7 @@ extension LoginViewController {
                         }
                         
                         self.kakaoAccessToken = token
-                        self.kakaologinToServer(with: token, deviceToken: Const.UserDefaultsKey.deviceToken)
+                        self.kakaologinToServer(with: token, FCMToken: Const.UserDefaultsKey.FCMToken)
                     }
                 }
             }
@@ -248,6 +248,8 @@ extension LoginViewController : ASAuthorizationControllerDelegate, ASAuthorizati
             let userIdentifier = appleIDCredential.user
             let fullName = appleIDCredential.fullName
             let email = appleIDCredential.email
+            let FCMToken = UserDefaults.standard.string(forKey: Const.UserDefaultsKey.FCMToken)
+            print("apple Login FCM: \(String(describing: FCMToken))")
             
             if let authorizationCodeData = appleIDCredential.authorizationCode,
                let authorizationCode = String(data: authorizationCodeData, encoding: .utf8),
@@ -271,7 +273,7 @@ extension LoginViewController : ASAuthorizationControllerDelegate, ASAuthorizati
 //                    }
 //                }
                 
-                self.appleloginToServer(with: identityToken, deviceToken: UserDefaults.standard.string(forKey: Const.UserDefaultsKey.deviceToken))
+                self.appleloginToServer(with: identityToken, FCMToken: FCMToken)
             }
         default:
             break
@@ -288,9 +290,9 @@ extension LoginViewController : ASAuthorizationControllerDelegate, ASAuthorizati
 //MARK: - others
 extension LoginViewController {
     // 카카오
-    private func kakaologinToServer(with kakaoAccessToken: String?, deviceToken : String?) {
+    private func kakaologinToServer(with kakaoAccessToken: String?, FCMToken : String?) {
         // LoginService를 사용하여 서버에 Post
-        LoginService.shared.kakaoLogin(accesstoken: kakaoAccessToken ?? "", deviceToken: deviceToken ?? "") { result in
+        LoginService.shared.kakaoLogin(accesstoken: kakaoAccessToken ?? "", FCMToken: FCMToken ?? "") { result in
             switch result {
             case .success(let data):
                 // 서버에서 받은 데이터 처리
@@ -301,8 +303,6 @@ extension LoginViewController {
                 //서버에서 보내준 accessToken,refreshToken, existMember 저장
                 KeyChain.create(key: Const.KeyChainKey.serverToken, token: data.data.accessToken)
                 KeyChain.create(key: Const.KeyChainKey.refreshToken, token: data.data.refreshToken)
-//                UserDefaults.standard.set(data.data.accessToken, forKey: "serverToken")
-//                UserDefaults.standard.set(data.data.refreshToken, forKey: "refreshToken")
                 UserDefaults.standard.set(data.data.existMember, forKey: Const.UserDefaultsKey.existMember)
                 UserDefaults.standard.set("kakao", forKey: Const.UserDefaultsKey.socialType)
                 
@@ -328,8 +328,8 @@ extension LoginViewController {
         }
     }
     
-    private func appleloginToServer(with appleIdToken: String?, deviceToken : String?) {
-        LoginService.shared.appleLogin(idToken: appleIdToken ?? "", deviceToken: deviceToken ?? "") { result in
+    private func appleloginToServer(with appleIdToken: String?, FCMToken : String?) {
+        LoginService.shared.appleLogin(idToken: appleIdToken ?? "", FCMToken: FCMToken ?? "") { result in
             switch result {
             case .success(let data):
                 // 서버에서 받은 데이터 처리

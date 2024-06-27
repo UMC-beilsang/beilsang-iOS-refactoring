@@ -628,9 +628,8 @@ class JoinChallengeViewController: UIViewController {
         }
         
         bottomView.snp.makeConstraints{ make in
-            make.bottom.equalToSuperview()
-            make.height.equalTo(height * 0.12)
-            make.leading.trailing.equalToSuperview()
+            make.leading.trailing.bottom.equalToSuperview()
+            make.height.equalTo(height * 0.1)
         }
         
         bookMarkButton.snp.makeConstraints{ make in

@@ -158,9 +158,6 @@ class SearchChallengeViewController: UIViewController, UIScrollViewDelegate {
     
     lazy var recommendTitleLabel: UILabel = {
         let view = UILabel()
-        //수정 예정
-        let nickname: String = UserDefaults.standard.string(forKey: Const.UserDefaultsKey.nickName)!
-        view.text = "\(nickname)님이 좋아할 챌린지를 추천드려요! 🙌"
         view.font = UIFont(name: "NotoSansKR-Medium", size: 14)
         view.numberOfLines = 0
         view.textColor = .beTextSub
@@ -182,6 +179,7 @@ class SearchChallengeViewController: UIViewController, UIScrollViewDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         setLoadingIndicator()
+        nickNamerequest()
         request()
         challengeRecommend()
     
@@ -482,6 +480,11 @@ extension SearchChallengeViewController: UICollectionViewDataSource, UICollectio
 }
 
 extension SearchChallengeViewController {
+    func nickNamerequest() {
+        MyPageService.shared.getMyPage(baseEndPoint: .mypage, addPath: "") { response in
+            self.recommendTitleLabel.text = "\(response.data.nickName)님이 좋아할 챌린지를 추천드려요! 🙌"
+        }
+    }
     func request() {
         let searchText = SearchGlobalData.shared.searchText
         SearchService.shared.SearchResult(name: "\(searchText ?? "")") { response in

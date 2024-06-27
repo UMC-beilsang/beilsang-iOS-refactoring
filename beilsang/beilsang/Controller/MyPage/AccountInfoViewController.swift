@@ -29,13 +29,20 @@ class AccountInfoViewController: UIViewController, UIScrollViewDelegate, UINavig
     
     var isFirstInput = true
     var textFieldValid = true
-    var nameDuplicate = false
+    var nameDuplicateValid = true
     var isProfileImageChanged = false
     var saveButtonEnabled = false
     
     var originalProfileImage: UIImage?
     var selectedGender: String?
-    var nickName: String?
+    
+    var nickName: String = ""
+    var gender: String?
+    var birth: String?
+    var address: String?
+    var zipCode: String?
+    var addressDetail: String?
+    var fullAddress: String?
     
     let agreeImage = UIImage(named: "agree")
     let disagreeImage = UIImage(named: "disagree")
@@ -110,8 +117,6 @@ class AccountInfoViewController: UIViewController, UIScrollViewDelegate, UINavig
         view.clearsOnBeginEditing = false
         view.leftView = UIView(frame: CGRect(x: 0.0, y: 0.0, width: 19.0, height: 0.0))
         view.leftViewMode = .always
-        let originalNickName = UserDefaults.standard.string(forKey: Const.UserDefaultsKey.nickName)
-        view.text = originalNickName
         let placeholderText = "2~8자 이내로 입력해 주세요"
         let attributes: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 14)
@@ -198,8 +203,6 @@ class AccountInfoViewController: UIViewController, UIScrollViewDelegate, UINavig
         view.clearsOnBeginEditing = false
         view.leftView = UIView(frame: CGRect(x: 0.0, y: 0.0, width: 19.0, height: 0.0))
         view.leftViewMode = .always
-        let originalBirth = UserDefaults.standard.string(forKey: Const.UserDefaultsKey.birth)
-        view.text = originalBirth
         let placeholderText = "생년월일 입력하기"
         let attributes: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 14)
@@ -240,8 +243,6 @@ class AccountInfoViewController: UIViewController, UIScrollViewDelegate, UINavig
         view.clearsOnBeginEditing = false
         view.leftView = UIView(frame: CGRect(x: 0.0, y: 0.0, width: 19.0, height: 0.0))
         view.leftViewMode = .always
-        let originalGender = UserDefaults.standard.string(forKey: Const.UserDefaultsKey.gender)
-        view.text = originalGender
         let placeholderText = "성별 입력하기"
         let attributes: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 14)
@@ -281,8 +282,6 @@ class AccountInfoViewController: UIViewController, UIScrollViewDelegate, UINavig
         view.clearsOnBeginEditing = false
         view.leftView = UIView(frame: CGRect(x: 0.0, y: 0.0, width: 19.0, height: 0.0))
         view.leftViewMode = .always
-        let originalZipCode = UserDefaults.standard.string(forKey: Const.UserDefaultsKey.zipCode)
-        view.text = originalZipCode
         let placeholderText = "우편번호 입력하기"
         let attributes: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 14)
@@ -323,8 +322,6 @@ class AccountInfoViewController: UIViewController, UIScrollViewDelegate, UINavig
         view.clearsOnBeginEditing = false
         view.leftView = UIView(frame: CGRect(x: 0.0, y: 0.0, width: 19.0, height: 0.0))
         view.leftViewMode = .always
-        let originalAddress = UserDefaults.standard.string(forKey: Const.UserDefaultsKey.address)
-        view.text = originalAddress
         let placeholderText = "도로명 주소 입력하기"
         let attributes: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 14)
@@ -352,8 +349,6 @@ class AccountInfoViewController: UIViewController, UIScrollViewDelegate, UINavig
         view.clearsOnBeginEditing = false
         view.leftView = UIView(frame: CGRect(x: 0.0, y: 0.0, width: 19.0, height: 0.0))
         view.leftViewMode = .always
-        let originalAddress = UserDefaults.standard.string(forKey: Const.UserDefaultsKey.addressDetail)
-        view.text = originalAddress
         let placeholderText = "상세 주소 입력하기"
         let attributes: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 14)
@@ -437,7 +432,6 @@ class AccountInfoViewController: UIViewController, UIScrollViewDelegate, UINavig
         let label = UILabel()
         label.textAlignment = .center
         label.font = UIFont(name: "NotoSansKR-Regular", size: 11)
-        label.text = UserDefaults.standard.string(forKey: Const.UserDefaultsKey.nickName)
         label.textColor = .beTextInfo
         return label
     }()
@@ -632,6 +626,7 @@ class AccountInfoViewController: UIViewController, UIScrollViewDelegate, UINavig
         kakaoZipCodeVC.delegate = self
         kakaoZipCodeVC.accountInfoVC = self
         view.backgroundColor = .white
+        getMypage()
         profileImageRequest()
         setImagePicker()
         setupAttribute()
@@ -646,14 +641,49 @@ class AccountInfoViewController: UIViewController, UIScrollViewDelegate, UINavig
 }
 
 extension AccountInfoViewController {
+    func getMypage() {
+        MyPageService.shared.getMyPage(baseEndPoint: .mypage, addPath: "") {response in
+            self.nickName = response.data.nickName
+            self.nameField.text = response.data.nickName
+            if let genderString = response.data.gender {
+                if genderString == "MAN" {
+                    self.genderField.text = "남자"
+                    self.gender = "남자"
+                }
+                else if genderString == "WOMAN" {
+                    self.genderField.text = "여자"
+                    self.gender = "여자"
+                }
+                else if genderString == "OTHER" {
+                    self.genderField.text = "기타"
+                    self.gender = "기타"
+                }
+            }
+            self.birth = response.data.birth
+            self.birthField.text = response.data.birth
+
+            if let fullAddress = response.data.address {
+                let addressComponent = fullAddress.components(separatedBy: ".")
+
+                if addressComponent.count > 0 {
+                    self.zipCodeField.text = addressComponent[0]
+                    self.zipCode = addressComponent[0]
+                }
+
+                if addressComponent.count > 1 {
+                    self.addressField.text = addressComponent[1]
+                    self.address = addressComponent[1]
+                }
+
+                if addressComponent.count > 2 {
+                    self.addressDetailField.text = addressComponent[2]
+                    self.addressDetail = addressComponent[2]
+                }
+            }
+            self.emailLabel2.text = response.data.nickName
+        }
+    }
     func request() {
-        UserDefaults.standard.setValue(nameField.text, forKey: Const.UserDefaultsKey.nickName)
-        UserDefaults.standard.setValue(genderField.text ?? "", forKey: Const.UserDefaultsKey.gender)
-        UserDefaults.standard.setValue(birthField.text ?? "", forKey: Const.UserDefaultsKey.birth)
-        UserDefaults.standard.setValue(addressField.text, forKey: Const.UserDefaultsKey.address)
-        UserDefaults.standard.setValue(addressDetailField.text, forKey: Const.UserDefaultsKey.addressDetail)
-        UserDefaults.standard.setValue(zipCodeField.text ?? "", forKey: Const.UserDefaultsKey.zipCode)
-        
         var gender = ""
         if genderField.text == "남자"{
             gender = "MAN"
@@ -663,7 +693,11 @@ extension AccountInfoViewController {
             gender = "OTHER"
         }
         
-        let parameters = AccountInfoData(nickName: nameField.text ?? "", birth: birthField.text ?? "" , gender: gender , address: (addressField.text ?? "") + (addressDetailField.text ?? ""))
+        if let addresstext = addressField.text, let detailAddress = addressDetailField.text, let zipCode = zipCodeField.text {
+            self.fullAddress = "\(zipCode).\(addresstext).\(detailAddress)"
+        }
+        
+        let parameters = AccountInfoData(nickName: nameField.text ?? "", birth: birthField.text ?? "" , gender: gender , address: fullAddress)
         
         MyPageService.shared.patchAccountInfo(baseEndPoint: .profile, addPath: "", parameter: parameters.toDictionary ?? [:] ) { response in
             print(response.message )
@@ -1084,58 +1118,35 @@ extension AccountInfoViewController{
         }
     }
     // MARK: - nameDuplicateCheck
-    
     func nameDuplicateCheck() {
-        let serverInput = requestDuplicateCheck()
-        
-        if serverInput  {
-            nameInfoViewChanged(state: "avaliable")
-            textFieldChanged(textField: nameField, state: "basic")
-            nameDuplicate = true
+        requestDuplicateCheck { serverInput in
+            if serverInput {
+                self.nameInfoViewChanged(state: "avaliable")
+                self.textFieldChanged(textField: self.nameField, state: "basic")
+                self.nameDuplicateValid = true
+            } else {
+                self.nameInfoViewChanged(state: "exist")
+                self.textFieldChanged(textField: self.nameField, state: "inavaliable")
+                self.nameDuplicateValid = false
+            }
             
-            updateSaveButtonState()
-        }
-        else {
-            nameInfoViewChanged(state: "exist")
-            textFieldChanged(textField: nameField, state: "inavaliable")
-            nameDuplicate = false
-            
-            updateSaveButtonState()
+            self.updateSaveButtonState()
         }
     }
     
-    private func requestDuplicateCheck() -> Bool{
-        var dupCheck = true
-        MyPageService.shared.getDuplicateCheck(baseEndPoint: .join, addPath: "?name=\(nameField.text ?? "")" ) { response in
-            dupCheck = response.data
+    private func requestDuplicateCheck(completion: @escaping (Bool) -> Void) {
+        SignUpService.shared.nameCheck(name: nameField.text) { response in
+            let dupCheck = response.data
+            completion(dupCheck)
         }
-        print(dupCheck)
-        
-        return dupCheck
     }
     // MARK: - save Button
     
     func updateSaveButtonState() {
-        let originalNickname = UserDefaults.standard.string(forKey: Const.UserDefaultsKey.nickName)
-        let originalBirth = UserDefaults.standard.string(forKey: Const.UserDefaultsKey.birth)
-        let originalGender = UserDefaults.standard.string(forKey: Const.UserDefaultsKey.gender)
-        //zipCode는 주소가 바뀌면 알아서 바뀌기 때문에 검사하지 않음
-        let originalAddress = UserDefaults.standard.string(forKey: Const.UserDefaultsKey.address)
-        let originalAddressDetail = UserDefaults.standard.string(forKey: Const.UserDefaultsKey.addressDetail)
-        
-        let isNicknameChanged = nameDuplicate && nameField.text != originalNickname
-        let isOtherFieldChanged = birthField.text != originalBirth || genderField.text != originalGender || addressField.text != originalAddress || addressDetailField.text != originalAddressDetail
-        
-        if isNicknameChanged {
-            saveButtonEnabled = true
-        } else {
-            if nameDuplicate {
-                saveButtonEnabled = isOtherFieldChanged || isProfileImageChanged
-            }
-            else{
-                saveButtonEnabled = false
-            }
-        }
+        let isNicknameChanged = nameDuplicateValid && nameField.text != nickName
+        let isOtherFieldChanged = birthField.text != birth || genderField.text != gender || addressField.text != address || addressDetailField.text != addressDetail || zipCodeField.text != zipCode
+
+        saveButtonEnabled = isNicknameChanged || (nameDuplicateValid && (isOtherFieldChanged || isProfileImageChanged))
         
         if saveButtonEnabled {
             saveButton.backgroundColor = .beScPurple600
@@ -1372,7 +1383,7 @@ extension AccountInfoViewController: UITextFieldDelegate {
     
     func textFieldDidBeginEditing(_ textField: UITextField) {
         if textField == nameField  {
-            nameDuplicate = false
+            nameDuplicateValid = false
             updateSaveButtonState()
             if isFirstInput { //첫입력일때
                 textFieldChanged(textField: nameField, state: "avaliable")
@@ -1487,7 +1498,7 @@ extension AccountInfoViewController: UIPickerViewDelegate, UIPickerViewDataSourc
         }
         
         genderField.text = selectedGender
-        genderField.textColor = .bePsBlue500
+        genderField.textColor = .beTextDef
     }
 }
 extension AccountInfoViewController: UITextViewDelegate {
@@ -1523,17 +1534,12 @@ extension AccountInfoViewController{
         //토큰 삭제
         KeyChain.delete(key: Const.KeyChainKey.serverToken)
         KeyChain.delete(key: Const.KeyChainKey.refreshToken)
-        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.deviceToken)
-        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.nickName)
-        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.gender)
-        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.birth)
-        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.zipCode)
-        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.address)
-        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.addressDetail)
+        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.socialType)
         UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.existMember)
         UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.recentSearchTerms)
-        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.socialType)
+        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.deviceToken)
         UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.firshLaunch)
+        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.FCMToken)
         
         UserDefaults.standard.synchronize()
         
@@ -1551,18 +1557,18 @@ extension AccountInfoViewController{
         //기기에 저장되어있는 토큰 삭제
         KeyChain.delete(key: Const.KeyChainKey.serverToken)
         KeyChain.delete(key: Const.KeyChainKey.refreshToken)
-        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.deviceToken)
-        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.nickName)
-        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.gender)
-        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.birth)
-        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.zipCode)
-        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.address)
-        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.addressDetail)
+        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.socialType)
         UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.existMember)
         UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.recentSearchTerms)
-        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.socialType)
+        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.deviceToken)
         UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.firshLaunch)
-        
+        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.FCMToken)
+//        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.nickName)
+//        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.gender)
+//        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.birth)
+//        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.zipCode)
+//        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.address)
+//        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.addressDetail)
         UserDefaults.standard.synchronize()
         
         print("apple logout() success.")
@@ -1589,17 +1595,12 @@ extension AccountInfoViewController{
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { // 1.5초 딜레이
                         KeyChain.delete(key: Const.KeyChainKey.serverToken)
                         KeyChain.delete(key: Const.KeyChainKey.refreshToken)
-                        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.deviceToken)
-                        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.nickName)
-                        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.gender)
-                        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.birth)
-                        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.zipCode)
-                        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.address)
-                        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.addressDetail)
+                        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.socialType)
                         UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.existMember)
                         UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.recentSearchTerms)
-                        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.socialType)
+                        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.deviceToken)
                         UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.firshLaunch)
+                        UserDefaults.standard.setValue(nil, forKey: Const.UserDefaultsKey.FCMToken)
                         
                         UserDefaults.standard.synchronize()
                         
@@ -1719,10 +1720,10 @@ extension AccountInfoViewController: UIImagePickerControllerDelegate {
             if picker == profileImagePicker {
                 profileShadowView.image = image
                 isProfileImageChanged = image != originalProfileImage
+                updateSaveButtonState()
             }
         }
         picker.dismiss(animated: true, completion: nil)
-        updateSaveButtonState()
     }
     
     // 이미지 피커에서 취소 버튼을 누른 후 호출되는 메소드

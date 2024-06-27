@@ -151,6 +151,7 @@ class StartViewController: UIViewController {
     @objc func nextAction
     (_ sender: UIButton) {
         SignUpToServer()
+        
     }
 }
 
@@ -166,7 +167,6 @@ extension StartViewController {
                 // 서버에서 받은 데이터 처리
                 guard let data = data as? SignUpResponse else { return }
                 print("signup to server success with data: \(data)")
-                UserDefaults.standard.set(true, forKey: Const.UserDefaultsKey.existMember)
                 
                 DispatchQueue.main.async {
                     let homeVC = TabBarViewController()
@@ -174,7 +174,7 @@ extension StartViewController {
                         sceneDelegate.changeRootViewController(homeVC)
                     }
                 }
-
+                
             case .tokenExpired :
                 TokenManager.shared.refreshToken(refreshToken: refreshToken!) { _ in } callback: {
                     self.SignUpToServer()
@@ -191,4 +191,5 @@ extension StartViewController {
             }
         }
     }
+
 }

@@ -30,6 +30,7 @@ class FindViewController: UIViewController, UIScrollViewDelegate {
     
     // 더보기 버튼용
     var pageNumber = [Int](repeating: 0, count: 10)
+    
     //검색창
     lazy var searchBar: UIButton = {
         let view = UIButton()
@@ -42,6 +43,7 @@ class FindViewController: UIViewController, UIScrollViewDelegate {
         view.addTarget(self, action: #selector(searchBarTapped), for: .touchUpInside)
         return view
     }()
+    
     lazy var searchIcon: UIImageView = {
         let view = UIImageView()
         view.image = UIImage(named: "icon-search")
@@ -56,7 +58,11 @@ class FindViewController: UIViewController, UIScrollViewDelegate {
         label.textColor = .black
         return label
     }()
+    
+    // 명예의 전당 카테고리 설정
     let HofChallengeCategoryList = CategoryKeyword.find
+    
+    // 명예의 전당 카테고리 컬렉션뷰
     lazy var HofChallengeCategoryCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
@@ -65,6 +71,7 @@ class FindViewController: UIViewController, UIScrollViewDelegate {
         let view = UICollectionView(frame: .zero, collectionViewLayout: layout)
         return view
     }()
+    
     lazy var HofChallengeCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
@@ -75,6 +82,7 @@ class FindViewController: UIViewController, UIScrollViewDelegate {
         view.decelerationRate = .fast
         return view
     }()
+    
     lazy var scrollIndicator: ScrollIndicatorView = {
         let view = ScrollIndicatorView()
         return view
@@ -126,28 +134,28 @@ class FindViewController: UIViewController, UIScrollViewDelegate {
         view.isHidden = true
         return view
     }()
-    lazy var moreFeedButton: UIButton = {
-        let button = UIButton()
-        button.layer.borderWidth = 1
-        button.layer.borderColor = UIColor.beBgDiv.cgColor
-        button.backgroundColor = .white
-        button.layer.cornerRadius = 20
-        button.addTarget(self, action: #selector(showMoreFeed), for: .touchUpInside)
-        button.isHidden = true
-        return button
-    }()
-    lazy var moreFeedButtonLabel: UILabel = {
-        let label = UILabel()
-        label.text = "전체 챌린지 더보기"
-        label.font = UIFont(name: "NotoSansKR-Medium", size: 14)
-        label.textColor = .black
-        return label
-    }()
-    lazy var moreFeedButtonImage: UIImageView = {
-        let view = UIImageView()
-        view.image = UIImage(named: "Vector 10")
-        return view
-    }()
+//    lazy var moreFeedButton: UIButton = {
+//        let button = UIButton()
+//        button.layer.borderWidth = 1
+//        button.layer.borderColor = UIColor.beBgDiv.cgColor
+//        button.backgroundColor = .white
+//        button.layer.cornerRadius = 20
+//        button.addTarget(self, action: #selector(showMoreFeed), for: .touchUpInside)
+//        button.isHidden = true
+//        return button
+//    }()
+//    lazy var moreFeedButtonLabel: UILabel = {
+//        let label = UILabel()
+//        label.text = "전체 챌린지 더보기"
+//        label.font = UIFont(name: "NotoSansKR-Medium", size: 14)
+//        label.textColor = .black
+//        return label
+//    }()
+//    lazy var moreFeedButtonImage: UIImageView = {
+//        let view = UIImageView()
+//        view.image = UIImage(named: "Vector 10")
+//        return view
+//    }()
     
     lazy var scrollToTop: UIButton = {
         let status = false
@@ -247,13 +255,12 @@ extension FindViewController {
     }
     
     // 명예의 전당 챌린지 리스트
-    func requestHofChallengeList() -> [ChallengeModel]{
-        var list : [ChallengeModel] = []
+    func requestHofChallengeList(completion: @escaping ([ChallengeModel]) -> Void) {
         MyPageService.shared.getChallengeList(baseEndPoint: .challenges, addPath: "/famous/\(HofCategory)") { response in
-            list = response.data.challenges ?? []
-            self.setHofList(response.data.challenges ?? [])
+            let list = response.data.challenges ?? []
+            self.setHofList(list)
+            completion(list)
         }
-        return list
     }
     
     private func setHofList(_ response: [ChallengeModel]){
@@ -322,7 +329,7 @@ extension FindViewController {
         fullContentView.snp.makeConstraints { make in
             make.edges.equalTo(fullScrollView.contentLayoutGuide)
             make.width.equalTo(fullScrollView.frameLayoutGuide)
-            make.height.equalTo(1056)
+            make.height.equalTo(1000)
         }
     }
     
@@ -330,12 +337,12 @@ extension FindViewController {
     func addView() {
         // foreach문을 사용해서 클로저 형태로 작성
         self.view.addSubview(scrollToTop)
-        self.view.addSubview(moreFeedButton)
+//        self.view.addSubview(moreFeedButton)
         [searchBar, searchIcon, HofChallengeListLabel, HofChallengeCategoryCollectionView, HofChallengeCollectionView, scrollIndicator, challengeFeedLabel, categoryCollectionView, challengeFeedBoxCollectionView, feedDetailBackground, feedDetailCollectionView, reportButton].forEach{ view in fullContentView.addSubview(view)}
         
-        [moreFeedButtonLabel, moreFeedButtonImage].forEach { view in
-            moreFeedButton.addSubview(view)
-        }
+//        [moreFeedButtonLabel, moreFeedButtonImage].forEach { view in
+//            moreFeedButton.addSubview(view)
+//        }
         
         reportAlert.customSubview = reportSubView
         reportSubView.addSubview(reportLabel)
@@ -401,22 +408,22 @@ extension FindViewController {
         feedDetailBackground.snp.makeConstraints { make in
             make.size.edges.equalToSuperview()
         }
-        moreFeedButton.snp.makeConstraints { make in
-            make.width.equalTo(240)
-            make.height.equalTo(40)
-            make.centerX.equalToSuperview()
-            make.bottom.equalToSuperview().offset(-128)
-        }
-        moreFeedButtonLabel.snp.makeConstraints { make in
-            make.centerX.equalTo(moreFeedButton).offset(-12)
-            make.centerY.equalTo(moreFeedButton)
-        }
-        moreFeedButtonImage.snp.makeConstraints { make in
-            make.leading.equalTo(moreFeedButtonLabel.snp.trailing).offset(12)
-            make.centerY.equalTo(moreFeedButtonLabel)
-            make.width.equalTo(12)
-            make.height.equalTo(6)
-        }
+//        moreFeedButton.snp.makeConstraints { make in
+//            make.width.equalTo(240)
+//            make.height.equalTo(40)
+//            make.centerX.equalToSuperview()
+//            make.bottom.equalToSuperview().offset(-128)
+//        }
+//        moreFeedButtonLabel.snp.makeConstraints { make in
+//            make.centerX.equalTo(moreFeedButton).offset(-12)
+//            make.centerY.equalTo(moreFeedButton)
+//        }
+//        moreFeedButtonImage.snp.makeConstraints { make in
+//            make.leading.equalTo(moreFeedButtonLabel.snp.trailing).offset(12)
+//            make.centerY.equalTo(moreFeedButtonLabel)
+//            make.width.equalTo(12)
+//            make.height.equalTo(6)
+//        }
         scrollToTop.snp.makeConstraints { make in
             make.width.height.equalTo(66)
             make.trailing.equalToSuperview().offset(-20)
@@ -636,11 +643,10 @@ extension FindViewController: UICollectionViewDataSource, UICollectionViewDelega
         case categoryCollectionView:
             let cell = collectionView.cellForItem(at: indexPath) as! MyPageCategoryCollectionViewCell
             feedCategory = cell.keywordLabel.text!
-            moreFeedButtonLabel.text = "\(feedCategory) 챌린지 더보기"
+//            moreFeedButtonLabel.text = "\(feedCategory) 챌린지 더보기"
             didTapButton()
             feedCellList.removeAll() // 다른 카테고리에서 받은 데이터 없애기
-            setList(collectionView: collectionView) // request 요청
-            fullScrollView.resetContentSize() // 늘어난 스크롤 뷰 줄이기
+            setList(collectionView: collectionView) // request 요청 // 늘어난 스크롤 뷰 줄이기
         case HofChallengeCollectionView:
             let cell = collectionView.cellForItem(at: indexPath) as! HofChallengeCollectionViewCell
             
@@ -655,7 +661,7 @@ extension FindViewController: UICollectionViewDataSource, UICollectionViewDelega
             feedDetailCollectionView.isHidden = false
             feedDetailBackground.isHidden = false
             fullScrollView.isScrollEnabled = false
-            moreFeedButton.isHidden = true
+//            moreFeedButton.isHidden = true
             // 피드 이미지 전달
             let feedCell = feedDetailCollectionView.cellForItem(at: IndexPath(item: 0, section: 0)) as! FindFeedDetailCollectionViewCell
             feedCell.feedImage.image = cell.challengeFeed.image
@@ -695,7 +701,7 @@ extension FindViewController: UICollectionViewDataSource, UICollectionViewDelega
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         if scrollView == fullScrollView{
             if (scrollView.contentOffset.y + 1) >= (scrollView.contentSize.height - scrollView.frame.size.height) {
-                moreFeedButton.isHidden = false
+//                moreFeedButton.isHidden = false
             }
         }
     }
@@ -751,8 +757,7 @@ extension FindViewController {
     @objc func showMoreFeed() {
         requestMoreFeedList()
         challengeFeedBoxCollectionView.reloadData()
-        moreFeedButton.isHidden = true
-        fullScrollView.updateContentSize()
+//        moreFeedButton.isHidden = true
         fullContentView.snp.remakeConstraints { make in
             make.edges.equalTo(fullScrollView.contentLayoutGuide)
             make.width.equalTo(fullScrollView.frameLayoutGuide)
@@ -808,7 +813,7 @@ extension FindViewController: CustomFeedCellDelegate {
         feedDetailCollectionView.isHidden = true
         feedDetailBackground.isHidden = true
         fullScrollView.isScrollEnabled = true
-        moreFeedButton.isHidden = false
+//        moreFeedButton.isHidden = false
     }
     func didTapReportButton() {
         alertViewResponder = reportAlert.showInfo("신고하기")
@@ -848,13 +853,20 @@ extension FindViewController: CustomFeedCellDelegate {
     private func setList(collectionView: UICollectionView){
         
         if collectionView == HofChallengeCategoryCollectionView{
-            let categoryIndex = changeCategoryToInt(category: HofCategory)-1
-            //api에서 data를 받아오지 않았다면
-            if HofFeedList[categoryIndex].isEmpty{
-                HofFeedList[categoryIndex] = requestHofChallengeList()
-            } else {
-                self.HofCellList = HofFeedList[categoryIndex]
-                HofChallengeCollectionView.reloadData()
+            let categoryIndex = changeCategoryToInt(category: HofCategory) - 1
+            // 데이터를 초기화
+            self.HofFeedList[categoryIndex].removeAll()
+            self.HofCellList.removeAll()
+            HofChallengeCollectionView.reloadData()
+            
+            // API 호출
+            requestHofChallengeList { [weak self] list in
+                guard let self = self else { return }
+                DispatchQueue.main.async {
+                    self.HofFeedList[categoryIndex] = list
+                    self.HofCellList = list
+                    self.HofChallengeCollectionView.reloadData()
+                }
             }
         } else {
             let categoryIndex = changeCategoryToInt(category: feedCategory)
@@ -892,28 +904,28 @@ extension FindViewController: CustomFeedCellDelegate {
     }
 }
 
-// 동적으로 scroll view 크기 설정
-extension UIScrollView {
-    func updateContentSize() {
-        let unionCalculatedTotalRect = recursiveUnionInDepthFor(view: self)
-        
-        // 계산된 크기로 컨텐츠 사이즈 설정
-        self.contentSize = CGSize(width: self.frame.width, height: unionCalculatedTotalRect.height+400)
-    }
-    func resetContentSize() {
-        let unionCalculatedTotalRect = recursiveUnionInDepthFor(view: self)
-        // 계산된 크기로 컨텐츠 사이즈 설정
-        self.contentSize = CGSize(width: self.frame.width, height: unionCalculatedTotalRect.height-400)
-    }
-    private func recursiveUnionInDepthFor(view: UIView) -> CGRect {
-        var totalRect: CGRect = .zero
-        
-        // 모든 자식 View의 컨트롤의 크기를 재귀적으로 호출하며 최종 영역의 크기를 설정
-        for subView in view.subviews {
-            totalRect = totalRect.union(recursiveUnionInDepthFor(view: subView))
-        }
-        
-        // 최종 계산 영역의 크기를 반환
-        return totalRect.union(view.frame)
-    }
-}
+//// 동적으로 scroll view 크기 설정
+//extension UIScrollView {
+//    func updateContentSize() {
+//        let unionCalculatedTotalRect = recursiveUnionInDepthFor(view: self)
+//        
+//        // 계산된 크기로 컨텐츠 사이즈 설정
+//        self.contentSize = CGSize(width: self.frame.width, height: unionCalculatedTotalRect.height+400)
+//    }
+//    func resetContentSize() {
+//        let unionCalculatedTotalRect = recursiveUnionInDepthFor(view: self)
+//        // 계산된 크기로 컨텐츠 사이즈 설정
+//        self.contentSize = CGSize(width: self.frame.width, height: unionCalculatedTotalRect.height-400)
+//    }
+//    private func recursiveUnionInDepthFor(view: UIView) -> CGRect {
+//        var totalRect: CGRect = .zero
+//        
+//        // 모든 자식 View의 컨트롤의 크기를 재귀적으로 호출하며 최종 영역의 크기를 설정
+//        for subView in view.subviews {
+//            totalRect = totalRect.union(recursiveUnionInDepthFor(view: subView))
+//        }
+//        
+//        // 최종 계산 영역의 크기를 반환
+//        return totalRect.union(view.frame)
+//    }
+//}

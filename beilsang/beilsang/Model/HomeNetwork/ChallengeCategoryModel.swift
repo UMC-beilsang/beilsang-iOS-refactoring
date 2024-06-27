@@ -12,7 +12,7 @@ struct ChallengeCategory: Codable {
     let code : String
     let message : String
     let data : ChallengeCategoryList?
-    let success : Bool?
+    let success : Bool
 }
 
 struct ChallengeCategoryList : Codable {

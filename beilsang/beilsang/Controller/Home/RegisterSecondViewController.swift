@@ -776,6 +776,8 @@ extension RegisterSecondViewController {
     }
     
     func setLayout() {
+        let height = UIScreen.main.bounds.height
+        
         fullScrollView.snp.makeConstraints { make in
             make.top.equalTo(view.safeAreaLayoutGuide.snp.top)
             make.leading.trailing.width.equalToSuperview()
@@ -940,9 +942,9 @@ extension RegisterSecondViewController {
             make.width.equalTo(pointButtonWidth)
         }
         
-        bottomView.snp.makeConstraints { make in
+        bottomView.snp.makeConstraints{ make in
             make.leading.trailing.bottom.equalToSuperview()
-            make.height.equalTo(80)
+            make.height.equalTo(height * 0.1)
         }
         
         beforeButton.snp.makeConstraints { make in

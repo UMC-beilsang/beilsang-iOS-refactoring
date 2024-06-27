@@ -553,7 +553,6 @@ extension RegisterThirdViewController {
         agree1Label.snp.makeConstraints { make in
             make.centerY.equalTo(agree1Button.snp.centerY)
             make.leading.equalTo(agree1Button.snp.trailing).offset(12)
-            make.trailing.equalToSuperview().offset(-16)
         }
         
         agree2Button.snp.makeConstraints { make in
@@ -565,7 +564,6 @@ extension RegisterThirdViewController {
         agree2Label.snp.makeConstraints { make in
             make.top.equalTo(agree2Button.snp.top)
             make.leading.equalTo(agree2Button.snp.trailing).offset(12)
-            make.trailing.equalToSuperview().offset(-16)
         }
         
         agree3Button.snp.makeConstraints { make in
@@ -577,7 +575,6 @@ extension RegisterThirdViewController {
         agree3Label.snp.makeConstraints { make in
             make.centerY.equalTo(agree3Button.snp.centerY)
             make.leading.equalTo(agree3Button.snp.trailing).offset(12)
-            make.trailing.equalToSuperview().offset(-16)
         }
         
         agree4Button.snp.makeConstraints { make in
@@ -589,7 +586,6 @@ extension RegisterThirdViewController {
         agree4Label.snp.makeConstraints { make in
             make.top.equalTo(agree4Button.snp.top)
             make.leading.equalTo(agree3Button.snp.trailing).offset(12)
-            make.trailing.equalToSuperview().offset(-16)
         }
         
         agree5Button.snp.makeConstraints { make in
@@ -600,13 +596,12 @@ extension RegisterThirdViewController {
         
         agree5Label.snp.makeConstraints { make in
             make.top.equalTo(agree5Button.snp.top)
-            make.trailing.equalToSuperview().offset(-16)
             make.leading.equalTo(agree5Button.snp.trailing).offset(12)
         }
         
         bottomView.snp.makeConstraints{ make in
-            make.height.equalTo(height * 0.12)
             make.leading.trailing.bottom.equalToSuperview()
+            make.height.equalTo(height * 0.1)
         }
         
         beforeButton.snp.makeConstraints { make in

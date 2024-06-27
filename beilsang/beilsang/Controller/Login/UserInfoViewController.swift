@@ -1000,34 +1000,29 @@ class UserInfoViewController: UIViewController {
     // MARK: - nameDuplicateCheck
     
     func nameDuplicateCheck() {
-        let serverInput = requestDuplicateCheck()
-        
-        if serverInput  {
-            nameInfoViewChanged(state: "avaliable")
-            textFieldChanged(textField: nameField, state: "basic")
-            nameDuplicate = true
+        requestDuplicateCheck { serverInput in
+            if serverInput {
+                self.nameInfoViewChanged(state: "avaliable")
+                self.textFieldChanged(textField: self.nameField, state: "basic")
+                self.nameDuplicate = true
+                self.isNext[0] = true
+            } else {
+                self.nameInfoViewChanged(state: "exist")
+                self.textFieldChanged(textField: self.nameField, state: "inavaliable")
+                self.nameDuplicate = false
+            }
             
-            isNext[0] = true
-            
-            updateNextButtonState()
-        }
-        else {
-            nameInfoViewChanged(state: "exist")
-            textFieldChanged(textField: nameField, state: "inavaliable")
-            nameDuplicate = false
-            
-            updateNextButtonState()
+            self.updateNextButtonState()
         }
     }
     
-    private func requestDuplicateCheck() -> Bool{
-        var dupCheck = true
+    private func requestDuplicateCheck(completion: @escaping (Bool) -> Void) {
         SignUpService.shared.nameCheck(name: nameField.text) { response in
-            dupCheck = response.data
+            let dupCheck = response.data
+            completion(dupCheck)
         }
-        return dupCheck
     }
-    
+
     // MARK: - next Button
     
     func updateNextButtonState() {
@@ -1083,9 +1078,6 @@ class UserInfoViewController: UIViewController {
     //MARK: - SignUpData parsing
     func SignUpDataParse() {
         SignUpData.shared.nickName = nameField.text ?? ""
-        UserDefaults.standard.setValue(nameField.text, forKey: Const.UserDefaultsKey.memberId)
-        print(UserDefaults.standard.string(forKey: Const.UserDefaultsKey.memberId)!)
-        
         if let formattedBirth = formatDate(dateString: birthField.text ?? ""){
             SignUpData.shared.birth = formattedBirth
         }else {
@@ -1102,8 +1094,8 @@ class UserInfoViewController: UIViewController {
             SignUpData.shared.gender = "OTHER"
         }
         
-        if let address = addressField.text, let detailAddress = addressDetailField.text {
-            let fullAddress = address + " " + detailAddress
+        if let address = addressField.text, let detailAddress = addressDetailField.text, let zipCode = zipCodeField.text {
+            let fullAddress = "\(zipCode).\(address).\(detailAddress)"
             SignUpData.shared.address = fullAddress
         }
     }
@@ -1117,14 +1109,6 @@ class UserInfoViewController: UIViewController {
         print("birth : \(SignUpData.shared.birth ?? "")")
         print("nickName : \(SignUpData.shared.nickName)")
         print("address : \(SignUpData.shared.address ?? "")")
-        
-        UserDefaults.standard.setValue(nameField.text, forKey: Const.UserDefaultsKey.memberId)
-        UserDefaults.standard.setValue(SignUpData.shared.nickName, forKey: Const.UserDefaultsKey.nickName)
-        UserDefaults.standard.setValue(genderField.text, forKey: Const.UserDefaultsKey.gender)
-        UserDefaults.standard.setValue(SignUpData.shared.birth, forKey: Const.UserDefaultsKey.birth)
-        UserDefaults.standard.setValue(addressField.text, forKey: Const.UserDefaultsKey.address)
-        UserDefaults.standard.setValue(addressDetailField.text, forKey: Const.UserDefaultsKey.addressDetail)
-        UserDefaults.standard.setValue(zipCodeField.text, forKey: Const.UserDefaultsKey.zipCode)
         
         let routeViewController = RouteViewController()
         self.navigationController?.pushViewController(routeViewController, animated: true)

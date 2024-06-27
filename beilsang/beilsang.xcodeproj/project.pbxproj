@@ -49,6 +49,7 @@
 		2F8C57BD2B780C61002B4862 /* SignUpModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F8C57BC2B780C61002B4862 /* SignUpModel.swift */; };
 		2F8C57C32B78D162002B4862 /* Tabman in Frameworks */ = {isa = PBXBuildFile; productRef = 2F8C57C22B78D162002B4862 /* Tabman */; };
 		2F8F28AC2C11FC8A009AE563 /* MainChallengeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F8F28AB2C11FC8A009AE563 /* MainChallengeViewController.swift */; };
+		2F95ABC52C2B2A9100EA6EA6 /* SplashViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F95ABC42C2B2A9100EA6EA6 /* SplashViewController.swift */; };
 		2F9D0EC82C0DCE8900C9C859 /* KeyChain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F9D0EC72C0DCE8900C9C859 /* KeyChain.swift */; };
 		2F9D0ECC2C0DD21300C9C859 /* Const.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F9D0ECB2C0DD21300C9C859 /* Const.swift */; };
 		2FAB99F32B72C8EF00853BF7 /* GalleryData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FAB99F22B72C8EF00853BF7 /* GalleryData.swift */; };
@@ -58,6 +59,10 @@
 		2FAB99FD2B72C9F000853BF7 /* ChallengeDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FAB99FC2B72C9F000853BF7 /* ChallengeDetailViewController.swift */; };
 		2FAB99FF2B72CA1400853BF7 /* JoinChallengeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FAB99FE2B72CA1400853BF7 /* JoinChallengeViewController.swift */; };
 		2FB2BCD82C2359EE009DDEBA /* PatchProfileImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FB2BCD72C2359EE009DDEBA /* PatchProfileImage.swift */; };
+		2FB2BCDB2C240CD2009DDEBA /* NotificationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FB2BCDA2C240CD2009DDEBA /* NotificationModel.swift */; };
+		2FB2BCDD2C244F1D009DDEBA /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FB2BCDC2C244F1D009DDEBA /* NotificationService.swift */; };
+		2FB2BCE02C256CCD009DDEBA /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 2FB2BCDF2C256CCD009DDEBA /* FirebaseMessaging */; };
+		2FB2BCE62C268437009DDEBA /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 2FB2BCE52C268437009DDEBA /* GoogleService-Info.plist */; };
 		2FC4CA4F2B5E518500C0DB84 /* MotoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FC4CA4E2B5E518500C0DB84 /* MotoViewController.swift */; };
 		2FC4CA512B5E528F00C0DB84 /* JoinMoto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FC4CA502B5E528F00C0DB84 /* JoinMoto.swift */; };
 		2FC4CA532B5E532100C0DB84 /* MotoCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FC4CA522B5E532100C0DB84 /* MotoCollectionViewCell.swift */; };
@@ -208,6 +213,7 @@
 		2F8C57BA2B780C29002B4862 /* SignUpService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpService.swift; sourceTree = "<group>"; };
 		2F8C57BC2B780C61002B4862 /* SignUpModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpModel.swift; sourceTree = "<group>"; };
 		2F8F28AB2C11FC8A009AE563 /* MainChallengeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainChallengeViewController.swift; sourceTree = "<group>"; };
+		2F95ABC42C2B2A9100EA6EA6 /* SplashViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashViewController.swift; sourceTree = "<group>"; };
 		2F9D0EC72C0DCE8900C9C859 /* KeyChain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyChain.swift; sourceTree = "<group>"; };
 		2F9D0ECB2C0DD21300C9C859 /* Const.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Const.swift; sourceTree = "<group>"; };
 		2FAB99F22B72C8EF00853BF7 /* GalleryData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryData.swift; sourceTree = "<group>"; };
@@ -217,6 +223,9 @@
 		2FAB99FC2B72C9F000853BF7 /* ChallengeDetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChallengeDetailViewController.swift; sourceTree = "<group>"; };
 		2FAB99FE2B72CA1400853BF7 /* JoinChallengeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JoinChallengeViewController.swift; sourceTree = "<group>"; };
 		2FB2BCD72C2359EE009DDEBA /* PatchProfileImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchProfileImage.swift; sourceTree = "<group>"; };
+		2FB2BCDA2C240CD2009DDEBA /* NotificationModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationModel.swift; sourceTree = "<group>"; };
+		2FB2BCDC2C244F1D009DDEBA /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
+		2FB2BCE52C268437009DDEBA /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		2FC4CA4E2B5E518500C0DB84 /* MotoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotoViewController.swift; sourceTree = "<group>"; };
 		2FC4CA502B5E528F00C0DB84 /* JoinMoto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JoinMoto.swift; sourceTree = "<group>"; };
 		2FC4CA522B5E532100C0DB84 /* MotoCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotoCollectionViewCell.swift; sourceTree = "<group>"; };
@@ -316,6 +325,7 @@
 				895AE87A2B7B15A6008F9125 /* Kingfisher in Frameworks */,
 				2FF55CB22B684E42004EDB39 /* WebKit.framework in Frameworks */,
 				2F4D88062BEE2D4F009C16CE /* KakaoSDKUser in Frameworks */,
+				2FB2BCE02C256CCD009DDEBA /* FirebaseMessaging in Frameworks */,
 				2F4D88042BEE2D4F009C16CE /* KakaoSDKAuth in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -365,6 +375,7 @@
 				2F1DCE052B71495F002F1043 /* beilsangDebug.entitlements */,
 				2F4CD90B2B71428000B2D02D /* beilsangRelease.entitlements */,
 				2F08388D2B564086002E2551 /* Info.plist */,
+				2FB2BCE52C268437009DDEBA /* GoogleService-Info.plist */,
 				2F0838882B564086002E2551 /* Assets.xcassets */,
 				2F8C57B22B77A110002B4862 /* Data */,
 				2FC63CD82B5BB3A50050139A /* Model */,
@@ -495,8 +506,17 @@
 				2F7A666A2B809617008010C6 /* TokenService.swift */,
 				2F7A66712B80A312008010C6 /* TokenManager.swift */,
 				2F2F4F872C077DC600B410F1 /* AppleGetCodeManger.swift */,
+				2FB2BCDC2C244F1D009DDEBA /* NotificationService.swift */,
 			);
 			path = Service;
+			sourceTree = "<group>";
+		};
+		2FB2BCD92C240CBF009DDEBA /* Notification */ = {
+			isa = PBXGroup;
+			children = (
+				2FB2BCDA2C240CD2009DDEBA /* NotificationModel.swift */,
+			);
+			path = Notification;
 			sourceTree = "<group>";
 		};
 		2FC63CD62B5BB3990050139A /* View */ = {
@@ -521,6 +541,7 @@
 			children = (
 				895ACC3A2B7FC65F00A0578C /* LearnMore */,
 				8957B1472B7B755E00F99928 /* TabBarViewController.swift */,
+				2F95ABC42C2B2A9100EA6EA6 /* SplashViewController.swift */,
 				2F0838832B564085002E2551 /* ViewController.swift */,
 				89854F862B7351D100CB6E4E /* Notification */,
 				895D88782B6D45B1003E5688 /* Find */,
@@ -536,6 +557,7 @@
 			isa = PBXGroup;
 			children = (
 				2F2EFFF12BEF6CD700068F09 /* BaseModel.swift */,
+				2FB2BCD92C240CBF009DDEBA /* Notification */,
 				AF44032E2B63DDBE006B68FE /* Home */,
 				AF7E946C2B7A401900338DA3 /* HomeNetwork */,
 				2F7A66702B80A246008010C6 /* Token */,
@@ -802,6 +824,7 @@
 				2F4D88012BEE2D4F009C16CE /* KakaoSDK */,
 				2F4D88032BEE2D4F009C16CE /* KakaoSDKAuth */,
 				2F4D88052BEE2D4F009C16CE /* KakaoSDKUser */,
+				2FB2BCDF2C256CCD009DDEBA /* FirebaseMessaging */,
 			);
 			productName = beilsang;
 			productReference = 2F08387C2B564085002E2551 /* beilsang.app */;
@@ -883,6 +906,7 @@
 				895AE8782B7B15A6008F9125 /* XCRemoteSwiftPackageReference "Kingfisher" */,
 				2F8C57C12B78D162002B4862 /* XCRemoteSwiftPackageReference "Tabman" */,
 				2F4D88002BEE2D4F009C16CE /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */,
+				2FB2BCDE2C256CCD009DDEBA /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			productRefGroup = 2F08387D2B564085002E2551 /* Products */;
 			projectDirPath = "";
@@ -902,6 +926,7 @@
 			files = (
 				2F48E0992B5BB44C002F3D4A /* NotoSansKR-SemiBold.ttf in Resources */,
 				2F48E09B2B5BB44C002F3D4A /* NotoSansKR-Regular.ttf in Resources */,
+				2FB2BCE62C268437009DDEBA /* GoogleService-Info.plist in Resources */,
 				2F08388C2B564086002E2551 /* LaunchScreen.storyboard in Resources */,
 				2F48E0932B5BB44C002F3D4A /* NotoSansKR-Medium.ttf in Resources */,
 				2F48E0912B5BB44C002F3D4A /* NotoSansKR-Light.ttf in Resources */,
@@ -946,6 +971,7 @@
 				2F8F28AC2C11FC8A009AE563 /* MainChallengeViewController.swift in Sources */,
 				AFDE65ED2B728FAF0041D2D0 /* RegisterCertifyModalViewController.swift in Sources */,
 				AF7E94742B7A906500338DA3 /* MainAfterCollectionViewCell.swift in Sources */,
+				2FB2BCDD2C244F1D009DDEBA /* NotificationService.swift in Sources */,
 				893DF7D82B7B979700B09573 /* URLSetting.swift in Sources */,
 				895D887A2B6D45B8003E5688 /* FindViewController.swift in Sources */,
 				AF4403342B63DF73006B68FE /* CategoryCollectionViewCell.swift in Sources */,
@@ -963,6 +989,7 @@
 				AF44033F2B63E4CD006B68FE /* ChallengeListCollectionViewCell.swift in Sources */,
 				AF64A4352B7E67920055D5B9 /* DateConverter.swift in Sources */,
 				893DF7DA2B7BA16200B09573 /* GetChallenge.swift in Sources */,
+				2FB2BCDB2C240CD2009DDEBA /* NotificationModel.swift in Sources */,
 				8963CD1A2B6BA0CC0072440E /* PointCollectionViewCell.swift in Sources */,
 				AF64A4412B8136DC0055D5B9 /* ChallengeStatusCategoryModel.swift in Sources */,
 				AF64A4372B7E83910055D5B9 /* ChallengeCertifyModel.swift in Sources */,
@@ -999,6 +1026,7 @@
 				89854F882B7351E100CB6E4E /* NotificationViewController.swift in Sources */,
 				AF64A4212B7BCC680055D5B9 /* ChallengeRecommendModel.swift in Sources */,
 				2F8C57AC2B7696C5002B4862 /* LoginService.swift in Sources */,
+				2F95ABC52C2B2A9100EA6EA6 /* SplashViewController.swift in Sources */,
 				894A113F2B609AF5002A9A32 /* MyChallengeFeedCollectionViewCell.swift in Sources */,
 				AF4403502B6E8817006B68FE /* NoticeCollectionViewCell.swift in Sources */,
 				2FAB99FB2B72C9B000853BF7 /* GalleryCollectionViewCell.swift in Sources */,
@@ -1232,8 +1260,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = beilsang/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
-				INFOPLIST_KEY_NSCameraUsageDescription = "${PRODUCT_NAME}앱은 카메라 권한을 필요로 합니다. 허용 안함 시 일부 기능이 동작하지 않을 수 있습니다.";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "${PRODUCT_NAME}앱은 앨범 접근 권한을 필요로 합니다. 허용 안함 시 일부 기능이 동작하지 않을 수 있습니다.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "beilsang앱은 카메라 권한을 필요로 합니다. 허용 안함 시 일부 기능이 동작하지 않을 수 있습니다.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "beilsang앱은 앨범 접근 권한을 필요로 합니다. 허용 안함 시 일부 기능이 동작하지 않을 수 있습니다.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIStatusBarStyle = "";
@@ -1270,8 +1298,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = beilsang/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
-				INFOPLIST_KEY_NSCameraUsageDescription = "${PRODUCT_NAME}앱은 카메라 권한을 필요로 합니다. 허용 안함 시 일부 기능이 동작하지 않을 수 있습니다.";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "${PRODUCT_NAME}앱은 앨범 접근 권한을 필요로 합니다. 허용 안함 시 일부 기능이 동작하지 않을 수 있습니다.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "beilsang앱은 카메라 권한을 필요로 합니다. 허용 안함 시 일부 기능이 동작하지 않을 수 있습니다.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "beilsang앱은 앨범 접근 권한을 필요로 합니다. 허용 안함 시 일부 기능이 동작하지 않을 수 있습니다.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIStatusBarStyle = "";
@@ -1424,6 +1452,14 @@
 				minimumVersion = 3.0.2;
 			};
 		};
+		2FB2BCDE2C256CCD009DDEBA /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 10.28.0;
+			};
+		};
 		2FE57C242B5EC56C0022C4F3 /* XCRemoteSwiftPackageReference "SnapKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SnapKit/SnapKit.git";
@@ -1486,6 +1522,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 2F8C57C12B78D162002B4862 /* XCRemoteSwiftPackageReference "Tabman" */;
 			productName = Tabman;
+		};
+		2FB2BCDF2C256CCD009DDEBA /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2FB2BCDE2C256CCD009DDEBA /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
 		};
 		2FE57C252B5EC56C0022C4F3 /* SnapKit */ = {
 			isa = XCSwiftPackageProductDependency;

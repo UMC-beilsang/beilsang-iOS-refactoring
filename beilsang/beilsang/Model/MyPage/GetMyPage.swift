@@ -13,6 +13,7 @@ struct GetMyPage: Codable {
     let message: String
     let data: MyPageData
 }
+
 struct MyPageData: Codable {
     let feedNum: Int
     let achieve: Int
@@ -24,4 +25,7 @@ struct MyPageData: Codable {
     let feedDTOs: FeedListModel
     let nickName: String
     let profileImage: String?
+    let address: String?
+    let gender: String?
+    let birth: String?
 }
