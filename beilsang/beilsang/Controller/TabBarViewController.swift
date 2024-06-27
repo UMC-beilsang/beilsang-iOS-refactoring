@@ -8,10 +8,23 @@
 import UIKit
 import SnapKit
 
+class CustomTabBar: UITabBar {
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        
+        var tabFrame = self.frame
+        let height = UIScreen.main.bounds.height * 0.1 // 원하는 높이로 설정
+        tabFrame.size.height = height
+        tabFrame.origin.y = UIScreen.main.bounds.height - height
+        self.frame = tabFrame
+    }
+}
+
 class TabBarViewController: UITabBarController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.setValue(CustomTabBar(), forKey: "tabBar")
         self.tabBar.tintColor = .beScPurple600
         self.tabBar.unselectedItemTintColor = .beIconDis
         self.tabBar.backgroundColor = .white
@@ -19,13 +32,13 @@ class TabBarViewController: UITabBarController {
         
         let homeTab = UINavigationController(rootViewController: HomeMainViewController())
         homeAttribute(homeTab)
-        homeTab.tabBarItem.imageInsets = UIEdgeInsets(top: 5, left: 0, bottom: 0, right: 0)
-        homeTab.tabBarItem.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: 5)
+        homeTab.tabBarItem.imageInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+        homeTab.tabBarItem.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: 10)
         
         let findTab = UINavigationController(rootViewController: FindViewController())
         findAttribute(findTab)
-        findTab.tabBarItem.imageInsets = UIEdgeInsets(top: 5, left: 0, bottom: 0, right: 0)
-        findTab.tabBarItem.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: 5)
+        findTab.tabBarItem.imageInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+        findTab.tabBarItem.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: 10)
         
 //        let moreTab = UINavigationController(rootViewController: LearnMoreViewController())
 //        moreAttribute(moreTab)
@@ -34,9 +47,9 @@ class TabBarViewController: UITabBarController {
 //
         let mypageTab = UINavigationController(rootViewController: MyPageViewController())
         mypageAttribute(mypageTab)
-        mypageTab.tabBarItem.imageInsets = UIEdgeInsets(top: 5, left: 0, bottom: 0
+        mypageTab.tabBarItem.imageInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0
                                                         , right: 0)
-        mypageTab.tabBarItem.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: 5)
+        mypageTab.tabBarItem.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: 10)
 
         viewControllers = [findTab, homeTab, mypageTab]
         

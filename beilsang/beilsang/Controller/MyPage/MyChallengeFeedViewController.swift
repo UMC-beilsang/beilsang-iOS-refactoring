@@ -93,6 +93,32 @@ class MyChallengeFeedViewController: UIViewController, UIScrollViewDelegate {
         view.isHidden = true
         return view
     }()
+    
+    lazy var noFeedLabel: UILabel = {
+        let view = UILabel()
+        
+        view.text = "인증한 피드가 없어요 🤔"
+        view.textAlignment = .center
+        view.textColor = .beTextInfo
+        view.font = UIFont(name: "Noto Sans KR", size: 12)
+        
+        return view
+    }()
+    
+    lazy var joinChallengeButton: UIButton = {
+        let view = UIButton()
+        
+        view.layer.borderWidth = 1
+        view.layer.borderColor = UIColor.beBgDiv.cgColor
+        view.setTitle("인증하러 가기", for: .normal)
+        view.setTitleColor(.beTextDef, for: .normal)
+        view.titleLabel?.font = UIFont(name: "Noto Sans KR", size: 14)
+        view.contentHorizontalAlignment = .center
+        view.layer.cornerRadius = 20
+        view.addTarget(self, action: #selector(challengeButtonClicked), for: .touchUpInside)
+        
+        return view
+    }()
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -218,6 +244,16 @@ extension MyChallengeFeedViewController{
     @objc func tabBarButtonTapped() {
         print("뒤로 가기")
         navigationController?.popViewController(animated: true)
+    }
+    
+    @objc func challengeButtonClicked() {
+        print("인증하러 가기")
+        
+        let labelText = "참여중"
+        let challengeListVC = ChallengeListViewController()
+        challengeListVC.categoryLabelText = labelText
+        challengeListVC.hidesBottomBarWhenPushed = true
+        navigationController?.pushViewController(challengeListVC, animated: true)
     }
 }
 // MARK: - collectionView setting(카테고리)
@@ -422,11 +458,24 @@ extension MyChallengeFeedViewController {
             }
         }
     }
+    
     private func requestFeedList() -> [FeedModel]{
         var requestList : [FeedModel] = []
         MyPageService.shared.getFeedList(baseEndPoint: .feeds, addPath: "/\(selectedMenu)/\(selectedCategory)"){response in
             requestList = self.reloadFeedList(response.data.feeds ?? [])
+            
+            if requestList.count == 0 {
+                self.showNoFeedView()
+            }
+            else {
+                self.challengeFeedBoxCollectionView.isHidden = false
+                self.noFeedLabel.isHidden = true
+                self.joinChallengeButton.isHidden = true
+            }
         }
+        
+        
+        
         return requestList
     }
     @MainActor
@@ -461,5 +510,27 @@ extension MyChallengeFeedViewController: CustomFeedCellDelegate {
     
     func didTapButton() {
         feedDetailCollectionView.isHidden = true
+    }
+}
+
+extension MyChallengeFeedViewController {
+    func showNoFeedView() {
+        challengeFeedBoxCollectionView.isHidden = true
+        fullContentView.addSubview(noFeedLabel)
+        fullContentView.addSubview(joinChallengeButton)
+        
+        noFeedLabel.snp.makeConstraints { make in
+            make.top.equalTo(challengeFeedLabel.snp.bottom).offset(48)
+            make.centerX.equalToSuperview()
+        }
+        
+        joinChallengeButton.snp.makeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.top.equalTo(noFeedLabel.snp.bottom).offset(12)
+            make.width.equalTo(240)
+            make.height.equalTo(40)
+        }
+        noFeedLabel.isHidden = false
+        joinChallengeButton.isHidden = false
     }
 }

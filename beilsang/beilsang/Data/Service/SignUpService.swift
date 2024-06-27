@@ -12,30 +12,89 @@ class SignUpService {
     static let shared = SignUpService()
     private init() {}
     
-    var jwtToken = KeyChain.read(key: Const.KeyChainKey.serverToken)
-    
-    func nameCheck(name : String?, completionHandler: @escaping (_ data: nameCheckResponse) -> Void) {
+    func nameCheck(name: String?, completionHandler: @escaping (_ data: nameCheckResponse) -> Void) {
+        let accessToken = KeyChain.read(key: Const.KeyChainKey.serverToken)!
+        let refreshToken = KeyChain.read(key: Const.KeyChainKey.refreshToken)!
+        
         DispatchQueue.main.async {
             let addPath = "?name=\(name ?? "")"
             let url = APIConstants.duplicateCheck + addPath
             let headers: HTTPHeaders = [
                 "accept": "application/json",
-                "Authorization": "Bearer \(self.jwtToken ?? "")"
+                "Authorization": "Bearer \(accessToken)"
             ]
             
-            AF.request(url, method: .get, encoding: URLEncoding.queryString, headers: headers).validate().responseDecodable(of: nameCheckResponse.self, completionHandler:{ response in
-                switch response.result{
+            print("Request URL: \(url)")
+            print("Request Headers: \(headers)")
+            
+            AF.request(url, method: .get, encoding: URLEncoding.queryString, headers: headers).validate().responseDecodable(of: nameCheckResponse.self) { response in
+                print("Received response from server")
+                switch response.result {
                 case .success:
-                    guard let result = response.value else {return}
+                    print("Response: \(response)")
+                    guard let result = response.value else {
+                        print("Response value is nil")
+                        return
+                    }
                     completionHandler(result)
-                    print("get 요청 성공")
+                    print("GET 요청 성공")
                 case .failure(let error):
-                    print(error)
-                    print("get 요청 실패")
+                    switch error.responseCode{
+                    case 401:
+                        print("토큰 만료")
+                        TokenManager.shared.refreshToken(refreshToken: refreshToken, completion: { _ in }) {
+                            self.nameCheck(name: name) { reResponse in
+                                completionHandler(reResponse)
+                            }
+                        }
+                    default : print("네트워크 fail")
+                    }
                 }
-            })
+            }
         }
     }
+    
+    func nicknameExist(completionHandler: @escaping (_ data: nameCheckResponse) -> Void) {
+        let accessToken = KeyChain.read(key: Const.KeyChainKey.serverToken)!
+        let refreshToken = KeyChain.read(key: Const.KeyChainKey.refreshToken)!
+        
+        DispatchQueue.main.async {
+            let url = APIConstants.nicknameExist
+            let headers: HTTPHeaders = [
+                "accept": "application/json",
+                "Authorization": "Bearer \(accessToken)"
+            ]
+            
+            print("Request URL: \(url)")
+            print("Request Headers: \(headers)")
+            
+            AF.request(url, method: .get, encoding: JSONEncoding.default, headers: headers).validate().responseDecodable(of: nameCheckResponse.self) { response in
+                print("Received response from server")
+                switch response.result {
+                case .success:
+                    print("Response: \(response)")
+                    guard let result = response.value else {
+                        print("Response value is nil")
+                        return
+                    }
+                    completionHandler(result)
+                    print("닉네임 존재 여부 GET 요청 성공")
+                case .failure(let error):
+                    switch error.responseCode{
+                    case 401:
+                        print("토큰 만료")
+                        TokenManager.shared.refreshToken(refreshToken: refreshToken, completion: { _ in }) {
+                            self.nicknameExist { reResponse in
+                                completionHandler(reResponse)
+                            }
+                        }
+                    default : print("네트워크 fail")
+                    }
+                }
+            }
+        }
+    }
+    
     
     func signUp(accessToken: String, gender : String, nickName : String, birth : String, address : String?, keyword : String, discoveredPath : String?, resolution : String, recommendNickname : String?, completion: @escaping (NetworkResult<Any>) -> Void) {
         let url = APIConstants.signUpURL

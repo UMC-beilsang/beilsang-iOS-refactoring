@@ -28,6 +28,9 @@ class DateConverter {
     
     private let joinFormatter: DateFormatter
     
+    private let notificationServerFormatter: DateFormatter
+    private let notificationFormatter: DateFormatter
+    
     private init() {
         serverFormatter = DateFormatter()
         serverFormatter.dateFormat = "yyyy-MM-dd" // 서버 날짜 형식
@@ -40,6 +43,13 @@ class DateConverter {
         
         joinFormatter = DateFormatter()
         joinFormatter.dateFormat = "MM/dd"
+        
+        notificationServerFormatter = DateFormatter()
+        notificationServerFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        
+        notificationFormatter = DateFormatter()
+        notificationFormatter.dateFormat = "H시간 전"
+  
     }
     
     func convertToFrontFormat(from serverDate: String) -> String? {
@@ -73,6 +83,16 @@ class DateConverter {
     func convertJoin(from serverDate: String) -> String? {
         if let date = serverFormatter.date(from: serverDate) {
             return joinFormatter.string(from: date)
+        }
+        
+        return nil
+    }
+    
+    func convertNotification(from serverDate: String) -> String? {
+        if let date = notificationServerFormatter.date(from: serverDate) {
+            let currentDate = Date()
+            let elapsedHours = Int(currentDate.timeIntervalSince(date) / 3600)
+            return "\(elapsedHours)시간 전"
         }
         
         return nil

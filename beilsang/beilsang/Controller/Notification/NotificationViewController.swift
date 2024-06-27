@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SnapKit
 
 class NotificationViewController: UIViewController {
     // MARK: - Properties
@@ -13,11 +14,8 @@ class NotificationViewController: UIViewController {
     // 전체 화면 scrollview
     let fullScrollView = UIScrollView()
     let fullContentView = UIView()
-    var titleList = ["참여 챌린지 시작 알림", "챌린지 인증 알림", "추천 챌린지 알림"]
-    var contentList = ["앤님이 참여하는 플로깅 챌린지가 시작되었습니다!", "앤님! 챌린지 인증을 잊지 마세요!!", "앤님이 관심있을 만한 챌린지를 확인해 보세요!"]
-    var timeList = ["7시간 전", "9시간 전", "11시간 전"]
+    var notiData : [NotificationDataModel] = []
     
-
     lazy var notiCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical
@@ -41,11 +39,24 @@ class NotificationViewController: UIViewController {
         
         return UIMenu(title: "", options: [], children: [notiOff])
     }()
+    
+    lazy var noNotiLabel: UILabel = {
+        let view = UILabel()
+        view.text = "새로운 소식이 없습니다"
+        view.font = UIFont(name: "NotoSansKR-Medium", size: 16)
+        view.numberOfLines = 0
+        view.textColor = .beTextEx
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.textAlignment = .left
+        
+        return view
+    }()
 
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
+        notificationDataRequest()
         setupAttribute()
         setNavigationBar()
         viewConstraint()
@@ -53,7 +64,6 @@ class NotificationViewController: UIViewController {
 
 }
 extension NotificationViewController {
-
     func setupAttribute() {
         setFullScrollView()
         setLayout()
@@ -87,7 +97,7 @@ extension NotificationViewController {
     // addSubview() 메서드 모음
     func addView() {
         // foreach문을 사용해서 클로저 형태로 작성
-        [notiCollectionView].forEach{ view in fullContentView.addSubview(view)}
+        [notiCollectionView, noNotiLabel].forEach{ view in fullContentView.addSubview(view)}
 
     }
 
@@ -98,6 +108,10 @@ extension NotificationViewController {
             make.leading.equalToSuperview().offset(28)
             make.trailing.equalToSuperview().offset(-28)
             make.bottom.equalTo(self.view.safeAreaLayoutGuide)
+        }
+        noNotiLabel.snp.makeConstraints{ make in
+            make.top.equalToSuperview().offset(75)
+            make.centerX.equalToSuperview()
         }
     }
     
@@ -152,8 +166,6 @@ extension NotificationViewController: UICollectionViewDataSource, UICollectionVi
 
         //Cell 등록
         notiCollectionView.register(NotificationCollectionViewCell.self, forCellWithReuseIdentifier: NotificationCollectionViewCell.identifier)
-
-
     }
     // section 개수 설정
     func numberOfSections(in collectionView: UICollectionView) -> Int {
@@ -163,7 +175,7 @@ extension NotificationViewController: UICollectionViewDataSource, UICollectionVi
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         switch collectionView {
         case notiCollectionView:
-            return titleList.count
+            return notiData.count
         default:
             return 0
         }
@@ -178,11 +190,16 @@ extension NotificationViewController: UICollectionViewDataSource, UICollectionVi
                 return UICollectionViewCell()
             }
             
-            cell.titleLabel.text = titleList[indexPath.row]
-            cell.contentLabel.text = contentList[indexPath.row]
-            cell.timeLabel.text = timeList[indexPath.row]
-
+            cell.challengeId = notiData[indexPath.row].challengeId
+            cell.notificationId = notiData[indexPath.row].notificationId
+            cell.titleLabel.text = notiData[indexPath.row].title
+            cell.contentLabel.text = notiData[indexPath.row].contents
+            let timeData = notiData[indexPath.row].time
+            let convertedData = DateConverter.shared.convertNotification(from: timeData)
+            cell.timeLabel.text = convertedData
+            
             return cell
+            
         default:
             return UICollectionViewCell()
         }
@@ -190,12 +207,46 @@ extension NotificationViewController: UICollectionViewDataSource, UICollectionVi
 
     // cell 선택시 액션
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-//        switch collectionView{
-//        case pointCollectionView:
-//            let cell = collectionView.cellForItem(at: indexPath) as! ChallengeMenuCollectionViewCell
-//
-//        default:
-//            return
-//        }
+        switch collectionView{
+        case notiCollectionView:
+            let cell = collectionView.cellForItem(at: indexPath) as! NotificationCollectionViewCell
+            let challengeId = cell.challengeId
+            //타이틀 따라 나눠야 될 것 같긴 함
+            
+            let nextVC = JoinChallengeViewController()
+            nextVC.joinChallengeId = challengeId
+            nextVC.hidesBottomBarWhenPushed = true
+            self.navigationController?.pushViewController(nextVC, animated: true)
+
+        default:
+            return
+        }
     }
+}
+
+//MARK: - Netword
+extension NotificationViewController {
+    func notificationDataRequest() {
+        NotificationService.shared.getNotificationData{ response in
+            self.setNotification(response.data ?? [])
+            print(response)
+        }
+    }
+    
+    @MainActor
+    private func setNotification(_ response: [NotificationDataModel]) {
+        self.notiData = response
+        if (notiData.count == 0) {
+            noNotiLabel.isHidden = false
+            notiCollectionView.isHidden = true
+        
+        }
+        else {
+            noNotiLabel.isHidden = true
+            notiCollectionView.isHidden = false
+            self.notiCollectionView.reloadData()
+        }
+    }
+    
+    
 }

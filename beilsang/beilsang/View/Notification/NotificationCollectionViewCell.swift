@@ -11,6 +11,9 @@ class NotificationCollectionViewCell: UICollectionViewCell {
     
     static let identifier = "notificationCollectionViewCell"
     
+    var challengeId: Int? = nil
+    var notificationId: Int? = nil
+    
     lazy var checkImage : UIImageView = {
         let view = UIImageView()
         view.image = UIImage(named: "icon-check")
@@ -20,21 +23,21 @@ class NotificationCollectionViewCell: UICollectionViewCell {
     lazy var titleLabel : UILabel = {
         let label = UILabel()
         label.font = UIFont(name: "NotoSansKR-Medium", size: 14)
-        label.text = "참여 챌린지 시작 알림"
+        label.text = ""
         return label
     }()
     
     lazy var contentLabel : UILabel = {
         let label = UILabel()
         label.font = UIFont(name: "NotoSansKR-SemiBold", size: 14)
-        label.text = "앤님이 참여하는 플로깅 챌린지가 시작되었습니다!"
+        label.text = ""
         return label
     }()
     
     lazy var timeLabel : UILabel = {
         let label = UILabel()
         label.font = UIFont(name: "NotoSansKR-SemiBold", size: 12)
-        label.text = "7시간 전"
+        label.text = ""
         label.textColor = .beTextEx
         return label
     }()

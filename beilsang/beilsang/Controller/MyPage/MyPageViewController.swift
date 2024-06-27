@@ -291,6 +291,33 @@ class MyPageViewController: UIViewController, UIScrollViewDelegate {
         return collectionView
     }()
     
+    //나의 챌린지 피드가 없는 경우
+    lazy var noFeedLabel: UILabel = {
+        let view = UILabel()
+        
+        view.text = "인증한 피드가 없어요 🤔"
+        view.textAlignment = .center
+        view.textColor = .beTextInfo
+        view.font = UIFont(name: "Noto Sans KR", size: 12)
+        
+        return view
+    }()
+    
+    lazy var joinChallengeButton: UIButton = {
+        let view = UIButton()
+        
+        view.layer.borderWidth = 1
+        view.layer.borderColor = UIColor.beBgDiv.cgColor
+        view.setTitle("인증하러 가기", for: .normal)
+        view.setTitleColor(.beTextDef, for: .normal)
+        view.titleLabel?.font = UIFont(name: "Noto Sans KR", size: 14)
+        view.contentHorizontalAlignment = .center
+        view.layer.cornerRadius = 20
+        view.addTarget(self, action: #selector(challengeButtonClicked), for: .touchUpInside)
+        
+        return view
+    }()
+    
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -330,8 +357,6 @@ extension MyPageViewController {
             }
             self.setFeedList(response.data.feedDTOs.feeds ?? [])
             
-            UserDefaults.standard.set(response.data.nickName, forKey:"nickName")
-            
             self.loadingIndicator.stopAnimating()
             self.fullScrollView.isHidden = false
         }
@@ -341,7 +366,33 @@ extension MyPageViewController {
     @MainActor
     private func setFeedList(_ feedDTOs: [FeedModel]){
         self.feedList = feedDTOs
-        myChallengeCollectionView.reloadData()
+        if feedList.count == 0 {
+            myChallengeCollectionView.isHidden = true
+            noFeedLabel.isHidden = false
+            joinChallengeButton.isHidden = false
+            
+            fullContentView.addSubview(noFeedLabel)
+            fullContentView.addSubview(joinChallengeButton)
+            
+            noFeedLabel.snp.makeConstraints { make in
+                make.top.equalTo(myChallengeFeedLabel.snp.bottom).offset(48)
+                make.centerX.equalToSuperview()
+            }
+            
+            joinChallengeButton.snp.makeConstraints { make in
+                make.centerX.equalToSuperview()
+                make.top.equalTo(noFeedLabel.snp.bottom).offset(12)
+                make.width.equalTo(240)
+                make.height.equalTo(40)
+            }
+        }
+        else {
+            myChallengeCollectionView.isHidden = false
+            noFeedLabel.isHidden = true
+            joinChallengeButton.isHidden = true
+            
+            myChallengeCollectionView.reloadData()
+        }
     }
     
     func setupAttribute() {
@@ -462,9 +513,9 @@ extension MyPageViewController {
             make.centerY.equalTo(feedCount)
         }
         commentBox.snp.makeConstraints { make in
-            make.width.equalTo(358)
             make.height.equalTo(60)
             make.leading.equalToSuperview().offset(16)
+            make.trailing.equalToSuperview().offset(-16)
             make.top.equalTo(rectangleBox).offset(198)
         }
         comment.snp.makeConstraints { make in
@@ -603,12 +654,8 @@ extension MyPageViewController: UICollectionViewDataSource, UICollectionViewDele
     }
     //cell 크기 설정
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let width : CGFloat = 173
-        let height: CGFloat = 140
-        return CGSize(width: width, height: height)
+        return CGSize(width: (self.view.frame.width-44)/2, height: 140)
     }
-    
-    
 }
 // MARK: - 네비게이션 바 커스텀
 extension MyPageViewController{
@@ -677,5 +724,15 @@ extension MyPageViewController {
         let myChallengeFeedVC = MyChallengeFeedViewController()
         myChallengeFeedVC.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(myChallengeFeedVC, animated: true)
+    }
+    
+    @objc func challengeButtonClicked() {
+        print("인증하러 가기")
+        
+        let labelText = "참여중"
+        let challengeListVC = ChallengeListViewController()
+        challengeListVC.categoryLabelText = labelText
+        challengeListVC.hidesBottomBarWhenPushed = true
+        navigationController?.pushViewController(challengeListVC, animated: true)
     }
 }

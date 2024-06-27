@@ -27,10 +27,16 @@ struct APIConstants {
     //닉네임 중복 체크
     static let duplicateCheck = baseURL + "/api/join/check/nickname"
     
+    //닉네임 존재?
+    static let nicknameExist = baseURL + "/api/join/check/existnickname"
+    
     //MARK: - Feature: Search
     static let searchURL = baseURL + "/api/search"
     
     //회원탈퇴
     static let kakaoWithDrawURL = baseURL + "/auth/kakao/revoke"
     static let appleWithDrawURL = baseURL + "/auth/apple/revoke"
+    
+    //알림
+    static let notificationURL = baseURL + "/api/notifications"
 }

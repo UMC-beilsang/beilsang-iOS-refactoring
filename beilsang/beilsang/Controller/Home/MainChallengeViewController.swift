@@ -253,9 +253,9 @@ extension MainChallengeViewController {
             // 성공적으로 데이터를 받아왔을 때
             if let challenges = response.data?.recommendChallengeDTOList {
                 self.setRecommendData(challenges)
+                print(challenges)
                 completionNumber = challenges.count
             } else {
-                // 데이터를 받아오지 못했거나 네트워크 실패 시
                 completionNumber = 0
             }
         }

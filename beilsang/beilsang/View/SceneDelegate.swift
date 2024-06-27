@@ -3,34 +3,81 @@ import KakaoSDKCommon
 import KakaoSDKAuth
 import AuthenticationServices
 import KakaoSDKUser
+import Alamofire
+import SnapKit
+
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
+    
+    lazy var logoImage: UIImageView = {
+        let view = UIImageView()
+        view.image = UIImage(named: "Logo_app_color")
+        view.sizeToFit()
+        
+        return view
+    }()
     //로그인 로직
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         window = UIWindow(windowScene: windowScene)
+        
         // 앱이 처음 실행되었는지 확인
         let firstLaunch = UserDefaults.standard.bool(forKey: Const.UserDefaultsKey.firshLaunch)
-        if firstLaunch == false {
+        if !firstLaunch {
             // 첫 실행이면, UserDefaults의 FirstLaunch를 true로 설정하고 모든 키체인 항목 삭제
             UserDefaults.standard.set(true, forKey: Const.UserDefaultsKey.firshLaunch)
             KeyChain.delete(key: Const.KeyChainKey.serverToken)
             KeyChain.delete(key: Const.KeyChainKey.refreshToken)
         }
         
-        if KeyChain.read(key: Const.KeyChainKey.serverToken) != nil{
-            // 로그인 상태 확인 로직
-            let mainVC = TabBarViewController()
-            self.window?.rootViewController = mainVC
-        } else {
-            // 로그인 화면으로 이동
-            print("No access Token, firsth Launch.")
-            let loginVC = LoginViewController()
-            self.window?.rootViewController = loginVC
+        let isExistMember = UserDefaults.standard.bool(forKey: Const.UserDefaultsKey.existMember)
+        let navigationController = UINavigationController()
+        window?.rootViewController = navigationController
+        window?.backgroundColor = .white
+        navigationController.navigationBar.isHidden = true
+        window?.addSubview(logoImage)
+        
+        logoImage.snp.makeConstraints{ make in
+            make.height.equalTo(120)
+            make.width.equalTo(100)
+            make.centerX.equalToSuperview()
+            make.centerY.equalToSuperview()
         }
+        
+        func showLoginViewController() {
+            let loginVC = LoginViewController()
+            window?.rootViewController = loginVC
+        }
+        
+        if let serverToken = KeyChain.read(key: Const.KeyChainKey.serverToken) {
+            if isExistMember {
+                nicknameExist { result in
+                    if result {
+                        // 로그인 상태이면 TabBarViewController로 이동
+                        let mainVC = TabBarViewController()
+                        self.window?.rootViewController = mainVC
+                    } else {
+                        // 닉네임이 존재하지 않으면 KeywordViewController로 이동
+                        let keywordVC = KeywordViewController()
+                        DispatchQueue.main.async {
+                            navigationController.pushViewController(keywordVC, animated: true)
+                        }
+                    }
+                }
+            } else {
+                // 회원 정보가 존재하지 않으면 로그인 화면으로 이동
+                print("ExistMember false")
+                showLoginViewController()
+            }
+        } else {
+            // 서버 토큰이 없으면 로그인 화면으로 이동
+            print("No access token, first launch.")
+            showLoginViewController()
+        }
+        
         window?.makeKeyAndVisible()
     }
-    
+
     func changeRootViewController(_ newRootViewController: UIViewController) {
         guard let window = self.window else { return }
         UIView.transition(with: window, duration: 0.5, options: .transitionCrossDissolve, animations: {
@@ -70,5 +117,11 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 }
 
-
-
+extension SceneDelegate {
+    func nicknameExist(completion: @escaping (Bool) -> Void) {
+        SignUpService.shared.nicknameExist{ response in
+            let exist = response.data
+            completion(exist)
+        }
+    }
+}

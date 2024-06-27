@@ -1000,34 +1000,29 @@ class UserInfoViewController: UIViewController {
     // MARK: - nameDuplicateCheck
     
     func nameDuplicateCheck() {
-        let serverInput = requestDuplicateCheck()
-        
-        if serverInput  {
-            nameInfoViewChanged(state: "avaliable")
-            textFieldChanged(textField: nameField, state: "basic")
-            nameDuplicate = true
+        requestDuplicateCheck { serverInput in
+            if serverInput {
+                self.nameInfoViewChanged(state: "avaliable")
+                self.textFieldChanged(textField: self.nameField, state: "basic")
+                self.nameDuplicate = true
+                self.isNext[0] = true
+            } else {
+                self.nameInfoViewChanged(state: "exist")
+                self.textFieldChanged(textField: self.nameField, state: "inavaliable")
+                self.nameDuplicate = false
+            }
             
-            isNext[0] = true
-            
-            updateNextButtonState()
-        }
-        else {
-            nameInfoViewChanged(state: "exist")
-            textFieldChanged(textField: nameField, state: "inavaliable")
-            nameDuplicate = false
-            
-            updateNextButtonState()
+            self.updateNextButtonState()
         }
     }
     
-    private func requestDuplicateCheck() -> Bool{
-        var dupCheck = true
+    private func requestDuplicateCheck(completion: @escaping (Bool) -> Void) {
         SignUpService.shared.nameCheck(name: nameField.text) { response in
-            dupCheck = response.data
+            let dupCheck = response.data
+            completion(dupCheck)
         }
-        return dupCheck
     }
-    
+
     // MARK: - next Button
     
     func updateNextButtonState() {
@@ -1083,9 +1078,6 @@ class UserInfoViewController: UIViewController {
     //MARK: - SignUpData parsing
     func SignUpDataParse() {
         SignUpData.shared.nickName = nameField.text ?? ""
-        UserDefaults.standard.setValue(nameField.text, forKey: Const.UserDefaultsKey.memberId)
-        print(UserDefaults.standard.string(forKey: Const.UserDefaultsKey.memberId)!)
-        
         if let formattedBirth = formatDate(dateString: birthField.text ?? ""){
             SignUpData.shared.birth = formattedBirth
         }else {
@@ -1102,8 +1094,8 @@ class UserInfoViewController: UIViewController {
             SignUpData.shared.gender = "OTHER"
         }
         
-        if let address = addressField.text, let detailAddress = addressDetailField.text {
-            let fullAddress = address + " " + detailAddress
+        if let address = addressField.text, let detailAddress = addressDetailField.text, let zipCode = zipCodeField.text {
+            let fullAddress = "\(zipCode).\(address).\(detailAddress)"
             SignUpData.shared.address = fullAddress
         }
     }
@@ -1113,8 +1105,8 @@ class UserInfoViewController: UIViewController {
     @objc private func nextAction() {
         SignUpDataParse()
         
-        print("Gender : \(SignUpData.shared.gender)")
-        print("birth : \(SignUpData.shared.birth)")
+        print("Gender : \(SignUpData.shared.gender ?? "")")
+        print("birth : \(SignUpData.shared.birth ?? "")")
         print("nickName : \(SignUpData.shared.nickName)")
         print("address : \(SignUpData.shared.address ?? "")")
         
@@ -1289,6 +1281,7 @@ extension UserInfoViewController: UITextFieldDelegate {
             }
             else if userInput.isEmpty { //공백일때
                 textFieldChanged(textField: nameField, state: "basic") //text필드는 다시 베이직으로 바뀜
+                nameDuplicateButtonChanged(state: "inavaliable")
                 
                 textFieldValid = true
             }

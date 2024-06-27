@@ -360,6 +360,59 @@ class MyPageService {
             }
         })
     }
+    
+    func patchProfileImage(imageData: Data, completionHandler: @escaping (_ data: PatchProfileImage?) -> Void) {
+            guard let accessToken = KeyChain.read(key: Const.KeyChainKey.serverToken),
+                  let refreshToken = KeyChain.read(key: Const.KeyChainKey.refreshToken) else {
+                print("필요한 값이 없습니다.")
+                return
+            }
+            
+            let url = "https://beilsang.com/api/profile/image" // 실제 URL로 변경하세요
+            
+            // HTTP Headers : 요청 헤더
+            let header: HTTPHeaders = [
+                "accept": "*/*",
+                "Content-Type": "multipart/form-data",
+                "Authorization": "Bearer \(accessToken)"
+            ]
+            
+            AF.upload(multipartFormData: { multipartFormData in
+                multipartFormData.append(imageData, withName: "profileImage", fileName: "profile.jpg", mimeType: "image/jpeg")
+            }, to: url, method: .patch, headers: header)
+            .validate()
+            .responseDecodable(of: PatchProfileImage.self) { response in
+                debugPrint(response)
+                switch response.result {
+                case .success:
+                    guard let statusCode = response.response?.statusCode else { return }
+                    switch statusCode {
+                    case ..<300:
+                        guard let result = response.value else { return }
+                        completionHandler(result)
+                        print("프로필 이미지 patch 요청 성공")
+                    default:
+                        print("네트워크 실패")
+                    }
+                case .failure(let error):
+                    guard let statusCode = response.response?.statusCode else { return }
+                    switch statusCode {
+                    case 401:
+                        print("토큰 만료")
+                        TokenManager.shared.refreshToken(refreshToken: refreshToken, completion: { _ in
+                            self.patchProfileImage(imageData: imageData, completionHandler: completionHandler)
+                        }) {
+                            print("토큰 갱신 실패")
+                        }
+                    default:
+                        print("네트워크 실패")
+                    }
+                    print(error)
+                    print("프로필 이미지 patch 요청 실패")
+                }
+            }
+        }
+    
     // MARK: - delete
     // 피드 찜 버튼 누르기
     func deleteLikeButton(baseEndPoint:BaseEndpoint, addPath:String?, completionHandler: @escaping (_ data: BaseModel) -> Void) {
@@ -482,3 +535,4 @@ class MyPageService {
         })
     }
 }
+

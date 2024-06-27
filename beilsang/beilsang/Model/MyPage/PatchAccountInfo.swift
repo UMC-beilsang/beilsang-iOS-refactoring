@@ -17,9 +17,9 @@ struct PatchAccountInfo : Codable{
 
 struct AccountInfoData: Codable {
     let nickName : String
-    let birth : String
-    let gender: String
-    let address: String
+    let birth : String?
+    let gender: String?
+    let address: String?
 }
 
 extension Encodable {

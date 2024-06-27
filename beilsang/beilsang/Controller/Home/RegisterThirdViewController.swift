@@ -518,6 +518,9 @@ extension RegisterThirdViewController {
     }
     
     func setLayout() {
+        let height = UIScreen.main.bounds.height
+        let width = UIScreen.main.bounds.width
+        
         fullScrollView.snp.makeConstraints { make in
             make.top.equalTo(view.safeAreaLayoutGuide.snp.top)
             make.leading.trailing.width.equalToSuperview()
@@ -596,9 +599,9 @@ extension RegisterThirdViewController {
             make.leading.equalTo(agree5Button.snp.trailing).offset(12)
         }
         
-        bottomView.snp.makeConstraints { make in
+        bottomView.snp.makeConstraints{ make in
             make.leading.trailing.bottom.equalToSuperview()
-            make.height.equalTo(80)
+            make.height.equalTo(height * 0.1)
         }
         
         beforeButton.snp.makeConstraints { make in
@@ -606,11 +609,11 @@ extension RegisterThirdViewController {
             make.leading.equalTo(bottomView.snp.leading).offset(38)
         }
         
-        makeButton.snp.makeConstraints { make in
-            make.centerY.equalTo(bottomView.snp.centerY)
-            make.trailing.equalTo(bottomView.snp.trailing).offset(-32)
-            make.height.equalTo(52)
-            make.width.equalTo(160)
+        makeButton.snp.makeConstraints{ make in
+            make.top.equalToSuperview().offset(16)
+            make.trailing.equalToSuperview().offset(-32)
+            make.width.equalTo(width * 0.41)
+            make.bottom.equalToSuperview().offset(-16)
         }
     }
     
