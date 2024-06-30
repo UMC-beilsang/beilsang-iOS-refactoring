@@ -513,6 +513,7 @@ class MyPageService {
             switch response.result{
             case .success:
                 guard let statusCode = response.response?.statusCode else { return }
+                print(statusCode )
                 switch statusCode{
                 case ..<300 :
                     guard let result = response.value else {return}

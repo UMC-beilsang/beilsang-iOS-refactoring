@@ -273,7 +273,7 @@ extension LoginViewController : ASAuthorizationControllerDelegate, ASAuthorizati
 //                    }
 //                }
                 
-                self.appleloginToServer(with: identityToken, FCMToken: FCMToken)
+                self.appleloginToServer(with: identityToken, FCMToken: FCMToken ?? "")
             }
         default:
             break
@@ -307,10 +307,20 @@ extension LoginViewController {
                 UserDefaults.standard.set("kakao", forKey: Const.UserDefaultsKey.socialType)
                 
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { // 1초 딜레이
-                    if UserDefaults.standard.bool(forKey: Const.UserDefaultsKey.existMember) {
-                        self.presentTo(name: "main")
-                    } else {
-                        self.presentTo(name: "keyword")
+                    let isExistMember = UserDefaults.standard.bool(forKey: Const.UserDefaultsKey.existMember)
+                    if isExistMember {
+                        self.nicknameExist { result in
+                            if result {
+                                // 로그인 상태이면 TabBarViewController로 이동
+                                self.presentTo(name: "main")
+                            } else {
+                                // 닉네임이 존재하지 않으면 KeywordViewController로 이동
+                                self.presentTo(name: "keyword")
+                            }
+                        }
+                    }
+                    else {
+                        print("Kakao Login Error!")
                     }
                 }
                 
@@ -328,8 +338,8 @@ extension LoginViewController {
         }
     }
     
-    private func appleloginToServer(with appleIdToken: String?, FCMToken : String?) {
-        LoginService.shared.appleLogin(idToken: appleIdToken ?? "", FCMToken: FCMToken ?? "") { result in
+    private func appleloginToServer(with appleIdToken: String, FCMToken : String) {
+        LoginService.shared.appleLogin(idToken: appleIdToken, FCMToken: FCMToken) { result in
             switch result {
             case .success(let data):
                 // 서버에서 받은 데이터 처리
@@ -346,10 +356,20 @@ extension LoginViewController {
                 //클라이언트 시크릿 받아서 유저디폴트에 저장
                 
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { // 1초 딜레이
-                    if UserDefaults.standard.bool(forKey: Const.UserDefaultsKey.existMember) {
-                        self.presentTo(name: "main")
-                    } else {
-                        self.presentTo(name: "keyword")
+                    let isExistMember = UserDefaults.standard.bool(forKey: Const.UserDefaultsKey.existMember)
+                    if isExistMember {
+                        self.nicknameExist { result in
+                            if result {
+                                // 로그인 상태이면 TabBarViewController로 이동
+                                self.presentTo(name: "main")
+                            } else {
+                                // 닉네임이 존재하지 않으면 KeywordViewController로 이동
+                                self.presentTo(name: "keyword")
+                            }
+                        }
+                    }
+                    else {
+                        print("Apple Login Error!")
                     }
                 }
                 
@@ -365,6 +385,14 @@ extension LoginViewController {
                 print("애플 로그인: 서버 오류")
             }
             
+        }
+    }
+    
+    // 닉네임 존재 확인 함수
+    func nicknameExist(completion: @escaping (Bool) -> Void) {
+        SignUpService.shared.nicknameExist{ response in
+            let exist = response.data
+            completion(exist)
         }
     }
     

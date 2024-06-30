@@ -69,6 +69,7 @@ class LoginService {
                 let networkResult = self.judgeStatus(by: statusCode, value)
                 completion(networkResult)
             case .failure:
+                print(response)
                 completion(.networkFail)
             }
         }
