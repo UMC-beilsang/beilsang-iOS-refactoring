@@ -325,8 +325,6 @@ class MyPageViewController: UIViewController, UIScrollViewDelegate {
         view.backgroundColor = .white
         setLoadingIndicator()
         request()
-        setupAttribute()
-        viewConstraint()
         setNavigationBar()
         collectionviewSet()
     }
@@ -356,9 +354,6 @@ extension MyPageViewController {
                 self.profileImage.kf.setImage(with: url)
             }
             self.setFeedList(response.data.feedDTOs.feeds ?? [])
-            
-            self.loadingIndicator.stopAnimating()
-            self.fullScrollView.isHidden = false
         }
     }
     
@@ -371,57 +366,39 @@ extension MyPageViewController {
             noFeedLabel.isHidden = false
             joinChallengeButton.isHidden = false
             
-            fullContentView.addSubview(noFeedLabel)
-            fullContentView.addSubview(joinChallengeButton)
+            setupAttribute()
             
-            noFeedLabel.snp.makeConstraints { make in
-                make.top.equalTo(myChallengeFeedLabel.snp.bottom).offset(48)
-                make.centerX.equalToSuperview()
-            }
-            
-            joinChallengeButton.snp.makeConstraints { make in
-                make.centerX.equalToSuperview()
-                make.top.equalTo(noFeedLabel.snp.bottom).offset(12)
-                make.width.equalTo(240)
-                make.height.equalTo(40)
-            }
+            self.loadingIndicator.stopAnimating()
+            self.fullScrollView.isHidden = false
         }
         else {
             myChallengeCollectionView.isHidden = false
             noFeedLabel.isHidden = true
             joinChallengeButton.isHidden = true
-            
             myChallengeCollectionView.reloadData()
+            
+            setupAttribute()
+            
+            self.loadingIndicator.stopAnimating()
+            self.fullScrollView.isHidden = false
         }
     }
     
     func setupAttribute() {
         setFullScrollView()
         setLayout()
-        setScrollViewLayout()
     }
     
     func setFullScrollView() {
         fullScrollView.delegate = self
-        
+        fullScrollView.isScrollEnabled = true // 이 줄을 추가
         //스크롤 안보이게 설정
-        fullScrollView.showsVerticalScrollIndicator = false
+        fullScrollView.showsVerticalScrollIndicator = true
     }
 
     func setLayout() {
-        view.addSubview(fullScrollView)
-        fullScrollView.addSubview(fullContentView)
         addView()
-    }
-    func setScrollViewLayout(){
-        fullScrollView.snp.makeConstraints { make in
-            make.top.bottom.leading.trailing.equalToSuperview()
-        }
-        fullContentView.snp.makeConstraints { make in
-            make.edges.equalTo(fullScrollView.contentLayoutGuide)
-            make.width.equalTo(fullScrollView.frameLayoutGuide)
-            make.height.equalTo(860)
-        }
+        viewConstraint()
     }
     
     func collectionviewSet(){
@@ -433,6 +410,8 @@ extension MyPageViewController {
         
     // addSubview() 메서드 모음
     func addView() {
+        view.addSubview(fullScrollView)
+        fullScrollView.addSubview(fullContentView)
         // foreach문을 사용해서 클로저 형태로 작성
         //상단부
         [rectangleBox, nameLabel, profileShadowView, settingBackground, settingButton, feed, goal, fail, feedCount, achivementCount, failCount, commentBox, comment, challengeTitleLabel].forEach{view in fullContentView.addSubview(view)}
@@ -440,7 +419,7 @@ extension MyPageViewController {
         [challengeTitleLabel, challengeBox, checkImage, starImage, pointImage, challengeLabel, likeLabel, pointLabel, challengeCount, likeCount, pointCount, line1, line2, myChallengeUnderBar, challengeButton, likeButton, pointButton].forEach{view in fullContentView.addSubview(view)}
         
         //하단부
-        [myChallengeFeedLabel, showAllChallengeFeedView, showAllChallengeFeedLabel, showAllChallengeFeedButton, myChallengeCollectionView].forEach{view in fullContentView.addSubview(view)}
+        [myChallengeFeedLabel, showAllChallengeFeedView, showAllChallengeFeedLabel, showAllChallengeFeedButton, myChallengeCollectionView, noFeedLabel, joinChallengeButton].forEach{view in fullContentView.addSubview(view)}
         
         profileShadowView.addSubview(profileImage)
         settingBackground.addSubview(settingImage)
@@ -449,6 +428,14 @@ extension MyPageViewController {
     // MARK: - 전체 오토레이아웃 관리
         // MARK: - 상단부
     func viewConstraint(){
+        fullScrollView.snp.makeConstraints { make in
+            make.top.bottom.leading.trailing.equalToSuperview()
+        }
+        fullContentView.snp.makeConstraints { make in
+            make.edges.equalTo(fullScrollView.contentLayoutGuide)
+            make.width.equalTo(fullScrollView.frameLayoutGuide)
+            make.height.equalTo(960)
+        }
         
         settingBackground.snp.makeConstraints { make in
             make.width.equalTo(28)
@@ -524,89 +511,120 @@ extension MyPageViewController {
         }
         // MARK: - 중앙부
         challengeTitleLabel.snp.makeConstraints { make in
-            make.leading.equalTo(16)
+            make.leading.equalToSuperview().offset(16)
             make.top.equalTo(rectangleBox.snp.bottom).offset(24)
         }
+
         challengeBox.snp.makeConstraints { make in
-            make.width.equalTo(358)
             make.height.equalTo(123)
             make.leading.equalToSuperview().offset(16)
+            make.trailing.equalToSuperview().offset(-16)
             make.top.equalTo(challengeTitleLabel.snp.bottom).offset(12)
         }
+        
+        let challengeBoxWidth = UIScreen.main.bounds.width - 32
+        
+        //left
         checkImage.snp.makeConstraints { make in
             make.width.equalTo(35)
             make.height.equalTo(35)
-            make.leading.equalTo(challengeBox.snp.leading).offset(45)
-            make.top.equalTo(challengeBox.snp.top).offset(19)
+            make.trailing.equalTo(line1.snp.leading).offset(-44)
+            make.top.equalTo(challengeBox.snp.top).offset(20)
         }
+        
+        //middle
         starImage.snp.makeConstraints { make in
             make.size.equalTo(checkImage)
-            make.centerY.equalTo(checkImage)
-            make.leading.equalTo(checkImage.snp.trailing).offset(82)
+            make.top.equalTo(challengeBox.snp.top).offset(20)
+            make.centerX.equalTo(challengeBox.snp.centerX)
         }
+        
+        //right
         pointImage.snp.makeConstraints { make in
             make.size.equalTo(checkImage)
-            make.centerY.equalTo(checkImage)
-            make.leading.equalTo(starImage.snp.trailing).offset(79)
+            make.top.equalTo(challengeBox.snp.top).offset(20)
+            make.leading.equalTo(line2.snp.trailing).offset(44)
         }
+        
+        //left
         challengeLabel.snp.makeConstraints { make in
             make.top.equalTo(challengeBox.snp.top).offset(62)
             make.centerX.equalTo(checkImage)
         }
+
+        //middle
         likeLabel.snp.makeConstraints { make in
             make.centerY.equalTo(challengeLabel)
             make.centerX.equalTo(starImage)
         }
+
+        //right
         pointLabel.snp.makeConstraints { make in
             make.centerY.equalTo(challengeLabel)
             make.centerX.equalTo(pointImage)
         }
+
         challengeCount.snp.makeConstraints { make in
             make.top.equalTo(challengeBox.snp.top).offset(86)
             make.centerX.equalTo(checkImage)
         }
+
         likeCount.snp.makeConstraints { make in
             make.centerY.equalTo(challengeCount)
             make.centerX.equalTo(starImage)
         }
+
         pointCount.snp.makeConstraints { make in
             make.centerY.equalTo(challengeCount)
             make.centerX.equalTo(pointImage)
         }
+
+        //left
         challengeButton.snp.makeConstraints { make in
-            make.width.equalTo(122)
             make.height.equalTo(challengeBox)
-            make.leading.equalTo(challengeBox)
+            make.leading.equalTo(challengeBox.snp.leading)
+            make.trailing.equalTo(line1.snp.leading)
             make.top.equalTo(challengeBox.snp.top)
         }
+
+        //middle
         likeButton.snp.makeConstraints { make in
-            make.width.equalTo(114)
             make.height.equalTo(challengeButton)
             make.leading.equalTo(line1.snp.trailing)
+            make.trailing.equalTo(line2.snp.leading)
             make.top.equalTo(challengeBox.snp.top)
         }
+
+        //right
         pointButton.snp.makeConstraints { make in
-            make.size.equalTo(challengeButton)
+            make.height.equalTo(challengeButton)
             make.leading.equalTo(line2.snp.trailing)
+            make.trailing.equalTo(challengeBox.snp.trailing)
             make.top.equalTo(challengeBox.snp.top)
         }
+
         line1.snp.makeConstraints { make in
             make.width.equalTo(1)
             make.height.equalTo(100)
             make.top.equalTo(challengeBox).offset(12)
-            make.leading.equalTo(challengeBox).offset(122)
+            // 챌린지 박스 뷰의 1/3 위치에 라인 배치
+            make.centerX.equalTo(challengeBox.snp.leading).offset(challengeBoxWidth * 0.33)
         }
+
         line2.snp.makeConstraints { make in
             make.size.equalTo(line1)
             make.top.equalTo(challengeBox).offset(12)
-            make.leading.equalTo(line1).offset(114)
+            // 챌린지 박스 뷰의 2/3 위치에 라인 배치
+            make.centerX.equalTo(challengeBox.snp.leading).offset(challengeBoxWidth * 0.66)
         }
+
         myChallengeUnderBar.snp.makeConstraints { make in
             make.width.equalToSuperview()
             make.height.equalTo(8)
             make.leading.equalToSuperview()
             make.top.equalTo(challengeBox.snp.bottom).offset(24)
         }
+
         // MARK: - 하단부
         myChallengeFeedLabel.snp.makeConstraints { make in
             make.leading.equalToSuperview().offset(16)
@@ -616,21 +634,34 @@ extension MyPageViewController {
             make.width.equalTo(70)
             make.height.equalTo(21)
             make.top.equalTo(myChallengeUnderBar.snp.bottom).offset(27)
-            make.leading.equalToSuperview().offset(304)
+            make.trailing.equalToSuperview().offset(-16)
         }
         showAllChallengeFeedLabel.snp.makeConstraints { make in
             make.top.equalTo(myChallengeUnderBar.snp.bottom).offset(29)
-            make.leading.equalTo(showAllChallengeFeedView).offset(12)
+            make.centerX.equalTo(showAllChallengeFeedView.snp.centerX)
         }
         showAllChallengeFeedButton.snp.makeConstraints { make in
             make.size.equalTo(showAllChallengeFeedView)
             make.edges.equalTo(showAllChallengeFeedView)
         }
+        
         myChallengeCollectionView.snp.makeConstraints { make in
-            make.bottom.equalTo(self.view.safeAreaLayoutGuide)
             make.top.equalTo(myChallengeFeedLabel.snp.bottom).offset(12)
             make.leading.equalToSuperview().offset(16)
             make.trailing.equalToSuperview().offset(-16)
+            make.height.equalTo(292)
+        }
+        
+        noFeedLabel.snp.makeConstraints { make in
+            make.top.equalTo(myChallengeFeedLabel.snp.bottom).offset(48)
+            make.centerX.equalToSuperview()
+        }
+        
+        joinChallengeButton.snp.makeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.top.equalTo(noFeedLabel.snp.bottom).offset(12)
+            make.width.equalTo(240)
+            make.height.equalTo(40)
         }
     }
 }
@@ -694,6 +725,7 @@ extension MyPageViewController{
     @objc func tabBarButtonTapped() {
         print("알림버튼")
         let notificationVC = NotificationViewController()
+        notificationVC.hidesBottomBarWhenPushed = true
         navigationController?.pushViewController(notificationVC, animated: true)
     }
 }

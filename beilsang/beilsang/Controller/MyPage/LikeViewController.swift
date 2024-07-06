@@ -60,6 +60,33 @@ class LikeViewController: UIViewController, UIScrollViewDelegate {
         return view
     }()
 
+    // 찜한 챌린지가 없는 경우 
+    lazy var notLikeLabel: UILabel = {
+        let view = UILabel()
+        
+        view.text = "아직 찜한 챌린지가 없어요👀"
+        view.textAlignment = .center
+        view.textColor = .beTextInfo
+        view.font = UIFont(name: "Noto Sans KR", size: 12)
+        
+        return view
+    }()
+    
+    lazy var likeChallengeButton: UIButton = {
+        let view = UIButton()
+        
+        view.layer.borderWidth = 1
+        view.layer.borderColor = UIColor.beBgDiv.cgColor
+        view.setTitle("챌린지 찜하러 가기", for: .normal)
+        view.setTitleColor(.beTextDef, for: .normal)
+        view.titleLabel?.font = UIFont(name: "Noto Sans KR", size: 14)
+        view.contentHorizontalAlignment = .center
+        view.layer.cornerRadius = 20
+        view.addTarget(self, action: #selector(challengeButtonClicked), for: .touchUpInside)
+        
+        return view
+    }()
+    
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -77,6 +104,18 @@ extension LikeViewController {
     func request() {
         MyPageService.shared.getChallengeList(baseEndPoint: .challenges, addPath: "/likes/\(selectedCategory)") { response in
             self.setFirstFeedList(response.data.challenges ?? [])
+            let requestList = response.data.challenges ?? []
+            if requestList.isEmpty {
+                self.notLikeLabel.isHidden = false
+                self.likeChallengeButton.isHidden = false
+                self.challengeBoxCollectionView.isHidden = true
+                self.setNoChallengeViewLayout()
+            }
+            else {
+                self.notLikeLabel.isHidden = true
+                self.likeChallengeButton.isHidden = true
+                self.challengeBoxCollectionView.isHidden = false
+            }
         }
     }
     @MainActor
@@ -146,7 +185,23 @@ extension LikeViewController {
             make.leading.equalToSuperview()
             make.trailing.equalToSuperview()
         }
+    }
+    
+    func setNoChallengeViewLayout(){
+        view.addSubview(notLikeLabel)
+        view.addSubview(likeChallengeButton)
+
+        notLikeLabel.snp.makeConstraints { make in
+            make.top.equalTo(challengeLabel.snp.bottom).offset(48)
+            make.centerX.equalToSuperview()
+        }
         
+        likeChallengeButton.snp.makeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.top.equalTo(notLikeLabel.snp.bottom).offset(12)
+            make.width.equalTo(240)
+            make.height.equalTo(40)
+        }
     }
 }
 // MARK: - 네비게이션 바 커스텀
@@ -180,6 +235,16 @@ extension LikeViewController{
     @objc func tabBarButtonTapped() {
         print("뒤로 가기")
         navigationController?.popViewController(animated: true)
+    }
+    
+    @objc func challengeButtonClicked() {
+        print("챌린지 참여하러 가기")
+        
+        let labelText = "전체"
+        let challengeListVC = ChallengeListViewController()
+        challengeListVC.categoryLabelText = labelText
+        challengeListVC.hidesBottomBarWhenPushed = true
+        navigationController?.pushViewController(challengeListVC, animated: true)
     }
 }
 // MARK: - collectionView setting(카테고리)

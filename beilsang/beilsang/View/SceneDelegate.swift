@@ -49,7 +49,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             window?.rootViewController = loginVC
         }
         
-        if let serverToken = KeyChain.read(key: Const.KeyChainKey.serverToken) {
+        if KeyChain.read(key: Const.KeyChainKey.serverToken) != nil {
             if isExistMember {
                 nicknameExist { result in
                     if result {

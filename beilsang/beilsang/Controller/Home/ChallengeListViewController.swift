@@ -311,7 +311,7 @@ extension ChallengeListViewController {
             make.top.equalTo(topViewBorder.snp.bottom).offset(17)
             make.leading.equalTo(fullScrollView.snp.leading).offset(16)
             make.trailing.equalTo(fullScrollView.snp.trailing).offset(-16)
-            make.height.equalTo(100)
+            make.height.equalTo(challengeTipButton.snp.width).multipliedBy(0.279)
         }
         
         challengeCollectionView.snp.makeConstraints { make in

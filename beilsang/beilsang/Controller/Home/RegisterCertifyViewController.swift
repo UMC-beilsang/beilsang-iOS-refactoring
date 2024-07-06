@@ -424,7 +424,7 @@ extension RegisterCertifyViewController {
         reviewTextView.snp.makeConstraints { make in
             make.top.equalTo(reviewLabel.snp.bottom).offset(12)
             make.leading.equalTo(reviewLabel.snp.leading)
-            make.trailing.equalTo(view.snp.trailing).offset(-16)
+            make.trailing.equalTo(view.snp.trailing)
             make.width.height.equalTo(112)
         }
         
@@ -454,16 +454,19 @@ extension RegisterCertifyViewController {
         certifyNoticeView1Label.snp.makeConstraints { make in
             make.top.equalTo(certifyNoticeViewTitleLabel.snp.bottom).offset(8)
             make.leading.equalTo(certifyNoticeViewTitleLabel.snp.leading)
+            make.trailing.equalToSuperview().offset(-16)
         }
         
         certifyNoticeView2Label.snp.makeConstraints { make in
             make.top.equalTo(certifyNoticeView1Label.snp.bottom).offset(4)
             make.leading.equalTo(certifyNoticeViewTitleLabel.snp.leading)
+            make.trailing.equalToSuperview().offset(-16)
         }
         
         certifyNoticeView3Label.snp.makeConstraints { make in
             make.top.equalTo(certifyNoticeView2Label.snp.bottom).offset(4)
             make.leading.equalTo(certifyNoticeViewTitleLabel.snp.leading)
+            make.trailing.equalToSuperview().offset(-16)
         }
         
         bottomView.snp.makeConstraints { make in

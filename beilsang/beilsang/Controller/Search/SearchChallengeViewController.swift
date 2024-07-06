@@ -37,16 +37,11 @@ class SearchChallengeViewController: UIViewController, UIScrollViewDelegate {
         return view
     }()
     
-    lazy var tipView : UIView = {
-        let view = UIView()
-        view.backgroundColor = .beBgCard
-        view.layer.cornerRadius = 10
-        view.clipsToBounds = true
-        view.layer.borderWidth = 1
-        view.layer.borderColor = UIColor.beBorderDis.cgColor
+    lazy var challengeTipButton: UIButton = {
+        let view = UIButton()
         
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(tipViewTapped))
-        view.addGestureRecognizer(tapGesture)
+        view.setImage(UIImage(named: "challengeListBanner"), for: .normal)
+        view.addTarget(self, action: #selector(challengeTipButtonClicked), for: .touchUpInside)
         
         return view
     }()
@@ -208,11 +203,9 @@ class SearchChallengeViewController: UIViewController, UIScrollViewDelegate {
         
         fullScrollView.addSubview(fullContentView)
         
-        fullContentView.addSubview(tipView)
+        fullContentView.addSubview(challengeTipButton)
         fullContentView.addSubview(challengeCollectionView)
-        
-        tipView.addSubview(tipLabel)
-        tipView.addSubview(tipImage)
+
     }
     
     private func setupLayout() {
@@ -233,25 +226,15 @@ class SearchChallengeViewController: UIViewController, UIScrollViewDelegate {
             make.width.equalTo(fullScrollView.frameLayoutGuide)
         }
         
-        tipView.snp.makeConstraints{ make in
+        challengeTipButton.snp.makeConstraints{ make in
             make.top.equalToSuperview().offset(64)
-            make.leading.equalToSuperview().offset(16)
-            make.width.equalTo(width - 32)
-            make.height.equalTo(tipViewHeight)
-        }
-        
-        tipLabel.snp.makeConstraints{ make in
-            make.top.equalToSuperview().offset(12)
-            make.leading.equalToSuperview().offset(16)
-        }
-        
-        tipImage.snp.makeConstraints{ make in
-            make.bottom.equalToSuperview().offset(-12)
-            make.trailing.equalToSuperview().offset(-16)
+            make.leading.equalTo(fullScrollView.snp.leading).offset(16)
+            make.trailing.equalTo(fullScrollView.snp.trailing).offset(-16)
+            make.height.equalTo(challengeTipButton.snp.width).multipliedBy(0.279)
         }
         
         challengeCollectionView.snp.makeConstraints { make in
-            make.top.equalTo(tipView.snp.bottom).offset(8)
+            make.top.equalTo(challengeTipButton.snp.bottom).offset(8)
             make.leading.equalToSuperview().offset(16)
             make.trailing.equalToSuperview().offset(-16)
             make.width.equalTo(width)
@@ -371,8 +354,10 @@ class SearchChallengeViewController: UIViewController, UIScrollViewDelegate {
         
     //MARK: - Actions
     
-    @objc func tipViewTapped(_ sender: UIButton) {
-        print("tipViewTapped")
+    @objc func challengeTipButtonClicked() {
+        let challengeTipVC = ChallengeTipViewController()
+        challengeTipVC.hidesBottomBarWhenPushed = true
+        navigationController?.pushViewController(challengeTipVC, animated: true)
     }
     
     

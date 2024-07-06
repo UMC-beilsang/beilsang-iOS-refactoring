@@ -1266,7 +1266,19 @@ extension ChallengeDetailViewController {
             self.categoryIcon.text = categoryIcon // 카테고리 아이콘
             let categoryText = CategoryConverter.shared.convertToKorean(response.data.category)
             self.categoryLabel.text = categoryText // 카테고리 한글
-            self.leftDayLabel.text = "D-\(response.data.dday)" // 남은 기간: D-1
+            
+            let remainDay = response.data.dday
+            if remainDay < 0 {
+                let daysPassed = abs(remainDay) // 절대값을 사용하여 지난 날짜를 양수로 변환
+                self.leftDayLabel.text = "\(daysPassed)일 전"
+            }
+            else if remainDay == 0 {
+                self.leftDayLabel.text = "오늘"
+            }
+            else {
+                self.leftDayLabel.text = "D-\(response.data.dday)"
+            }
+            
             let startDate = DateConverter.shared.convertDetail(from: response.data.startDate)
             let startDay = DateConverter.shared.convertToDay(response.data.dayOfWeek)
             self.startDateLabel.text =  "\(startDate ?? "") \(startDay ?? "")"// 시작일

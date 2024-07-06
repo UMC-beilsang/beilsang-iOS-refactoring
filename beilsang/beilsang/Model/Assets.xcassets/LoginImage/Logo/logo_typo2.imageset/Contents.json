@@ -1,17 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "Thumbnail Banner-3.png",
+      "filename" : "logo_typo.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "Thumbnail Banner-3 1.png",
+      "filename" : "logo_typo-2.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "Thumbnail Banner-3 2.png",
+      "filename" : "logo_typo-3.png",
       "idiom" : "universal",
       "scale" : "3x"
     }

@@ -7,6 +7,7 @@
 
 import Foundation
 import UIKit
+import SnapKit
 import SCLAlertView
 import KakaoSDKCommon
 import KakaoSDKAuth
@@ -14,6 +15,7 @@ import KakaoSDKUser
 import AVFoundation
 import Photos
 import Kingfisher
+import SafariServices
 
 class AccountInfoViewController: UIViewController, UIScrollViewDelegate, UINavigationControllerDelegate, KakaoPostCodeViewControllerDelegate {
     // MARK: - Properties
@@ -536,6 +538,14 @@ class AccountInfoViewController: UIViewController, UIScrollViewDelegate, UINavig
         view.backgroundColor = .beBgSub
         return view
     }()
+    
+    lazy var privacyButton : UIButton = {
+        let button = UIButton()
+        button.backgroundColor = .clear
+        button.addTarget(self, action: #selector(privacy), for: .touchUpInside)
+        return button
+    }()
+    
     lazy var privacyPolicy: UIButton = {
         let button = UIButton()
         button.titleLabel?.font = UIFont(name: "NotoSansKR-Regular", size: 14)
@@ -543,6 +553,14 @@ class AccountInfoViewController: UIViewController, UIScrollViewDelegate, UINavig
         button.setTitleColor(.beTextEx, for: .normal)
         return button
     }()
+    
+    lazy var termOfUseButton : UIButton = {
+        let button = UIButton()
+        button.backgroundColor = .clear
+        button.addTarget(self, action: #selector(termOfUse), for: .touchUpInside)
+        return button
+    }()
+    
     lazy var termsOfUse: UIButton = {
         let button = UIButton()
         button.titleLabel?.font = UIFont(name: "NotoSansKR-Regular", size: 14)
@@ -643,7 +661,7 @@ class AccountInfoViewController: UIViewController, UIScrollViewDelegate, UINavig
 extension AccountInfoViewController {
     func getMypage() {
         MyPageService.shared.getMyPage(baseEndPoint: .mypage, addPath: "") {response in
-            self.nickName = response.data.nickName
+            self.nickName = response.data.nickName 
             self.nameField.text = response.data.nickName
             if let genderString = response.data.gender {
                 if genderString == "MAN" {
@@ -771,7 +789,7 @@ extension AccountInfoViewController {
     // addSubview() 메서드 모음
     func addView() {
         // foreach문을 사용해서 클로저 형태로 작성
-        [profileShadowView, editProfileImageView, editProfileImageLabel, editProfileImageButton, nameLabel, nameField, nameInfoView, nameInfoImage, nameInfoLabel, nameDuplicateButton, birthLabel, birthField, genderLabel, genderField, addressLabel, zipCodeField, zipCodeSearchButton, addressField, addressDetailField, divider, logoutButton, withdrawButton, greyBox, privacyPolicy, termsOfUse, bottomBar, nameCircle, birthCircle, genderCircle, addressCircle].forEach{view in fullContentView.addSubview(view)}
+        [profileShadowView, editProfileImageView, editProfileImageLabel, editProfileImageButton, nameLabel, nameField, nameInfoView, nameInfoImage, nameInfoLabel, nameDuplicateButton, birthLabel, birthField, genderLabel, genderField, addressLabel, zipCodeField, zipCodeSearchButton, addressField, addressDetailField, divider, logoutButton, withdrawButton, greyBox, privacyPolicy, termsOfUse, bottomBar, nameCircle, birthCircle, genderCircle, addressCircle, privacyButton, termOfUseButton].forEach{view in fullContentView.addSubview(view)}
         
         nameInfoView.addSubview(nameInfoImage)
         nameInfoView.addSubview(nameInfoLabel)
@@ -933,19 +951,30 @@ extension AccountInfoViewController {
             make.leading.equalToSuperview()
             make.top.equalTo(withdrawButton.snp.bottom).offset(48)
         }
+        
         privacyPolicy.snp.makeConstraints { make in
             make.leading.equalToSuperview().offset((self.view.frame.width/2 - 107))
             make.top.equalTo(greyBox.snp.top).offset(32)
         }
+        
+        privacyButton.snp.makeConstraints{ make in
+            make.edges.equalTo(privacyPolicy)
+        }
+        
         bottomBar.snp.makeConstraints { make in
             make.width.equalTo(1)
             make.height.equalTo(18)
             make.leading.equalTo(privacyPolicy.snp.trailing).offset(20)
             make.centerY.equalTo(privacyPolicy)
         }
+    
         termsOfUse.snp.makeConstraints { make in
             make.leading.equalTo(bottomBar.snp.trailing).offset(20)
             make.centerY.equalTo(privacyPolicy)
+        }
+        
+        termOfUseButton.snp.makeConstraints{ make in
+            make.edges.equalTo(termsOfUse)
         }
         
         saveButton.snp.makeConstraints { make in
@@ -1259,6 +1288,18 @@ extension AccountInfoViewController{
         nameDuplicateButton.isEnabled = false
         nameDuplicateButton.backgroundColor = .beBgDiv
         request()
+    }
+    
+    @objc func privacy() {
+        let blogUrl = NSURL(string: "https://beilsang.notion.site/175fe806efae4c47aabb8643164fdf8c")
+        let blogSafariView: SFSafariViewController = SFSafariViewController(url: blogUrl! as URL)
+        self.present(blogSafariView, animated: true, completion: nil)
+    }
+    
+    @objc func termOfUse() {
+        let blogUrl = NSURL(string: "https://beilsang.notion.site/a731c787066742b1ba6fa43bc1fa2289?pvs=4")
+        let blogSafariView: SFSafariViewController = SFSafariViewController(url: blogUrl! as URL)
+        self.present(blogSafariView, animated: true, completion: nil)
     }
 }
 

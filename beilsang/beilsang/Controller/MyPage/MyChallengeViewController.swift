@@ -82,7 +82,8 @@ class MyChallengeViewController: UIViewController, UIScrollViewDelegate {
     }()
     lazy var challengeBoxCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
-        layout.itemSize = CGSize(width: 358, height: 140)
+        let width = UIScreen.main.bounds.width - 32
+        layout.itemSize = CGSize(width: width, height: 140)
         layout.sectionInset = UIEdgeInsets(top: 35, left: 16, bottom: 0, right: 16)
         layout.minimumInteritemSpacing = 8
         layout.minimumLineSpacing = 8
@@ -100,6 +101,33 @@ class MyChallengeViewController: UIViewController, UIScrollViewDelegate {
         toastLabel.backgroundColor = .beTextDef.withAlphaComponent(0.8)
         toastLabel.isHidden = true
         return toastLabel
+    }()
+    
+    // 참여중인 챌린지가 없는 경우
+    lazy var notParticipatingLabel: UILabel = {
+        let view = UILabel()
+        
+        view.text = "아직 참여중인 챌린지가 없어요👀"
+        view.textAlignment = .center
+        view.textColor = .beTextInfo
+        view.font = UIFont(name: "Noto Sans KR", size: 12)
+        
+        return view
+    }()
+    
+    lazy var participateChallengeButton: UIButton = {
+        let view = UIButton()
+        
+        view.layer.borderWidth = 1
+        view.layer.borderColor = UIColor.beBgDiv.cgColor
+        view.setTitle("챌린지 참여하러 가기", for: .normal)
+        view.setTitleColor(.beTextDef, for: .normal)
+        view.titleLabel?.font = UIFont(name: "Noto Sans KR", size: 14)
+        view.contentHorizontalAlignment = .center
+        view.layer.cornerRadius = 20
+        view.addTarget(self, action: #selector(challengeButtonClicked), for: .touchUpInside)
+        
+        return view
     }()
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -239,6 +267,16 @@ extension MyChallengeViewController{
     @objc func tabBarButtonTapped() {
         print("뒤로 가기")
         navigationController?.popViewController(animated: true)
+    }
+    
+    @objc func challengeButtonClicked() {
+        print("챌린지 참여하러 가기")
+        
+        let labelText = "전체"
+        let challengeListVC = ChallengeListViewController()
+        challengeListVC.categoryLabelText = labelText
+        challengeListVC.hidesBottomBarWhenPushed = true
+        navigationController?.pushViewController(challengeListVC, animated: true)
     }
 }
 // MARK: - collectionView setting(카테고리)
@@ -468,9 +506,39 @@ extension MyChallengeViewController: UICollectionViewDataSource, UICollectionVie
         var requestList : [ChallengeModel] = []
         MyPageService.shared.getMyPageChallengeList(baseEndPoint: .challenges, addPath: "/\(selectedMenu)/\(selectedCategory)"){response in
             requestList = self.reloadChallengeList(response.data)
+            
+            if requestList.isEmpty {
+                self.notParticipatingLabel.isHidden = false
+                self.participateChallengeButton.isHidden = false
+                self.challengeBoxCollectionView.isHidden = true
+                self.setNoChallengeViewLayout()
+            }
+            else {
+                self.notParticipatingLabel.isHidden = true
+                self.participateChallengeButton.isHidden = true
+                self.challengeBoxCollectionView.isHidden = false
+            }
         }
         return requestList
     }
+    
+    func setNoChallengeViewLayout(){
+        view.addSubview(notParticipatingLabel)
+        view.addSubview(participateChallengeButton)
+
+        notParticipatingLabel.snp.makeConstraints { make in
+            make.top.equalTo(challengeLabel.snp.bottom).offset(48)
+            make.centerX.equalToSuperview()
+        }
+        
+        participateChallengeButton.snp.makeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.top.equalTo(notParticipatingLabel.snp.bottom).offset(12)
+            make.width.equalTo(240)
+            make.height.equalTo(40)
+        }
+    }
+    
     @MainActor
     private func reloadChallengeList(_ list: MyPageChallengeListModel) -> [ChallengeModel]{
         cellList = list.challenges.challenges ?? []

@@ -158,32 +158,33 @@ extension HomeMainViewController {
     
     func setLayout() {
         fullScrollView.snp.makeConstraints { make in
-            make.top.bottom.leading.trailing.equalToSuperview()
+            make.edges.equalToSuperview()
         }
         
         fullContentView.snp.makeConstraints { make in
             make.edges.equalTo(fullScrollView.contentLayoutGuide)
             make.width.equalTo(fullScrollView.frameLayoutGuide)
-            make.bottom.equalTo(fullScrollView.snp.bottom)
+            make.height.equalToSuperview().priority(.low)
         }
         
-        logoImage.snp.makeConstraints { make in
-            make.leading.equalTo(topView.snp.leading).offset(16)
-            make.centerY.equalTo(topView.snp.centerY)
-            make.height.width.equalTo(28)
-        }
-        
-        logoTextImage.snp.makeConstraints { make in
-            make.leading.equalTo(logoImage.snp.trailing).offset(6)
-            make.centerY.equalTo(logoImage.snp.centerY)
-            make.height.equalTo(17)
-            make.width.equalTo(45)
-        }
+//        logoImage.snp.makeConstraints { make in
+//            make.leading.equalTo(topView.snp.leading).offset(16)
+//            make.centerY.equalTo(topView.snp.centerY)
+//            make.height.width.equalTo(28)
+//        }
+//        
+//        logoTextImage.snp.makeConstraints { make in
+//            make.leading.equalTo(logoImage.snp.trailing).offset(6)
+//            make.centerY.equalTo(logoImage.snp.centerY)
+//            make.height.equalTo(20)
+//            make.width.equalTo(48)
+//        }
         
         pageViewController.view.snp.makeConstraints { make in
             make.top.equalTo(fullContentView.snp.top)
-            make.width.equalTo(fullScrollView.snp.width)
-            make.height.equalTo(240)
+            make.leading.equalTo(fullContentView.snp.leading)
+            make.trailing.equalTo(fullContentView.snp.trailing)
+            make.height.equalTo(fullContentView.snp.width).multipliedBy(0.615)
         }
         
         pageControl.snp.makeConstraints { make in
@@ -216,7 +217,7 @@ extension HomeMainViewController {
 // MARK: - 네비게이션 바 커스텀
 extension HomeMainViewController{
     private func setNavigationBar() {
-        self.navigationItem.titleView = attributeTitleView()
+        self.navigationItem.leftBarButtonItem = createLeftTitleItem()
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
         appearance.configureWithTransparentBackground()
@@ -226,14 +227,27 @@ extension HomeMainViewController{
         navigationController?.navigationBar.scrollEdgeAppearance = appearance
         setBackButton()
     }
-    private func attributeTitleView() -> UIView {
-        // 네비게이션 바에 타이틀을 왼쪽으로 옮기기 위해 커스텀 뷰 생성
-        let view = UIView(frame: CGRect(x: 0, y: 0, width: self.view.frame.width, height: 44))
-        // 네비게이션 바에 타이틀을 왼쪽으로 옮기기 위해 커스텀 뷰 생성
-        topView.frame = CGRect(x: 0, y: 0, width: 80, height: 44)
-        view.addSubview(topView)
-        return view
-    }
+    private func createLeftTitleItem() -> UIBarButtonItem {
+            let titleView = UIView(frame: CGRect(x: 0, y: 0, width: 200, height: 48))
+            
+            let logoImage = UIImageView(image: UIImage(named: "logo_symbol"))
+            logoImage.frame = CGRect(x: 0, y: 10, width: 28, height: 28)
+            titleView.addSubview(logoImage)
+            
+            let logoTextImage = UIImageView(image: UIImage(named: "logo_typo"))
+            logoTextImage.frame = CGRect(x: 34, y: 14, width: 48, height: 20)
+            titleView.addSubview(logoTextImage)
+            
+            return UIBarButtonItem(customView: titleView)
+        }
+//    private func attributeTitleView() -> UIView {
+//        // 네비게이션 바에 타이틀을 왼쪽으로 옮기기 위해 커스텀 뷰 생성
+//        let view = UIView(frame: CGRect(x: 0, y: 0, width: self.view.frame.width, height: 48))
+//        // 네비게이션 바에 타이틀을 왼쪽으로 옮기기 위해 커스텀 뷰 생성
+//        topView.frame = CGRect(x: 0, y: 0, width: 200, height: 48)
+//        view.addSubview(topView)
+//        return view
+//    }
     // 백버튼 커스텀
     func setBackButton() {
         let notiButton = UIBarButtonItem(image: UIImage(named: "iconamoon_notification-bold")?.withRenderingMode(.alwaysTemplate), style: .plain, target: self, action: #selector(tabBarNotiButtonTapped))

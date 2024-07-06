@@ -422,6 +422,9 @@ class UserInfoViewController: UIViewController {
         return button
     }()
     
+    let agreeScrollView = UIScrollView()
+    lazy var agreeContentView = UIView()
+    
     lazy var agreeSection: UIView = {
         let view = UIView()
         view.backgroundColor = .beBgCard
@@ -435,9 +438,30 @@ class UserInfoViewController: UIViewController {
     
     lazy var agreeText: UILabel = {
         let view = UILabel()
-        view.text = "제1조 목적 \n 본 이용약관은 '비일상'의 서비스의 이용조건과 운영에 관한 제반사항 규정을 목적으로 합니다. \n \n 제2조 용어의 정의 \n 본 약관에서 사용되는 주요한 용어의 정의는 다음과 같습니다.\n ① 회원 : 본 사이트의 약관에 동의하고 개인정보를 제공하여 회원등록을 한 자로서, 사이트와의 이용계약을 체결하고 사이트를 이용하는 이용자를 말합니다.\n ② 이용계약 : 본 사이트 이용과 관련하여 사이트와 회원간에 체결 하는 계약을 말합니다."
+        view.text = """
+    제1조 목적
+    본 이용약관은 “비일상"의 서비스의 이용조건과 운영에 관한 제반사항 규정을 목적으로 합니다.
+
+    제2조 용어의 정의
+    본 약관에서 사용되는 주요한 용어의 정의는 다음과 같습니다.
+    ① 회원 : 본 사이트의 약관에 동의하고 개인정보를 제공하여 회원등록을 한 자로서, 사이트와의 이용계약을 체결하고 사이트를 이용하는 이용자를 말합니다.
+    ② 이용계약 : 본 사이트 이용과 관련하여 사이트와 회원간에 체결 하는 계약을 말합니다.
+    ③ 회원 아이디(이하 "ID") : 회원의 식별과 회원의 서비스 이용을 위하여 회원별로 부여하는 고유한 문자와 숫자의 조합을 말합니다.
+    ④ 비밀번호 : 회원이 부여받은 ID와 일치된 회원임을 확인하고 회원의 권익보호를 위하여 회원이 선정한 문자와 숫자의 조합을 말합니다.
+    ⑤ 운영자 : 서비스에 홈페이지를 개설하여 운영하는 운영자를 말합니다.  ⑥ 해지 : 회원이 이용계약을 해약하는 것을 말합니다.
+
+    제3조 약관외 준칙
+    운영자는 필요한 경우 별도로 운영정책을 공지 안내할 수 있으며, 본 약관과 운영정책이 중첩될 경우 운영정책이 우선 적용됩니다.
+
+    제4조 이용계약 체결
+    ① 이용계약은 회원으로 등록하여 사이트를 이용하려는 자의 본 약관 내용에 대한 동의와 가입신청에 대하여 운영자의 이용승낙으로 성립합니다.  ② 회원으로 등록하여 서비스를 이용하려는 자는 사이트 가입신청시 본 약관을 읽고 아래에 있는 "동의합니다"를 선택하는 것으로 본 약관에 대한 동의 의사 표시를 합니다.
+
+    제5조 서비스 이용 신청
+    ① 회원으로 등록하여 사이트를 이용하려는 이용자는 본 사이트에서 요청하는 제반정보(이용자ID, 비밀번호, 닉네임 등)를 제공해야 합니다.
+    ② 타인의 정보를 도용하거나 허위의 정보를 등록하는 등 본인의 진정한 정보를 등록하지 않은 회원은 사이트 이용과 관련하여 아무런 권리를 주장할 수 없으며, 관계 법령에 따라 처벌 받을 수 있습니다.
+    """
         view.font = UIFont(name: "NotoSansKR-Regular", size: 11)
-        view.numberOfLines = 10
+        view.numberOfLines = 0
         view.textColor = .beTextInfo
         view.translatesAutoresizingMaskIntoConstraints = false
         view.textAlignment = .left
@@ -486,6 +510,9 @@ class UserInfoViewController: UIViewController {
         return button
     }()
     
+    let privacyScrollView = UIScrollView()
+    let privacyContentView = UIView()
+    
     lazy var privacySection: UIView = {
         let view = UIView()
         view.backgroundColor = .beBgCard
@@ -499,9 +526,21 @@ class UserInfoViewController: UIViewController {
     
     lazy var privacyText: UILabel = {
         let view = UILabel()
-        view.text = "제1조 목적 \n 본 이용약관은 '비일상'의 서비스의 이용조건과 운영에 관한 제반사항 규정을 목적으로 합니다. \n \n 제2조 용어의 정의 \n 본 약관에서 사용되는 주요한 용어의 정의는 다음과 같습니다.\n ① 회원 : 본 사이트의 약관에 동의하고 개인정보를 제공하여 회원등록을 한 자로서, 사이트와의 이용계약을 체결하고 사이트를 이용하는 이용자를 말합니다.\n ② 이용계약 : 본 사이트 이용과 관련하여 사이트와 회원간에 체결 하는 계약을 말합니다."
+        view.text = """
+개인정보 수집 및 이용 동의
+
+- 비일상의 개인정보 수집 이용 목적은 다음과 같습니다. 내용을 자세히 읽어 보신 후 동의 여부를 결정하여 주시기 바랍니다.
+    수집 목적: 서비스 제공 및 회원 관리
+    필수 항목: 이메일 주소, 닉네임 및 생년월일
+    선택 항목: 주소
+    보유·이용기간: 회원 탈퇴 시 즉시 삭제
+
+자세한 내용은 개인정보 처리방침을 확인해주세요.
+
+귀하는 위와 같이 개인정보를 수집·이용하는데 동의를 거부할 권리가 있습니다. 필수 수집 항목에 대한 동의를 거절하는 경우 서비스 이용이 제한 될 수 있습니다. 선택 수집 항목에 동의를 하지 않으시는 경우 별도의 불이익은 없습니다.
+"""
         view.font = UIFont(name: "NotoSansKR-Regular", size: 11)
-        view.numberOfLines = 10
+        view.numberOfLines = 0
         view.textColor = .beTextInfo
         view.translatesAutoresizingMaskIntoConstraints = false
         view.textAlignment = .left
@@ -586,17 +625,21 @@ class UserInfoViewController: UIViewController {
         verticalContentView.addSubview(agreeLabel)
         verticalContentView.addSubview(agreeButtonArea)
         verticalContentView.addSubview(agreeSection)
+        agreeSection.addSubview(agreeScrollView)
+        agreeScrollView.addSubview(agreeContentView)
         
         verticalContentView.addSubview(privacyAgreeButton)
         verticalContentView.addSubview(needPrivacyLabel)
         verticalContentView.addSubview(privacyLabel)
         verticalContentView.addSubview(privacyButtonArea)
         verticalContentView.addSubview(privacySection)
+        privacySection.addSubview(privacyScrollView)
+        privacyScrollView.addSubview(privacyContentView)
         
         verticalContentView.addSubview(nextButton)
         
-        agreeSection.addSubview(agreeText)
-        privacySection.addSubview(privacyText)
+        agreeContentView.addSubview(agreeText)
+        privacyContentView.addSubview(privacyText)
         
         nameInfoView.addSubview(nameInfoImage)
         nameInfoView.addSubview(nameInfoLabel)
@@ -799,6 +842,16 @@ class UserInfoViewController: UIViewController {
             make.height.equalTo(128)
         }
         
+        agreeScrollView.snp.makeConstraints{ make in
+            make.edges.equalToSuperview()
+        }
+        
+        agreeContentView.snp.makeConstraints{ make in
+            make.edges.equalTo(agreeScrollView.contentLayoutGuide)
+            make.width.equalTo(agreeScrollView.frameLayoutGuide)
+            make.height.equalTo(600)
+        }
+        
         agreeText.snp.makeConstraints{ make in
             make.top.equalToSuperview().offset(14)
             make.leading.equalToSuperview().offset(19)
@@ -835,6 +888,16 @@ class UserInfoViewController: UIViewController {
             make.height.equalTo(128)
         }
         
+        privacyScrollView.snp.makeConstraints{ make in
+            make.edges.equalToSuperview()
+        }
+        
+        privacyContentView.snp.makeConstraints{ make in
+            make.edges.equalTo(privacyScrollView.contentLayoutGuide)
+            make.width.equalTo(privacyScrollView.frameLayoutGuide)
+            make.height.equalTo(270)
+        }
+    
         privacyText.snp.makeConstraints{ make in
             make.top.equalToSuperview().offset(14)
             make.leading.equalToSuperview().offset(19)
@@ -868,6 +931,12 @@ class UserInfoViewController: UIViewController {
     private func setVerticalScrollView() {
         verticalScrollView.showsVerticalScrollIndicator = true
         verticalScrollView.delegate = self
+        
+        agreeScrollView.showsVerticalScrollIndicator = true
+        agreeScrollView.delegate = self
+        
+        privacyScrollView.showsVerticalScrollIndicator = true
+        privacyScrollView.delegate = self
     }
     
     // MARK: - TextField

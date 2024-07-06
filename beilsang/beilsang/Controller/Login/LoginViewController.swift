@@ -48,7 +48,7 @@ class LoginViewController: UIViewController {
     }()
     
     lazy var appleButton: ASAuthorizationAppleIDButton = {
-        let view = ASAuthorizationAppleIDButton(authorizationButtonType: .signIn, authorizationButtonStyle: .whiteOutline)
+        let view = ASAuthorizationAppleIDButton(authorizationButtonType: .signIn, authorizationButtonStyle: .black)
             view.addTarget(self, action: #selector(appleButtonPress), for: .touchDown)
         
         return view
@@ -290,46 +290,44 @@ extension LoginViewController : ASAuthorizationControllerDelegate, ASAuthorizati
 //MARK: - others
 extension LoginViewController {
     // 카카오
-    private func kakaologinToServer(with kakaoAccessToken: String?, FCMToken : String?) {
-        // LoginService를 사용하여 서버에 Post
-        LoginService.shared.kakaoLogin(accesstoken: kakaoAccessToken ?? "", FCMToken: FCMToken ?? "") { result in
+    private func kakaologinToServer(with kakaoAccessToken: String?, FCMToken: String?) {
+        guard let kakaoAccessToken = kakaoAccessToken, !kakaoAccessToken.isEmpty else {
+            print("Invalid Kakao Access Token")
+            return
+        }
+        
+        LoginService.shared.kakaoLogin(accesstoken: kakaoAccessToken, FCMToken: FCMToken ?? "") { result in
             switch result {
             case .success(let data):
-                // 서버에서 받은 데이터 처리
-                guard let data = data as? LoginResponse else { return }
+                guard let data = data as? LoginResponse else {
+                    print("Invalid response data")
+                    return
+                }
                 
                 print("Kakao login to server success with data: \(data)")
                 
-                //서버에서 보내준 accessToken,refreshToken, existMember 저장
+                // 서버에서 보내준 accessToken, refreshToken, existMember 저장
                 KeyChain.create(key: Const.KeyChainKey.serverToken, token: data.data.accessToken)
                 KeyChain.create(key: Const.KeyChainKey.refreshToken, token: data.data.refreshToken)
                 UserDefaults.standard.set(data.data.existMember, forKey: Const.UserDefaultsKey.existMember)
                 UserDefaults.standard.set("kakao", forKey: Const.UserDefaultsKey.socialType)
                 
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { // 1초 딜레이
-                    let isExistMember = UserDefaults.standard.bool(forKey: Const.UserDefaultsKey.existMember)
-                    if isExistMember {
-                        self.nicknameExist { result in
-                            if result {
-                                // 로그인 상태이면 TabBarViewController로 이동
-                                self.presentTo(name: "main")
-                            } else {
-                                // 닉네임이 존재하지 않으면 KeywordViewController로 이동
-                                self.presentTo(name: "keyword")
-                            }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                    self.nicknameExist { result in
+                        if result {
+                            self.presentTo(name: "main")
+                        } else {
+                            self.presentTo(name: "keyword")
                         }
-                    }
-                    else {
-                        print("Kakao Login Error!")
                     }
                 }
                 
             case .tokenExpired:
                 print("카카오 토큰 만료")
             case .networkFail:
-                print("카카오 로그인: 네트워크 페일")
+                print("카카오 로그인: 네트워크 실패")
             case .requestErr(let error):
-                print("카카오 로그인: 요청 페일 \(error)")
+                print("카카오 로그인: 요청 실패 \(error)")
             case .pathErr:
                 print("카카오 로그인: 경로 오류")
             case .serverErr:
@@ -337,9 +335,10 @@ extension LoginViewController {
             }
         }
     }
+
     
     private func appleloginToServer(with appleIdToken: String, FCMToken : String) {
-        LoginService.shared.appleLogin(idToken: appleIdToken, FCMToken: FCMToken) { result in
+        LoginService.shared.appleLogin(idToken: appleIdToken, FCMToken: FCMToken) { [self] result in
             switch result {
             case .success(let data):
                 // 서버에서 받은 데이터 처리
@@ -353,23 +352,18 @@ extension LoginViewController {
                 //                UserDefaults.standard.set(data.data.refreshToken, forKey: "refreshToken")
                 UserDefaults.standard.set(data.data.existMember, forKey: Const.UserDefaultsKey.existMember)
                 UserDefaults.standard.set("apple", forKey: Const.UserDefaultsKey.socialType)
+                
                 //클라이언트 시크릿 받아서 유저디폴트에 저장
                 
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { // 1초 딜레이
-                    let isExistMember = UserDefaults.standard.bool(forKey: Const.UserDefaultsKey.existMember)
-                    if isExistMember {
-                        self.nicknameExist { result in
-                            if result {
-                                // 로그인 상태이면 TabBarViewController로 이동
-                                self.presentTo(name: "main")
-                            } else {
-                                // 닉네임이 존재하지 않으면 KeywordViewController로 이동
-                                self.presentTo(name: "keyword")
-                            }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { // 1초 딜레이
+                    self.nicknameExist { result in
+                        if result {
+                            // 로그인 상태이면 TabBarViewController로 이동
+                            self.presentTo(name: "main")
+                        } else {
+                            // 닉네임이 존재하지 않으면 KeywordViewController로 이동
+                            self.presentTo(name: "keyword")
                         }
-                    }
-                    else {
-                        print("Apple Login Error!")
                     }
                 }
                 
@@ -416,6 +410,14 @@ extension LoginViewController {
             // TabBarViewController를 루트 뷰 컨트롤러로 설정
             if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate, let window = sceneDelegate.window {
                 let mainVC = TabBarViewController()
+                UIView.transition(with: window, duration: 1.5, options: .transitionCrossDissolve, animations: {
+                    window.rootViewController = mainVC
+                }, completion: nil)
+            }
+        } else if name == "Login" {
+            // TabBarViewController를 루트 뷰 컨트롤러로 설정
+            if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate, let window = sceneDelegate.window {
+                let mainVC = LoginViewController()
                 UIView.transition(with: window, duration: 1.5, options: .transitionCrossDissolve, animations: {
                     window.rootViewController = mainVC
                 }, completion: nil)

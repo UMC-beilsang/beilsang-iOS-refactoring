@@ -72,10 +72,14 @@ extension JoinCollectionViewCell {
             make.edges.equalToSuperview()
         }
         
+        let width = ((UIScreen.main.bounds.width - 36) - 24) / 3
+        
+        let offset = width * 0.15 // Double을 사용할 필요 없음
+        
         keywordImage.snp.makeConstraints{ make in
-            make.top.equalToSuperview().offset(17)
+            make.top.equalToSuperview().offset(offset)
             make.centerX.equalToSuperview()
-            make.width.height.equalTo(56)
+            make.width.height.equalToSuperview().multipliedBy(0.51)
         }
         
         keywordLabel.snp.makeConstraints{ make in

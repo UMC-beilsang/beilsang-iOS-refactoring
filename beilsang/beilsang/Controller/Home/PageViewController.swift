@@ -1,3 +1,4 @@
+
 //
 //  PageViewController.swift
 //  beilsang
@@ -22,6 +23,7 @@ class PageViewController: UIViewController {
         
         view.setImage(pageImage, for: .normal)
         view.imageView?.contentMode = .scaleAspectFill
+        view.imageView?.clipsToBounds = true
         
         view.addTarget(self, action: #selector(buttonTapped(_:)), for: .touchUpInside)
         
@@ -44,6 +46,10 @@ class PageViewController: UIViewController {
         super.viewDidLoad()
         
         setLayout()
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
     }
     
     @objc func buttonTapped(_ sender: UIButton) {
@@ -75,8 +81,7 @@ extension PageViewController {
         view.addSubview(button)
         
         button.snp.makeConstraints { make in
-            make.width.equalTo(view.snp.width)
-            make.height.equalTo(view.snp.height)
+            make.edges.equalToSuperview()
         }
     }
 }

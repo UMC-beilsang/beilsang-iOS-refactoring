@@ -91,8 +91,8 @@ class KeywordViewController: UIViewController {
         }
 
         joinCollectionView.snp.makeConstraints { make in
-            make.width.equalTo(354)
-            make.height.equalTo(354)
+            make.width.equalTo(UIScreen.main.bounds.width - 36)
+            make.height.equalTo(UIScreen.main.bounds.width - 36)
             make.centerX.equalToSuperview()
             make.centerY.equalToSuperview()
         }
@@ -164,7 +164,8 @@ extension KeywordViewController: UICollectionViewDataSource, UICollectionViewDel
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: 110 , height: 110)
+        let width = ((UIScreen.main.bounds.width - 36) - 24) / 3
+        return CGSize(width: width , height: width)
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
@@ -199,6 +200,13 @@ extension KeywordViewController: UICollectionViewDataSource, UICollectionViewDel
         
         SignUpData.shared.keyword = key
         print("Keyword : \(key)")
+    }
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        return 12 // 행 간의 간격 설정
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
+        return 12 // 열 간의 간격 설정
     }
 }
 

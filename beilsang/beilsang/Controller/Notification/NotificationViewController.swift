@@ -27,7 +27,6 @@ class NotificationViewController: UIViewController {
     }()
     
     lazy var menu: UIMenu = {
-        
         let notiOff = UIAction(
             title: "알림 끄기",
             image: nil,
@@ -35,7 +34,9 @@ class NotificationViewController: UIViewController {
             discoverabilityTitle: nil,
             attributes: [],
             state: .off,
-            handler: { _ in  })
+            handler: { [weak self] _ in
+                self?.notiOff()
+            })
         
         return UIMenu(title: "", options: [], children: [notiOff])
     }()
@@ -153,6 +154,11 @@ extension NotificationViewController{
     @objc func tabBarButtonTapped() {
         print("뒤로 가기")
         navigationController?.popViewController(animated: true)
+    }
+    
+    func notiOff() {
+        UIApplication.shared.unregisterForRemoteNotifications()
+        print("알림이 꺼졌습니다.")
     }
 }
 // MARK: - collectionView setting(카테고리)

@@ -157,17 +157,17 @@ class FindViewController: UIViewController, UIScrollViewDelegate {
 //        return view
 //    }()
     
-    lazy var scrollToTop: UIButton = {
-        let status = false
-        let button = UIButton()
-        button.backgroundColor = .beScPurple300.withAlphaComponent(0.7)
-        button.setImage(UIImage(named: "icon-navigation")?.withRenderingMode(.alwaysTemplate), for: .normal)
-        button.tintColor = .white
-        button.transform = CGAffineTransform(rotationAngle: .pi * 0.5)
-        button.layer.cornerRadius = 30
-        button.addTarget(self, action: #selector(scrollToTopButton), for: .touchUpInside)
-        return button
-    }()
+//    lazy var scrollToTop: UIButton = {
+//        let status = false
+//        let button = UIButton()
+//        button.backgroundColor = .beScPurple300.withAlphaComponent(0.7)
+//        button.setImage(UIImage(named: "icon-navigation")?.withRenderingMode(.alwaysTemplate), for: .normal)
+//        button.tintColor = .white
+//        button.transform = CGAffineTransform(rotationAngle: .pi * 0.5)
+//        button.layer.cornerRadius = 30
+//        button.addTarget(self, action: #selector(scrollToTopButton), for: .touchUpInside)
+//        return button
+//    }()
     
     lazy var reportAlert: SCLAlertView = {
         let apperance = SCLAlertView.SCLAppearance(
@@ -329,14 +329,14 @@ extension FindViewController {
         fullContentView.snp.makeConstraints { make in
             make.edges.equalTo(fullScrollView.contentLayoutGuide)
             make.width.equalTo(fullScrollView.frameLayoutGuide)
-            make.height.equalTo(1000)
+            make.height.equalTo(1200)
         }
     }
     
     // addSubview() 메서드 모음
     func addView() {
         // foreach문을 사용해서 클로저 형태로 작성
-        self.view.addSubview(scrollToTop)
+//        self.view.addSubview(scrollToTop)
 //        self.view.addSubview(moreFeedButton)
         [searchBar, searchIcon, HofChallengeListLabel, HofChallengeCategoryCollectionView, HofChallengeCollectionView, scrollIndicator, challengeFeedLabel, categoryCollectionView, challengeFeedBoxCollectionView, feedDetailBackground, feedDetailCollectionView, reportButton].forEach{ view in fullContentView.addSubview(view)}
         
@@ -424,11 +424,11 @@ extension FindViewController {
 //            make.width.equalTo(12)
 //            make.height.equalTo(6)
 //        }
-        scrollToTop.snp.makeConstraints { make in
-            make.width.height.equalTo(66)
-            make.trailing.equalToSuperview().offset(-20)
-            make.bottom.equalToSuperview().offset(-96)
-        }
+//        scrollToTop.snp.makeConstraints { make in
+//            make.width.height.equalTo(66)
+//            make.trailing.equalToSuperview().offset(-20)
+//            make.bottom.equalToSuperview().offset(-96)
+//        }
         reportSubView.snp.makeConstraints{ make in
             make.width.equalTo(318)
             make.height.equalTo(160)
@@ -646,14 +646,28 @@ extension FindViewController: UICollectionViewDataSource, UICollectionViewDelega
 //            moreFeedButtonLabel.text = "\(feedCategory) 챌린지 더보기"
             didTapButton()
             feedCellList.removeAll() // 다른 카테고리에서 받은 데이터 없애기
-            setList(collectionView: collectionView) // request 요청 // 늘어난 스크롤 뷰 줄이기
+            setList(collectionView: collectionView) 
+            // request 요청 // 늘어난 스크롤 뷰 줄이기
         case HofChallengeCollectionView:
             let cell = collectionView.cellForItem(at: indexPath) as! HofChallengeCollectionViewCell
+            let challengeId = cell.challengeId
             
-            let challengeDetailVC = ChallengeDetailViewController()
-            challengeDetailVC.detailChallengeId = cell.challengeId
-            challengeDetailVC.hidesBottomBarWhenPushed = true
-            navigationController?.pushViewController(challengeDetailVC, animated: true)
+            ChallengeService.shared.challengeEnrolled(EnrollChallengeId: challengeId) { response in
+                let isEnrolled = response.data.isEnrolled
+                
+                if isEnrolled {
+                    let nextVC = JoinChallengeViewController()
+                    nextVC.joinChallengeId = challengeId
+                    nextVC.hidesBottomBarWhenPushed = true
+                    self.navigationController?.pushViewController(nextVC, animated: true)
+                } else {
+                    let nextVC = ChallengeDetailViewController()
+                    nextVC.detailChallengeId = challengeId
+                    nextVC.hidesBottomBarWhenPushed = true
+                    self.navigationController?.pushViewController(nextVC, animated: true)
+                }
+            }
+            
         case challengeFeedBoxCollectionView:
             // 챌린지 피드 선택
             // 세부 정보 출력
@@ -706,9 +720,9 @@ extension FindViewController: UICollectionViewDataSource, UICollectionViewDelega
         }
     }
     
-    func scrollToTop(_ scrollView: UIScrollView) {
-        scrollView.setContentOffset(CGPoint(x: 0, y: -97), animated: true)
-    }
+//    func scrollToTop(_ scrollView: UIScrollView) {
+//        scrollView.setContentOffset(CGPoint(x: 0, y: -97), animated: true)
+//    }
     // 섹션 별 크기 설정을 위한 함수
     // challengeBoxCollectionView layout 커스텀
     private func makeFlowLayout() -> UICollectionViewCompositionalLayout {
@@ -764,9 +778,9 @@ extension FindViewController {
             make.height.equalTo(fullScrollView.contentSize.height + 10)
         }
     }
-    @objc func scrollToTopButton(){
-        scrollToTop(fullScrollView)
-    }
+//    @objc func scrollToTopButton(){
+//        scrollToTop(fullScrollView)
+//    }
     @objc func reportButtonTapped() {
         let reportUrl = NSURL(string: "https://moaform.com/q/DJ7VuN")
         let reportSafariView: SFSafariViewController = SFSafariViewController(url: reportUrl! as URL)
@@ -785,15 +799,34 @@ extension FindViewController {
     
     @MainActor
     private func setRecommendChallenge(_ response: [RecommendChallengeModel]) {
-        let feedCell = feedDetailCollectionView.cellForItem(at: IndexPath(item: 0, section: 0)) as! FindFeedDetailCollectionViewCell
+        // IndexPath에 해당하는 셀이 존재하는지 확인
+        guard !response.isEmpty else {
+            // response가 비어있는 경우 아무 작업도 하지 않음
+            return
+        }
         
+        // collectionView의 특정 IndexPath에 해당하는 셀을 가져옴
+        guard let feedCell = feedDetailCollectionView.cellForItem(at: IndexPath(item: 0, section: 0)) as? FindFeedDetailCollectionViewCell else {
+            // 셀이 존재하지 않는 경우 아무 작업도 하지 않음
+            return
+        }
+        
+        // 셀이 존재하는 경우, 셀에 데이터를 설정
         feedCell.categoryLabel.text = response[0].category
         feedCell.titleLabel.text = response[0].title
-        let url = URL(string: response[0].imageUrl)
-        feedCell.recommendImageView.kf.setImage(with: url)
+        
+        if let url = URL(string: response[0].imageUrl) {
+            feedCell.recommendImageView.kf.setImage(with: url)
+        } else {
+            feedCell.recommendImageView.image = nil // 유효하지 않은 URL인 경우 기본 이미지로 설정
+        }
+        
         feedCell.recommendChallengeId = response[0].challengeId
+        
+        // 변경된 데이터를 반영하기 위해 컬렉션 뷰를 다시 로드
         feedDetailCollectionView.reloadData()
     }
+
 }
 
 // 텍스트필드 placeholder 왼쪽에 padding 추가
@@ -839,9 +872,11 @@ extension FindViewController: CustomFeedCellDelegate {
             feedCell.titleTag.text = "#\(response.data.challengeTitle)"
             feedCell.categoryTag.text = "#\(response.data.category)"
             feedCell.nicknameLabel.text = response.data.nickName
-            if let imageUrl = response.data.profileImage {
-                let url = URL(string: imageUrl)
+            if let imageUrl = response.data.profileImage, let url = URL(string: imageUrl) {
                 feedCell.profileImage.kf.setImage(with: url)
+            } else {
+                // 이미지가 없는 경우 기본 이미지를 설정할 수 있습니다.
+                feedCell.profileImage.image = UIImage(named: "Mask group")
             }
             if response.data.like {
                 feedCell.heartButton.setImage(UIImage(named: "iconamoon_fullheart-bold"), for: .normal)

@@ -86,8 +86,8 @@ class MotoViewController: UIViewController {
         motoCollectionView.snp.makeConstraints{ make in
             make.leading.equalToSuperview().offset(16)
             make.trailing.equalToSuperview().offset(-16)
-            make.top.equalTo(joinmotoLabel.snp.bottom).offset(56)
-            make.bottom.equalTo(nextButton.snp.top).offset(-65)
+            make.height.equalTo(400)
+            make.centerY.equalToSuperview().offset(-20)
         }
     }
     
@@ -145,7 +145,7 @@ extension MotoViewController: UICollectionViewDataSource, UICollectionViewDelega
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: 358, height: 70)
+        return CGSize(width: UIScreen.main.bounds.width - 32, height: 70)
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {

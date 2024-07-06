@@ -396,7 +396,6 @@ class RegisterFirstViewController: UIViewController, UIScrollViewDelegate {
             },
                               completion: nil)
         }
-        
         ChallengeDataSingleton.shared.resetData()
         cancleAlertViewResponder?.close()
     }
@@ -959,6 +958,12 @@ extension RegisterFirstViewController: UIImagePickerControllerDelegate, UINaviga
         textField.backgroundColor = .beBgCard
         updateNextButtonState()
         
+    }
+    
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        // 키보드 내리기
+        textField.resignFirstResponder()
+        return true
     }
     
     // MARK: - Date 설정
