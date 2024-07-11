@@ -329,7 +329,7 @@ extension FindViewController {
         fullContentView.snp.makeConstraints { make in
             make.edges.equalTo(fullScrollView.contentLayoutGuide)
             make.width.equalTo(fullScrollView.frameLayoutGuide)
-            make.height.equalTo(1200)
+            make.height.equalTo(900)
         }
     }
     
@@ -536,7 +536,12 @@ extension FindViewController: UICollectionViewDataSource, UICollectionViewDelega
         case categoryCollectionView:
             return categoryDataList.count
         case challengeFeedBoxCollectionView:
-            return feedCellList.count
+            if feedCellList.count > 4 {
+                return 4
+            }
+            else {
+                return feedCellList.count
+            }
         case feedDetailCollectionView:
             return 1
         default:
