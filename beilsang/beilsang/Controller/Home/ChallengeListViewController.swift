@@ -371,7 +371,7 @@ extension ChallengeListViewController {
         if categoryLabelText == "전체" {
             print("전체")
             ChallengeService.shared.challengeCategoriesAll { response in
-                self.setChallengesList(response.data!.challenges)
+                self.setChallengesList(response.data?.challenges ?? [])
                 self.fullContentViewHeightUpdate()
             }
         } else if categoryLabelText == "참여중" {

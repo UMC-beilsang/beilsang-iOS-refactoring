@@ -18,6 +18,17 @@ class RouteViewController: UIViewController {
     var selectedRoute: String?
     var attributedStr: NSMutableAttributedString!
     
+    lazy var progressView: UIProgressView = {
+        let view = UIProgressView()
+        view.trackTintColor = .beBgDiv
+        view.progressTintColor = .bePrPurple500
+        view.clipsToBounds = true
+        view.layer.cornerRadius = 4
+        view.setProgress(0.75, animated: true)
+        
+        return view
+    }()
+    
     lazy var joinRouteLabel: UILabel = {
         let view = UILabel()
         view.text = "비일상을 알게된 경로가\n있을까요?"
@@ -178,6 +189,7 @@ class RouteViewController: UIViewController {
     private func setupUI() {
         
         view.backgroundColor = .beBgDef
+        view.addSubview(progressView)
         view.addSubview(joinRouteLabel)
         view.addSubview(joinRouteSmallLabel)
         view.addSubview(routeLabel)
@@ -193,11 +205,21 @@ class RouteViewController: UIViewController {
     }
     
     private func setupLayout() {
+        let height = UIScreen.main.bounds.height
+        let nextButtonTop = height * 0.815
+        let progressViewTop = height * 0.1
+        
+        progressView.snp.makeConstraints { make in
+            make.top.equalToSuperview().offset(progressViewTop)
+            make.leading.equalToSuperview().offset(16)
+            make.width.equalTo(192)
+            make.height.equalTo(8)
+        }
         
         joinRouteLabel.snp.makeConstraints{ make in
             make.leading.equalToSuperview().offset(16)
             make.width.equalTo(230)
-            make.top.equalToSuperview().offset(116)
+            make.top.equalTo(progressView.snp.bottom).offset(24)
         }
         
         joinRouteSmallLabel.snp.makeConstraints{ make in
@@ -246,7 +268,7 @@ class RouteViewController: UIViewController {
         }
         
         nextButton.snp.makeConstraints{ make in
-            make.bottom.equalToSuperview().offset(-100)
+            make.top.equalToSuperview().offset(nextButtonTop)
             make.leading.equalToSuperview().offset(16)
             make.trailing.equalToSuperview().offset(-16)
             make.height.equalTo(56)
@@ -326,7 +348,8 @@ class RouteViewController: UIViewController {
         let startViewController = StartViewController()
         
         if let navigationController = self.navigationController {
-            navigationController.pushViewController(startViewController, animated: true)
+            self.navigationController?.isNavigationBarHidden = true
+            self.navigationController?.pushViewController(startViewController, animated: true)
         } else {
             print("Error")
             

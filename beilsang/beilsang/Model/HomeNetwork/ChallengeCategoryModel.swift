@@ -9,8 +9,8 @@ import Foundation
 
 // ChallengeListVC 카테고리별 챌린지 조회
 struct ChallengeCategory: Codable {
-    let code : String
-    let message : String
+    let code : String?
+    let message : String?
     let data : ChallengeCategoryList?
     let success : Bool
 }

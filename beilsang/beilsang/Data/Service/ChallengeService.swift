@@ -148,7 +148,8 @@ class ChallengeService {
                                 completionHandler(reResponse)
                             }
                         }
-                    default : print("네트워크 fail")
+                    default :
+                        print("네트워크 fail")
                     }
                     print(error)
                     print("챌린지 리스트 카테고리 get 요청 실패")
@@ -164,6 +165,7 @@ class ChallengeService {
         
         DispatchQueue.main.async {
             let url = "https://beilsang.com/api/challenges"
+            print(url)
             
             // HTTP Headers : 요청 헤더
             let header : HTTPHeaders = [

@@ -37,7 +37,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         navigationController.navigationBar.isHidden = true
         window?.addSubview(logoImage)
         
-        logoImage.snp.makeConstraints{ make in
+        logoImage.snp.makeConstraints { make in
             make.height.equalTo(120)
             make.width.equalTo(100)
             make.centerX.equalToSuperview()
@@ -49,29 +49,34 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             window?.rootViewController = loginVC
         }
         
-        if KeyChain.read(key: Const.KeyChainKey.serverToken) != nil {
-            if isExistMember {
-                nicknameExist { result in
-                    if result {
-                        // 로그인 상태이면 TabBarViewController로 이동
-                        let mainVC = TabBarViewController()
-                        self.window?.rootViewController = mainVC
-                    } else {
-                        // 닉네임이 존재하지 않으면 KeywordViewController로 이동
-                        let keywordVC = KeywordViewController()
-                        DispatchQueue.main.async {
-                            navigationController.pushViewController(keywordVC, animated: true)
+        do {
+            if let serverToken = KeyChain.read(key: Const.KeyChainKey.serverToken) {
+                if isExistMember {
+                    nicknameExist { result in
+                        if result {
+                            // 로그인 상태이면 TabBarViewController로 이동
+                            let mainVC = TabBarViewController()
+                            self.window?.rootViewController = mainVC
+                        } else {
+                            // 닉네임이 존재하지 않으면 KeywordViewController로 이동
+                            let keywordVC = KeywordViewController()
+                            DispatchQueue.main.async {
+                                navigationController.pushViewController(keywordVC, animated: true)
+                            }
                         }
                     }
+                } else {
+                    // 회원 정보가 존재하지 않으면 로그인 화면으로 이동
+                    print("ExistMember false")
+                    showLoginViewController()
                 }
             } else {
-                // 회원 정보가 존재하지 않으면 로그인 화면으로 이동
-                print("ExistMember false")
+                // 서버 토큰이 없으면 로그인 화면으로 이동
+                print("No access token, first launch.")
                 showLoginViewController()
             }
-        } else {
-            // 서버 토큰이 없으면 로그인 화면으로 이동
-            print("No access token, first launch.")
+        } catch {
+            print("오류 발생: \(error.localizedDescription)")
             showLoginViewController()
         }
         

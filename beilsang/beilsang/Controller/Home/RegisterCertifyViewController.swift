@@ -424,7 +424,7 @@ extension RegisterCertifyViewController {
         reviewTextView.snp.makeConstraints { make in
             make.top.equalTo(reviewLabel.snp.bottom).offset(12)
             make.leading.equalTo(reviewLabel.snp.leading)
-            make.trailing.equalTo(view.snp.trailing)
+            make.trailing.equalToSuperview().offset(-16)
             make.width.height.equalTo(112)
         }
         

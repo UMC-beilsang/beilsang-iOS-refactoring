@@ -829,7 +829,7 @@ extension RegisterFirstViewController: UIImagePickerControllerDelegate, UINaviga
         alert.addAction(UIAlertAction(title: "취소", style: .cancel, handler: nil))
         present(alert, animated: true, completion: nil)
     }
-
+    
     func showPermissionDeniedAlert() {
         let alert = UIAlertController(
             title: "권한 필요",
@@ -943,7 +943,7 @@ extension RegisterFirstViewController: UIImagePickerControllerDelegate, UINaviga
     }
     
     func textFieldDidEndEditing(_ textField: UITextField) {
-       if textField == categoryField {
+        if textField == categoryField {
             isNext[2] = true
         }
         else if textField == startField {
@@ -1074,7 +1074,7 @@ extension RegisterFirstViewController: UIImagePickerControllerDelegate, UINaviga
         let toolBar = UIToolbar()
         
         let flexibleSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
-        let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonHandeler))
+        let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonHandler))
         
         toolBar.items = [flexibleSpace, doneButton]
         // 적절한 사이즈로 toolBar의 크기를 만들어 줍니다.
@@ -1096,11 +1096,28 @@ extension RegisterFirstViewController: UIImagePickerControllerDelegate, UINaviga
         startField.font = UIFont(name: "NotoSansKR-Regular", size: 14)
     }
     
-    @objc func doneButtonHandeler(_ sender: UIBarButtonItem) {
-        // 키보드 내리기
-        startField.resignFirstResponder()
-        dayField.resignFirstResponder()
-        categoryField.resignFirstResponder()
+    @objc func doneButtonHandler(_ sender: UIBarButtonItem) {
+        if categoryField.isFirstResponder {
+            doneAction(for: categoryField)
+        } else if startField.isFirstResponder {
+            doneAction(for: startField)
+        } else if dayField.isFirstResponder {
+            doneAction(for: dayField)
+        }
+    }
+    
+    @objc private func doneAction(for textField: UITextField) {
+        if textField == categoryField {
+            let selectedRow = categoryPickerView.selectedRow(inComponent: 0)
+            categoryField.text = categoryOptions[selectedRow]
+        } else if textField == startField {
+            startField.text = dateFormat(date: datePicker.date)
+            startField.font = UIFont(name: "NotoSansKR-Regular", size: 14)
+        } else if textField == dayField {
+            let selectedRow = dayPickerView.selectedRow(inComponent: 0)
+            dayField.text = dayOptions[selectedRow]
+        }
+        textField.resignFirstResponder()
     }
 }
 

@@ -212,6 +212,19 @@ class ChallengeDetailViewController: UIViewController {
         return view
     }()
     
+    lazy var ddayToastLabel : UILabel = {
+        let view = UILabel()
+        view.textColor = .white
+        view.font = UIFont(name: "NotoSansKR-Medium", size: 16)
+        view.clipsToBounds = true
+        view.layer.cornerRadius = 20
+        view.textAlignment = .center
+        view.backgroundColor = .beTextDef.withAlphaComponent(0.8)
+        view.isHidden = false
+        
+        return view
+    }()
+    
     // 컬렉션뷰
     // 추천 챌린지 컬렉션뷰
     lazy var recommendCollectionView: UICollectionView = {
@@ -1122,6 +1135,23 @@ class ChallengeDetailViewController: UIViewController {
         })
     }
     
+    private func showChallengeDdayToast() {
+        self.view.addSubview(ddayToastLabel)
+        
+        ddayToastLabel.snp.makeConstraints { make in
+            make.bottom.equalTo(bottomView.snp.top).offset(12)
+            make.leading.equalToSuperview().offset(24)
+            make.trailing.equalToSuperview().offset(-24)
+            make.height.equalTo(44)
+        }
+        
+        UIView.animate(withDuration: 2, delay: 1, options: .curveEaseOut, animations: {
+            self.ddayToastLabel.alpha = 0.0
+        }, completion: {(isCompleted) in
+            self.ddayToastLabel.removeFromSuperview()
+        })
+    }
+    
     // MARK: - Actions
     // 네비게이션 아이템 누르면 alert 띄움
     @objc func navigationButtonClicked() {
@@ -1154,10 +1184,11 @@ class ChallengeDetailViewController: UIViewController {
     
     @objc func popJoinButtonTapped() {
         print("참여")
+        self.showChallengeJoinToast()
+        self.showChallengeDdayToast()
         participatePost()
         
         alertViewResponder?.close()
-        showChallengeJoinToast()
     }
     
     @objc func close(){
@@ -1290,6 +1321,8 @@ extension ChallengeDetailViewController {
             self.cautionImageView.kf.setImage(with: cautionURL) // 챌린지 인증 예시 사진
             self.bookMarkButton.isSelected = response.data.like // 북마크 했는지 여부
             self.bookMarkLabel.text = String(response.data.likes) // 북마크 수
+            
+            self.ddayToastLabel.text = "📆 챌린지가 \(response.data.dday)일 뒤 시작됩니다!"
         }
     }
     

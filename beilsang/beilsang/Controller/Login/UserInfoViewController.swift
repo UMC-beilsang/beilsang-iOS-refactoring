@@ -8,7 +8,7 @@
 import UIKit 
 import SnapKit
 
-class UserInfoViewController: UIViewController {
+class UserInfoViewController: UIViewController, UIScrollViewDelegate {
     
     //MARK: - Properties
     
@@ -32,9 +32,14 @@ class UserInfoViewController: UIViewController {
     private var lastContentOffset: CGFloat = 0
     var isAgree = [false, false]
     
-    lazy var headerView: UIView = {
-        let view = UIView()
-        view.backgroundColor = .clear
+    lazy var progressView: UIProgressView = {
+        let view = UIProgressView()
+        view.trackTintColor = .beBgDiv
+        view.progressTintColor = .bePrPurple500
+        view.clipsToBounds = true
+        view.layer.cornerRadius = 4
+        view.setProgress(0.75, animated: true)
+        
         return view
     }()
     
@@ -568,7 +573,7 @@ class UserInfoViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setNavigationBar()
+        navigationBarSetup()
         setVerticalScrollView()
         setTextField()
         setupToolBar()
@@ -578,19 +583,14 @@ class UserInfoViewController: UIViewController {
         setupLayout()
     }
     
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        showNavigationBarOnDisappear()
-    }
-    
     //MARK: - UI Setup
     
     private func setupUI() {
-        //navigationBarHidden()
         view.backgroundColor = .beBgDef
-        view.addSubview(headerView)
         view.addSubview(verticalScrollView)
         verticalScrollView.addSubview(verticalContentView)
+        
+        verticalContentView.addSubview(progressView)
         verticalContentView.addSubview(infoLabel)
         verticalContentView.addSubview(nameLabel)
         verticalContentView.addSubview(nameCircle)
@@ -646,19 +646,13 @@ class UserInfoViewController: UIViewController {
     }
     
     private func setupLayout() {
-        
-        headerView.snp.makeConstraints { make in
-            make.top.equalToSuperview().inset(view.safeAreaInsets.top)
-            make.leading.trailing.equalToSuperview()
-            make.height.equalTo(44) // 네비게이션 바의 높이를 고려하여 조절
-        }
+        let height = UIScreen.main.bounds.height
+        let progressViewTop = height * 0.1
         
         verticalScrollView.snp.makeConstraints { make in
-            make.top.equalTo(headerView.snp.bottom)
-            make.bottom.leading.trailing.equalToSuperview()
+            make.top.equalToSuperview().offset(-48)
+            make.leading.trailing.bottom.equalToSuperview()
         }
-        
-        //let height = UIScreen.main.bounds.height
         
         verticalContentView.snp.makeConstraints { make in
             make.edges.equalTo(verticalScrollView.contentLayoutGuide)
@@ -666,8 +660,15 @@ class UserInfoViewController: UIViewController {
             make.height.equalTo(1481)
         }
         
+        progressView.snp.makeConstraints { make in
+            make.top.equalToSuperview().offset(progressViewTop)
+            make.leading.equalToSuperview().offset(16)
+            make.width.equalTo(192)
+            make.height.equalTo(8)
+        }
+        
         infoLabel.snp.makeConstraints{ make in
-            make.top.equalToSuperview().offset(24)
+            make.top.equalTo(progressView.snp.bottom).offset(24)
             make.leading.equalToSuperview().offset(16)
         }
         
@@ -914,20 +915,13 @@ class UserInfoViewController: UIViewController {
     }
     
     // MARK: - Navigation Bar
-    
-    private func showNavigationBarOnDisappear() {
-        navigationController?.setNavigationBarHidden(false, animated: true)
-        navigationController?.hidesBarsOnSwipe = false
-    }
-    
-    private func setNavigationBar() {
+    private func navigationBarSetup() {
         self.navigationItem.setHidesBackButton(true, animated: false)
         self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
-        navigationController?.hidesBarsOnSwipe = true
+        
     }
     
     // MARK: - ScrollView
-    
     private func setVerticalScrollView() {
         verticalScrollView.showsVerticalScrollIndicator = true
         verticalScrollView.delegate = self
@@ -989,7 +983,7 @@ class UserInfoViewController: UIViewController {
         let toolBar = UIToolbar()
         
         let flexibleSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
-        let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonHandeler))
+        let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonHandler))
         
         toolBar.items = [flexibleSpace, doneButton]
         // 적절한 사이즈로 toolBar의 크기를 만들어 줍니다.
@@ -1000,7 +994,6 @@ class UserInfoViewController: UIViewController {
     }
     
     // MARK: - changed
-    
     private func nameInfoViewChanged(state: String) {
         switch state {
         case "avaliable":
@@ -1030,7 +1023,7 @@ class UserInfoViewController: UIViewController {
         switch state {
         case "avaliable":
             textField.layer.borderColor = UIColor.bePsBlue500.cgColor
-            textField.layer.backgroundColor = UIColor.bePsBlue100.cgColor
+            textField.layer.backgroundColor = UIColor.beBgCard.cgColor
             textField.textColor = UIColor.bePsBlue500
             textField.setPlaceholderColor(.bePsBlue500)
         case "basic":
@@ -1180,6 +1173,7 @@ class UserInfoViewController: UIViewController {
         print("address : \(SignUpData.shared.address ?? "")")
         
         let routeViewController = RouteViewController()
+        self.navigationController?.isNavigationBarHidden = true
         self.navigationController?.pushViewController(routeViewController, animated: true)
     }
     
@@ -1206,12 +1200,27 @@ class UserInfoViewController: UIViewController {
     @objc func dateChange(_ sender: UIDatePicker) {
         birthField.text = dateFormat(date: sender.date)
         birthField.font = UIFont(name: "NotoSansKR-Regular", size: 14)
-        birthField.textColor = .bePsBlue500
     }
     
-    @objc func doneButtonHandeler(_ sender: UIBarButtonItem) {
-        birthField.resignFirstResponder()
-        genderField.resignFirstResponder()
+    @objc func doneButtonHandler(_ sender: UIBarButtonItem) {
+        if birthField.isFirstResponder {
+            doneAction(for: birthField)
+        } else if genderField.isFirstResponder {
+            doneAction(for: genderField)
+        }
+    }
+    
+    @objc private func doneAction(for textField: UITextField) {
+        if textField == birthField {
+            // UIDatePicker에서 선택된 날짜를 텍스트 필드에 설정
+            birthField.text = dateFormat(date: datePicker.date)
+            birthField.font = UIFont(name: "NotoSansKR-Regular", size: 14)
+        } else if textField == genderField {
+            // UIPickerView에서 선택된 항목을 텍스트 필드에 설정
+            let selectedRow = pickerView.selectedRow(inComponent: 0)
+            genderField.text = genderOptions[selectedRow]
+        }
+        textField.resignFirstResponder()
     }
     
     @objc func agreeAllButtonHandelr(_ sender: UIButton) {
@@ -1273,23 +1282,6 @@ class UserInfoViewController: UIViewController {
         }
         
         updateAgreeAllButton()
-    }
-    
-}
-
-extension UserInfoViewController: UIScrollViewDelegate {
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        let offsetY = scrollView.contentOffset.y
-        
-        if offsetY <= 0 {
-            navigationController?.setNavigationBarHidden(false, animated: true)
-            navigationController?.hidesBarsOnSwipe = false
-        }
-        
-        else {
-            navigationController?.setNavigationBarHidden(true, animated: true)
-            navigationController?.hidesBarsOnSwipe = true
-        }
     }
     
 }

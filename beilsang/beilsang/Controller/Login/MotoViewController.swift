@@ -14,6 +14,18 @@ class MotoViewController: UIViewController {
     
     let dataList = Moto.data
     
+    lazy var progressView: UIProgressView = {
+        let view = UIProgressView()
+        view.trackTintColor = .beBgDiv
+        view.progressTintColor = .bePrPurple500
+        view.clipsToBounds = true
+        view.layer.cornerRadius = 4
+        view.setProgress(0.5, animated: true)
+        
+        return view
+    }()
+    
+    
     lazy var motoCollectionView: UICollectionView = {
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
         collectionView.delegate = self
@@ -63,31 +75,43 @@ class MotoViewController: UIViewController {
     private func setupUI() {
        // navigationBarHidden()
         view.backgroundColor = .beBgDef
+        view.addSubview(progressView)
         view.addSubview(joinmotoLabel)
         view.addSubview(nextButton)
         view.addSubview(motoCollectionView)
     }
     
     private func setupLayout() {
+        let height = UIScreen.main.bounds.height
+        let nextButtonTop = height * 0.815
+        let motoTop = height * 0.27
+        let progressViewTop = height * 0.1
+        
+        progressView.snp.makeConstraints { make in
+            make.top.equalToSuperview().offset(progressViewTop)
+            make.leading.equalToSuperview().offset(16)
+            make.width.equalTo(192)
+            make.height.equalTo(8)
+        }
         
         joinmotoLabel.snp.makeConstraints{ make in
             make.leading.equalToSuperview().offset(16)
             make.width.equalTo(230)
-            make.top.equalToSuperview().offset(116)
+            make.top.equalTo(progressView.snp.bottom).offset(24)
         }
         
-        nextButton.snp.makeConstraints{ make in
-            make.bottom.equalToSuperview().offset(-100)
-            make.leading.equalToSuperview().offset(16)
-            make.trailing.equalToSuperview().offset(-16)
-            make.height.equalTo(56)
-        }
-
         motoCollectionView.snp.makeConstraints{ make in
             make.leading.equalToSuperview().offset(16)
             make.trailing.equalToSuperview().offset(-16)
             make.height.equalTo(400)
-            make.centerY.equalToSuperview().offset(-20)
+            make.top.equalToSuperview().offset(motoTop)
+        }
+        
+        nextButton.snp.makeConstraints{ make in
+            make.top.equalToSuperview().offset(nextButtonTop)
+            make.leading.equalToSuperview().offset(16)
+            make.trailing.equalToSuperview().offset(-16)
+            make.height.equalTo(56)
         }
     }
     
@@ -117,6 +141,7 @@ class MotoViewController: UIViewController {
     
     @objc private func nextAction() {
         let userInfoController = UserInfoViewController()
+        self.navigationController?.isNavigationBarHidden = true
         self.navigationController?.pushViewController(userInfoController, animated: true)
     }
 }
@@ -145,7 +170,14 @@ extension MotoViewController: UICollectionViewDataSource, UICollectionViewDelega
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: UIScreen.main.bounds.width - 32, height: 70)
+        let height = UIScreen.main.bounds.height
+        let collectionViewHeight = height * 0.08
+        
+        motoCollectionView.snp.updateConstraints { make in
+            make.height.equalTo(collectionViewHeight * 5 + 48)
+        }
+        
+        return CGSize(width: UIScreen.main.bounds.width - 32, height: collectionViewHeight)
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {

@@ -139,6 +139,7 @@ class FeedDetailCollectionViewCell: UICollectionViewCell,UIScrollViewDelegate {
 extension FeedDetailCollectionViewCell {
     func setScrollLayout() {
         self.addSubview(fullScrollView)
+        fullScrollView.isScrollEnabled = false
         fullScrollView.delegate = self
         fullScrollView.addSubview(fullContentView)
         fullScrollView.showsVerticalScrollIndicator = false
@@ -147,7 +148,7 @@ extension FeedDetailCollectionViewCell {
         }
         fullContentView.snp.makeConstraints { make in
             make.edges.width.equalToSuperview()
-            make.height.equalTo(700)
+            make.height.equalTo(648)
         }
     }
     func setLayout() {

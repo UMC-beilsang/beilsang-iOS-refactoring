@@ -20,7 +20,7 @@ class MainChallengeViewController: UIViewController {
     lazy var participatingChallengeLabel: UILabel = {
         let view = UILabel()
         
-        view.text = "참여 중인 챌린지💪"
+        view.text = "참여 중인 챌린지"
         view.textAlignment = .left
         view.textColor = .beTextDef
         view.font = UIFont(name: "NotoSansKR-Medium", size: 18)
@@ -76,6 +76,7 @@ class MainChallengeViewController: UIViewController {
     lazy var recommendChallengeLabel: UILabel = {
         let view = UILabel()
         
+        view.text = "당신을 위해 준비한 챌린지"
         view.textAlignment = .left
         view.textColor = .beTextDef
         view.font = UIFont(name: "NotoSansKR-Medium", size: 18)
@@ -116,7 +117,6 @@ class MainChallengeViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setBasicLayout()
-        nickNamerequest()
         challengeJoin(){
             count in
             if count == 0 {
@@ -284,12 +284,6 @@ extension MainChallengeViewController {
     private func setJoinData(_ response: [ChallengeJoinTwoData]) {
         self.challengeJoinData = response
         self.challengeParticipatingCollectionView.reloadData()
-    }
-    
-    func nickNamerequest() {
-        MyPageService.shared.getMyPage(baseEndPoint: .mypage, addPath: "") { response in
-            self.recommendChallengeLabel.text = "\(response.data.nickName)님을 위해 준비한 챌린지✨"
-        }
     }
 }
 

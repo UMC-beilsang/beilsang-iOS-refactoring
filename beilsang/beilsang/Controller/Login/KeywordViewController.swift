@@ -29,6 +29,8 @@ class KeywordViewController: UIViewController {
         view.progressTintColor = .bePrPurple500
         view.clipsToBounds = true
         view.layer.cornerRadius = 4
+        view.setProgress(0.25, animated: true)
+        
         return view
     }()
     
@@ -71,14 +73,19 @@ class KeywordViewController: UIViewController {
     private func setupUI() {
         //navigationBarHidden()
         view.backgroundColor = .beBgDef
+        view.addSubview(progressView)
         view.addSubview(joinLabel)
         view.addSubview(nextButton)
         view.addSubview(joinCollectionView)
     }
     
     private func setupLayout() {
+        let height = UIScreen.main.bounds.height
+        let nextButtonTop = height * 0.815
+        let progressViewTop = height * 0.1
+        
         progressView.snp.makeConstraints { make in
-            make.top.equalToSuperview().offset(38)
+            make.top.equalToSuperview().offset(progressViewTop)
             make.leading.equalToSuperview().offset(16)
             make.width.equalTo(192)
             make.height.equalTo(8)
@@ -87,7 +94,7 @@ class KeywordViewController: UIViewController {
         joinLabel.snp.makeConstraints { make in
             make.leading.equalToSuperview().offset(16)
             make.width.equalTo(200)
-            make.top.equalToSuperview().offset(116)
+            make.top.equalTo(progressView.snp.bottom).offset(24)
         }
 
         joinCollectionView.snp.makeConstraints { make in
@@ -97,8 +104,8 @@ class KeywordViewController: UIViewController {
             make.centerY.equalToSuperview()
         }
 
-        nextButton.snp.makeConstraints { make in
-            make.bottom.equalToSuperview().offset(-100)
+        nextButton.snp.makeConstraints{ make in
+            make.top.equalToSuperview().offset(nextButtonTop)
             make.leading.equalToSuperview().offset(16)
             make.trailing.equalToSuperview().offset(-16)
             make.height.equalTo(56)
@@ -108,12 +115,10 @@ class KeywordViewController: UIViewController {
     // MARK: - Navigation Bar
     
     private func navigationBarSetup() {
-        navigationController?.navigationBar.addSubview(progressView)
-        navigationController?.delegate = self
-        
+//        navigationController?.navigationBar.addSubview(progressView)
+//        navigationController?.delegate = self
         self.navigationItem.setHidesBackButton(true, animated: false)
         self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
-        
     }
     
     // MARK: - Button Disabled
@@ -135,8 +140,8 @@ class KeywordViewController: UIViewController {
     
     @objc private func nextAction() {
         let motoViewController = MotoViewController()
+        self.navigationController?.isNavigationBarHidden = true
         self.navigationController?.pushViewController(motoViewController, animated: true)
-        
     }
 }
 
@@ -210,13 +215,13 @@ extension KeywordViewController: UICollectionViewDataSource, UICollectionViewDel
     }
 }
 
-extension KeywordViewController: UINavigationBarDelegate, UINavigationControllerDelegate {
-    
-    func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool) {
-        let progressArray: [Float] = [0.25, 0.5, 0.75, 0.75, 0]
-        if let currentIndex = navigationController.viewControllers.firstIndex(of: viewController) {
-            let progress = progressArray[currentIndex]
-            progressView.setProgress(progress, animated: true)
-        }
-    }
-}
+//extension KeywordViewController: UINavigationBarDelegate, UINavigationControllerDelegate {
+//    
+//    func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool) {
+//        let progressArray: [Float] = [0.25, 0.5, 0.75, 0.75, 0]
+//        if let currentIndex = navigationController.viewControllers.firstIndex(of: viewController) {
+//            let progress = progressArray[currentIndex]
+//            progressView.setProgress(progress, animated: true)
+//        }
+//    }
+//}

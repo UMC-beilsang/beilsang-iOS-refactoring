@@ -98,10 +98,18 @@ class StartViewController: UIViewController {
     }
     
     private func setupLayout() {
+        let height = UIScreen.main.bounds.height
+        let width = UIScreen.main.bounds.width
+        
+        let nextButtonTop = height * 0.815
+        let characterImageTop = height * 0.16
+        
+        let characterImageHeight = height * 0.407
+        
         characterImage.snp.makeConstraints{ make in
-            make.top.equalToSuperview().offset(140)
-            make.leading.equalToSuperview().offset(20)
-            make.trailing.equalToSuperview().offset(-20)
+            make.top.equalToSuperview().offset(characterImageTop)
+            make.centerX.equalToSuperview()
+            make.height.width.equalTo(characterImageHeight)
         }
         
         startLabel.snp.makeConstraints{ make in
@@ -121,7 +129,7 @@ class StartViewController: UIViewController {
         }
         
         nextButton.snp.makeConstraints{ make in
-            make.bottom.equalToSuperview().offset(-100)
+            make.top.equalToSuperview().offset(nextButtonTop)
             make.leading.equalToSuperview().offset(16)
             make.trailing.equalToSuperview().offset(-16)
             make.height.equalTo(56)
