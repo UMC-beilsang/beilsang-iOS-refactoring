@@ -323,43 +323,50 @@ class MyPageService {
     
     // MARK: - patch
     // AccountInfoView
-    func patchAccountInfo(baseEndPoint:BaseEndpoint, addPath:String?, parameter: Dictionary<String, Any>, completionHandler: @escaping (_ data: PatchAccountInfo) -> Void) {
+    func patchAccountInfo(baseEndPoint: BaseEndpoint, addPath: String?, nickName: String, birth: String?, gender: String?, address: String?, completionHandler: @escaping (_ data: PatchAccountInfo) -> Void) {
         let accessToken = KeyChain.read(key: Const.KeyChainKey.serverToken)!
         let refreshToken = KeyChain.read(key: Const.KeyChainKey.refreshToken)!
         
         let headers: HTTPHeaders = [
             "accept": "application/json",
-            "Authorization": "Bearer \(accessToken)",
-            "Content-Type": "application/json"
+            "Authorization": "Bearer \(accessToken)"
         ]
         
         guard let addPath = addPath else { return }
         let url = baseEndPoint.requestURL + addPath
         print(url)
         
-        AF.request(url, method: .patch, parameters: parameter, encoding: JSONEncoding.default, headers: headers).validate().responseDecodable(of: PatchAccountInfo.self, completionHandler:{ response in
-            switch response.result{
+        let parameters: [String: Any] = [
+            "nickName": nickName,
+            "birth": birth ?? "",
+            "gender": gender ?? "",
+            "address": address ?? ""
+        ]
+        
+        AF.request(url, method: .patch, parameters: parameters, encoding: JSONEncoding.default, headers: headers).validate().responseDecodable(of: PatchAccountInfo.self) { response in
+            switch response.result {
             case .success:
-                guard let result = response.value else {return}
+                guard let result = response.value else { return }
                 completionHandler(result)
                 print("patch 요청 성공")
-                // 호출 실패 시 처리 위함
             case .failure(let error):
-                switch error.responseCode{
+                switch error.responseCode {
                 case 401:
                     print("토큰 만료")
                     TokenManager.shared.refreshToken(refreshToken: refreshToken, completion: { _ in }) {
-                        self.patchAccountInfo(baseEndPoint: baseEndPoint, addPath: addPath, parameter: parameter) { reResponse in
+                        self.patchAccountInfo(baseEndPoint: baseEndPoint, addPath: addPath, nickName: nickName, birth: birth, gender: gender, address: address) { reResponse in
                             completionHandler(reResponse)
                         }
                     }
-                default : print("네트워크 fail")
+                default:
+                    print("네트워크 fail")
                 }
                 print(error)
                 print("patch 요청 실패")
             }
-        })
+        }
     }
+    
     
     func patchProfileImage(imageData: Data, completionHandler: @escaping (_ data: PatchProfileImage?) -> Void) {
             guard let accessToken = KeyChain.read(key: Const.KeyChainKey.serverToken),

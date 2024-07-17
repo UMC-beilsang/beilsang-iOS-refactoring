@@ -8,25 +8,18 @@
 import Foundation
 import Alamofire
 
-struct PatchAccountInfo : Codable{
+struct PatchAccountInfo: Codable {
     let success: Bool
     let code: String
     let message: String
-    let data: AccountInfoData
+    let data: AccountInfoData?
 }
 
 struct AccountInfoData: Codable {
-    let nickName : String
-    let birth : String?
+    let nickName: String
+    let birth: String?
     let gender: String?
     let address: String?
 }
 
-extension Encodable {
-    // struct를 파라미터 형식(딕셔러니)로 변경
-    var toDictionary : [String: Any]? {
-        guard let object = try? JSONEncoder().encode(self) else { return nil }
-        guard let dictionary = try? JSONSerialization.jsonObject(with: object, options: []) as? [String:Any] else { return nil }
-        return dictionary
-    }
-}
+

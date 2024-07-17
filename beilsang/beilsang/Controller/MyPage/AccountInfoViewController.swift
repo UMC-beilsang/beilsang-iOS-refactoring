@@ -660,7 +660,7 @@ class AccountInfoViewController: UIViewController, UIScrollViewDelegate, UINavig
 
 extension AccountInfoViewController {
     func getMypage() {
-        MyPageService.shared.getMyPage(baseEndPoint: .mypage, addPath: "") {response in
+        MyPageService.shared.getMyPage(baseEndPoint: .mypage, addPath: "") { [self]response in
             self.nickName = response.data.nickName 
             self.nameField.text = response.data.nickName
             if let genderString = response.data.gender {
@@ -677,8 +677,9 @@ extension AccountInfoViewController {
                     self.gender = "기타"
                 }
             }
-            self.birth = response.data.birth
-            self.birthField.text = response.data.birth
+
+            self.birth = self.dateToDateFormat(dateString: response.data.birth ?? "")
+            self.birthField.text = self.dateToDateFormat(dateString: response.data.birth ?? "")
 
             if let fullAddress = response.data.address {
                 let addressComponent = fullAddress.components(separatedBy: ".")
@@ -701,36 +702,54 @@ extension AccountInfoViewController {
             self.emailLabel2.text = response.data.nickName
         }
     }
+    
     func request() {
         var gender = ""
-        if genderField.text == "남자"{
+        if genderField.text == "남자" {
             gender = "MAN"
-        } else if genderField.text == "여자"{
+        } else if genderField.text == "여자" {
             gender = "WOMAN"
-        } else if genderField.text == "기타"{
+        } else if genderField.text == "기타" {
             gender = "OTHER"
         }
-        
+
         if let addresstext = addressField.text, let detailAddress = addressDetailField.text, let zipCode = zipCodeField.text {
             self.fullAddress = "\(zipCode).\(addresstext).\(detailAddress)"
         }
-        
-        let parameters = AccountInfoData(nickName: nameField.text ?? "", birth: birthField.text ?? "" , gender: gender , address: fullAddress)
-        
-        MyPageService.shared.patchAccountInfo(baseEndPoint: .profile, addPath: "", parameter: parameters.toDictionary ?? [:] ) { response in
-            print(response.message )
+
+        var formattedBirth = ""
+        formattedBirth = formatDate(dateString: birthField.text ?? "") ?? ""
+        print("Formatted Birth: \(formattedBirth)")
+
+        guard let nickName = nameField.text, !nickName.isEmpty else {
+            print("Nickname is required.")
+            return
         }
-        
-        guard let image = profileShadowView.image else { return }
+
+        print("Parameters: nickName=\(nickName), birth=\(formattedBirth), gender=\(gender), address=\(String(describing: fullAddress))")
+
+        MyPageService.shared.patchAccountInfo(baseEndPoint: .profile, addPath: "", nickName: nickName, birth: formattedBirth, gender: gender, address: fullAddress) { response in
+            print(response.message)
+        }
+
+        guard let image = profileShadowView.image else {
+            print("Profile image is required.")
+            return
+        }
+
         let imageData = image.jpegData(compressionQuality: 0.3)
-        
+
         if let parameter = imageData {
             MyPageService.shared.patchProfileImage(imageData: parameter) { response in
-                print(response?.message ?? "")
-                print("이미지 성공")
+                if let response = response {
+                    print("Profile Image Response: \(response.message)")
+                    print("Image upload successful")
+                } else {
+                    print("Failed to receive response from patchProfileImage")
+                }
             }
         }
-        
+
         if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate, let window = sceneDelegate.window {
             let mainVC = TabBarViewController()
             UIView.transition(with: window, duration: 1.5, options: .transitionCrossDissolve, animations: {
@@ -738,6 +757,8 @@ extension AccountInfoViewController {
             }, completion: nil)
         }
     }
+
+
 
     func profileImageRequest() {
         MyPageService.shared.getMyPage(baseEndPoint: .mypage, addPath: "") { response in
@@ -1008,21 +1029,46 @@ extension AccountInfoViewController {
         /// 텍스트필드 입력 수단 연결
         genderField.inputView = pickerView
     }
+    
     private func setupDatePicker() {
         let datePicker = UIDatePicker()
         datePicker.datePickerMode = .date
         datePicker.preferredDatePickerStyle = .wheels
         datePicker.locale = Locale(identifier: "ko-KR")
-        datePicker.addTarget(self, action: #selector(dateChange), for: .valueChanged)
+        datePicker.addTarget(self, action: #selector(dateChange(_:)), for: .valueChanged)
         datePicker.maximumDate = Date()
         birthField.inputView = datePicker
     }
     
+    
     private func dateFormat(date: Date) -> String {
         let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.dateFormat = "yyyy년 MM월 dd일"
         
         return formatter.string(from: date)
+    }
+
+    func formatDate(dateString: String) -> String? {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy년 MM월 dd일" // 입력된 날짜 형식
+        guard let date = dateFormatter.date(from: dateString) else {
+            return nil // 날짜 변환이 실패할 경우 nil 반환
+        }
+        
+        dateFormatter.dateFormat = "yyyy-MM-dd" // 원하는 날짜 형식
+        let formattedDate = dateFormatter.string(from: date)
+        return formattedDate
+    }
+    
+    private func dateToDateFormat(dateString: String) -> String? {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd" //입력된 날짜 형식
+        guard let date = dateFormatter.date(from: dateString) else {
+            return nil // 날짜 변환이 실패할 경우 nil 반환
+        }
+        dateFormatter.dateFormat = "yyyy년 MM월 dd일" // 원하는 날짜 형식
+        let formattedDate = dateFormatter.string(from: date)
+        return formattedDate
     }
 }
 
@@ -1076,7 +1122,7 @@ extension AccountInfoViewController{
         let toolBar = UIToolbar()
         
         let flexibleSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
-        let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonHandeler))
+        let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonHandler))
         
         toolBar.items = [flexibleSpace, doneButton]
         // 적절한 사이즈로 toolBar의 크기를 만들어 줍니다.
@@ -1188,14 +1234,13 @@ extension AccountInfoViewController{
     
     // MARK: - Actions
     @objc func representativePhotoButtonClicked() {
-        // 권한을 확인하고 권한 요청을 처리하는 함수 호출
         checkAndRequestPermissions { granted in
-            if granted {
-                // 권한이 허용된 경우 액션 시트를 표시
-                self.showPhotoSelectionActionSheet()
-            } else {
-                // 권한이 거부된 경우 경고 알림 표시
-                self.showPermissionDeniedAlert()
+            DispatchQueue.main.async {
+                if granted {
+                    self.showPhotoSelectionActionSheet()
+                } else {
+                    self.showPermissionManagementView()
+                }
             }
         }
     }
@@ -1226,15 +1271,32 @@ extension AccountInfoViewController{
     }
     
     @objc func dateChange(_ sender: UIDatePicker) {
+        // 사용자가 날짜를 변경할 때만 birthField 업데이트
         birthField.text = dateFormat(date: sender.date)
         birthField.font = UIFont(name: "NotoSansKR-Regular", size: 14)
-        birthField.textColor = .bePsBlue500
     }
     
-    @objc func doneButtonHandeler(_ sender: UIBarButtonItem) {
-        birthField.resignFirstResponder()
-        genderField.resignFirstResponder()
+    @objc func doneButtonHandler(_ sender: UIBarButtonItem) {
+        if birthField.isFirstResponder {
+            doneAction(for: birthField)
+        } else if genderField.isFirstResponder {
+            doneAction(for: genderField)
+        }
     }
+    
+    @objc private func doneAction(for textField: UITextField) {
+        if textField == birthField {
+            // dateChange에서 이미 업데이트 되므로 여기서는 추가로 업데이트하지 않음
+            birthField.font = UIFont(name: "NotoSansKR-Regular", size: 14)
+        } else if textField == genderField {
+            // UIPickerView에서 선택된 항목을 텍스트 필드에 설정
+            let selectedRow = pickerView.selectedRow(inComponent: 0)
+            genderField.text = genderOptions[selectedRow]
+        }
+        textField.resignFirstResponder()
+    }
+    
+    
     @objc func tapLogoutButton(){
         print("로그아웃")
         alertViewResponder = logoutAlert.showInfo("계정 로그아웃")
@@ -1670,12 +1732,12 @@ extension AccountInfoViewController: UIImagePickerControllerDelegate {
     func setImagePicker() {
         profileImagePicker.delegate = self
     }
-    
+
     func openGallery(imagePicker: UIImagePickerController) {
         imagePicker.sourceType = .photoLibrary
         present(imagePicker, animated: true, completion: nil)
     }
-    
+
     func openCamera(imagePicker: UIImagePickerController) {
         if UIImagePickerController.isSourceTypeAvailable(.camera) {
             imagePicker.sourceType = .camera
@@ -1684,42 +1746,21 @@ extension AccountInfoViewController: UIImagePickerControllerDelegate {
             print("카메라를 사용할 수 없습니다.")
         }
     }
-    
-    func checkAndRequestPermissions(completion: @escaping (Bool) -> Void) {
-        let cameraStatus = AVCaptureDevice.authorizationStatus(for: .video)
-        let albumStatus = PHPhotoLibrary.authorizationStatus()
-        
+
+    func requestPermissions(completion: @escaping (Bool) -> Void) {
         let group = DispatchGroup()
         var cameraGranted = false
         var albumGranted = false
         
-        // 카메라 권한 확인 및 요청
         group.enter()
-        switch cameraStatus {
-        case .notDetermined:
-            AVCaptureDevice.requestAccess(for: .video) { granted in
-                cameraGranted = granted
-                group.leave()
-            }
-        case .authorized:
-            cameraGranted = true
-            group.leave()
-        default:
+        AVCaptureDevice.requestAccess(for: .video) { granted in
+            cameraGranted = granted
             group.leave()
         }
         
-        // 앨범 권한 확인 및 요청
         group.enter()
-        switch albumStatus {
-        case .notDetermined:
-            PHPhotoLibrary.requestAuthorization { status in
-                albumGranted = (status == .authorized)
-                group.leave()
-            }
-        case .authorized:
-            albumGranted = true
-            group.leave()
-        default:
+        PHPhotoLibrary.requestAuthorization { status in
+            albumGranted = (status == .authorized)
             group.leave()
         }
         
@@ -1737,13 +1778,36 @@ extension AccountInfoViewController: UIImagePickerControllerDelegate {
             self.openCamera(imagePicker: self.profileImagePicker)
         }))
         alert.addAction(UIAlertAction(title: "취소", style: .cancel, handler: nil))
+        self.present(alert, animated: true, completion: nil)
+    }
+    
+    func checkAndRequestPermissions(completion: @escaping (Bool) -> Void) {
+        let cameraStatus = AVCaptureDevice.authorizationStatus(for: .video)
+        let albumStatus = PHPhotoLibrary.authorizationStatus()
+        
+        if cameraStatus == .authorized && albumStatus == .authorized {
+            completion(true)
+            return
+        }
+        
+        let alert = UIAlertController(
+            title: "권한 필요",
+            message: "프로필 사진 설정과 게시물 작성을 위해 카메라와 사진 라이브러리 접근 권한이 필요합니다. 허용하시겠습니까?",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "확인", style: .default, handler: { _ in
+            self.requestPermissions(completion: completion)
+        }))
+        alert.addAction(UIAlertAction(title: "취소", style: .cancel, handler: { _ in
+            completion(false)
+        }))
         present(alert, animated: true, completion: nil)
     }
 
-    func showPermissionDeniedAlert() {
+    func showPermissionManagementView() {
         let alert = UIAlertController(
-            title: "권한 필요",
-            message: "사진 앨범이나 카메라에 접근할 수 있는 권한이 필요합니다. 설정에서 권한을 허용해주세요.",
+            title: "권한 관리",
+            message: "카메라와 사진 라이브러리 접근 권한을 변경하려면 설정으로 이동하세요.",
             preferredStyle: .alert
         )
         alert.addAction(UIAlertAction(title: "설정으로 이동", style: .default, handler: { _ in

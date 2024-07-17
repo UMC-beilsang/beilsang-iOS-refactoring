@@ -328,6 +328,10 @@ class MyPageViewController: UIViewController, UIScrollViewDelegate {
         setNavigationBar()
         collectionviewSet()
     }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        request()
+    }
 }
 
 extension MyPageViewController {

@@ -964,7 +964,7 @@ class UserInfoViewController: UIViewController, UIScrollViewDelegate {
         datePicker.datePickerMode = .date
         datePicker.preferredDatePickerStyle = .wheels
         datePicker.locale = Locale(identifier: "ko-KR")
-        datePicker.addTarget(self, action: #selector(dateChange), for: .allEvents)
+        datePicker.addTarget(self, action: #selector(dateChange(_:)), for: .valueChanged)
         datePicker.maximumDate = Date()
         birthField.inputView = datePicker
     }
@@ -1127,7 +1127,7 @@ class UserInfoViewController: UIViewController, UIScrollViewDelegate {
     
     func formatDate(dateString: String) -> String? {
         let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yy년 MM월 dd일" // 입력된 날짜 형식
+        dateFormatter.dateFormat = "yyyy년 MM월 dd일" // 입력된 날짜 형식
         guard let date = dateFormatter.date(from: dateString) else {
             return nil // 날짜 변환이 실패할 경우 nil 반환
         }
@@ -1212,8 +1212,7 @@ class UserInfoViewController: UIViewController, UIScrollViewDelegate {
     
     @objc private func doneAction(for textField: UITextField) {
         if textField == birthField {
-            // UIDatePicker에서 선택된 날짜를 텍스트 필드에 설정
-            birthField.text = dateFormat(date: datePicker.date)
+            // dateChange에서 이미 업데이트 되므로 여기서는 추가로 업데이트하지 않음
             birthField.font = UIFont(name: "NotoSansKR-Regular", size: 14)
         } else if textField == genderField {
             // UIPickerView에서 선택된 항목을 텍스트 필드에 설정
@@ -1222,6 +1221,7 @@ class UserInfoViewController: UIViewController, UIScrollViewDelegate {
         }
         textField.resignFirstResponder()
     }
+
     
     @objc func agreeAllButtonHandelr(_ sender: UIButton) {
         sender.isSelected.toggle()
