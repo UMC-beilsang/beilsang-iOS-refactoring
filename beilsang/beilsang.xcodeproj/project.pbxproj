@@ -58,7 +58,6 @@
 		2FAB99F92B72C99300853BF7 /* CautionCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FAB99F82B72C99300853BF7 /* CautionCollectionViewCell.swift */; };
 		2FAB99FB2B72C9B000853BF7 /* GalleryCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FAB99FA2B72C9B000853BF7 /* GalleryCollectionViewCell.swift */; };
 		2FAB99FD2B72C9F000853BF7 /* ChallengeDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FAB99FC2B72C9F000853BF7 /* ChallengeDetailViewController.swift */; };
-		2FAB99FF2B72CA1400853BF7 /* JoinChallengeViewController1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FAB99FE2B72CA1400853BF7 /* JoinChallengeViewController1.swift */; };
 		2FB2BCD82C2359EE009DDEBA /* PatchProfileImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FB2BCD72C2359EE009DDEBA /* PatchProfileImage.swift */; };
 		2FB2BCDB2C240CD2009DDEBA /* NotificationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FB2BCDA2C240CD2009DDEBA /* NotificationModel.swift */; };
 		2FB2BCDD2C244F1D009DDEBA /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FB2BCDC2C244F1D009DDEBA /* NotificationService.swift */; };
@@ -223,7 +222,6 @@
 		2FAB99F82B72C99300853BF7 /* CautionCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CautionCollectionViewCell.swift; sourceTree = "<group>"; };
 		2FAB99FA2B72C9B000853BF7 /* GalleryCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryCollectionViewCell.swift; sourceTree = "<group>"; };
 		2FAB99FC2B72C9F000853BF7 /* ChallengeDetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChallengeDetailViewController.swift; sourceTree = "<group>"; };
-		2FAB99FE2B72CA1400853BF7 /* JoinChallengeViewController1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JoinChallengeViewController1.swift; sourceTree = "<group>"; };
 		2FB2BCD72C2359EE009DDEBA /* PatchProfileImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchProfileImage.swift; sourceTree = "<group>"; };
 		2FB2BCDA2C240CD2009DDEBA /* NotificationModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationModel.swift; sourceTree = "<group>"; };
 		2FB2BCDC2C244F1D009DDEBA /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
@@ -759,7 +757,6 @@
 				2F8F28AB2C11FC8A009AE563 /* MainChallengeViewController.swift */,
 				AF4403402B63EA3F006B68FE /* ChallengeListViewController.swift */,
 				2FAB99FC2B72C9F000853BF7 /* ChallengeDetailViewController.swift */,
-				2FAB99FE2B72CA1400853BF7 /* JoinChallengeViewController1.swift */,
 				2FFEE9352C3956E800AB3B89 /* JoinChallengeViewController.swift */,
 				AF4403442B66B11E006B68FE /* RegisterFirstViewController.swift */,
 				AF4403462B6A2E34006B68FE /* RegisterSecondViewController.swift */,
@@ -1002,7 +999,6 @@
 				2F9D0EC82C0DCE8900C9C859 /* KeyChain.swift in Sources */,
 				89A08A332B656156009263F5 /* MyChallengeViewController.swift in Sources */,
 				2F7A668F2B81BAEF008010C6 /* SearchResultViewController.swift in Sources */,
-				2FAB99FF2B72CA1400853BF7 /* JoinChallengeViewController1.swift in Sources */,
 				AF7E946E2B7A402600338DA3 /* ChallengeService.swift in Sources */,
 				2F8A3A2F2BFA8DCC002926BE /* RevokeToken.swift in Sources */,
 				AF64A4432B828F630055D5B9 /* ChallengeParticipateModel.swift in Sources */,
