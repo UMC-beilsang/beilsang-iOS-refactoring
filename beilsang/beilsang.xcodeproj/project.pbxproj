@@ -15,6 +15,7 @@
 		2F0838972B564086002E2551 /* beilsangTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F0838962B564086002E2551 /* beilsangTests.swift */; };
 		2F0838A12B564086002E2551 /* beilsangUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F0838A02B564086002E2551 /* beilsangUITests.swift */; };
 		2F0838A32B564086002E2551 /* beilsangUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F0838A22B564086002E2551 /* beilsangUITestsLaunchTests.swift */; };
+		2F1001932C5D40F200C4711D /* FindViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F1001922C5D40F200C4711D /* FindViewController.swift */; };
 		2F2EFFF22BEF6CD700068F09 /* BaseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F2EFFF12BEF6CD700068F09 /* BaseModel.swift */; };
 		2F2F4F882C077DC600B410F1 /* AppleGetCodeManger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F2F4F872C077DC600B410F1 /* AppleGetCodeManger.swift */; };
 		2F48E0912B5BB44C002F3D4A /* NotoSansKR-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2F48E0862B5BB44B002F3D4A /* NotoSansKR-Light.ttf */; };
@@ -58,7 +59,6 @@
 		2FAB99F92B72C99300853BF7 /* CautionCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FAB99F82B72C99300853BF7 /* CautionCollectionViewCell.swift */; };
 		2FAB99FB2B72C9B000853BF7 /* GalleryCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FAB99FA2B72C9B000853BF7 /* GalleryCollectionViewCell.swift */; };
 		2FAB99FD2B72C9F000853BF7 /* ChallengeDetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FAB99FC2B72C9F000853BF7 /* ChallengeDetailViewController.swift */; };
-		2FAB99FF2B72CA1400853BF7 /* JoinChallengeViewController1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FAB99FE2B72CA1400853BF7 /* JoinChallengeViewController1.swift */; };
 		2FB2BCD82C2359EE009DDEBA /* PatchProfileImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FB2BCD72C2359EE009DDEBA /* PatchProfileImage.swift */; };
 		2FB2BCDB2C240CD2009DDEBA /* NotificationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FB2BCDA2C240CD2009DDEBA /* NotificationModel.swift */; };
 		2FB2BCDD2C244F1D009DDEBA /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FB2BCDC2C244F1D009DDEBA /* NotificationService.swift */; };
@@ -95,11 +95,11 @@
 		895ACC3C2B7FC67400A0578C /* LearnMoreViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 895ACC3B2B7FC67400A0578C /* LearnMoreViewController.swift */; };
 		895AE87A2B7B15A6008F9125 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 895AE8792B7B15A6008F9125 /* Kingfisher */; };
 		895BA6182B6B341300FB514F /* MyChallengeFeedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 895BA6172B6B341300FB514F /* MyChallengeFeedViewController.swift */; };
-		895D887A2B6D45B8003E5688 /* FindViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 895D88792B6D45B8003E5688 /* FindViewController.swift */; };
+		895D887A2B6D45B8003E5688 /* FindOldViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 895D88792B6D45B8003E5688 /* FindOldViewController.swift */; };
 		89608DBC2B7A36A200B93421 /* FeedModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89608DBB2B7A36A200B93421 /* FeedModel.swift */; };
 		89608DBE2B7A440200B93421 /* GetDuplicateCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89608DBD2B7A440200B93421 /* GetDuplicateCheck.swift */; };
 		89608DC02B7A475B00B93421 /* GetMyPageFeedDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89608DBF2B7A475B00B93421 /* GetMyPageFeedDetail.swift */; };
-		8961A14F2B6FC24B00404444 /* HofChallengeCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8961A14E2B6FC24B00404444 /* HofChallengeCollectionViewCell.swift */; };
+		8961A14F2B6FC24B00404444 /* hofChallengeCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8961A14E2B6FC24B00404444 /* hofChallengeCollectionViewCell.swift */; };
 		8961A1532B6FCDCD00404444 /* ScrollIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8961A1522B6FCDCD00404444 /* ScrollIndicatorView.swift */; };
 		896335B72B778AD4006434AC /* PatchAccountInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 896335B62B778AD4006434AC /* PatchAccountInfo.swift */; };
 		896335BB2B77C07D006434AC /* GetPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 896335BA2B77C07D006434AC /* GetPoint.swift */; };
@@ -110,7 +110,7 @@
 		896DC0F52B66701A002767B3 /* ChallengeMenuCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 896DC0F42B66701A002767B3 /* ChallengeMenuCollectionViewCell.swift */; };
 		896DC0F72B669426002767B3 /* MyPageCategoryCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 896DC0F62B669426002767B3 /* MyPageCategoryCollectionViewCell.swift */; };
 		896DC0F92B66A072002767B3 /* MedalCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 896DC0F82B66A072002767B3 /* MedalCollectionViewCell.swift */; };
-		897653E32B6F50B6004CA008 /* HofChallengeCategoryCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 897653E22B6F50B6004CA008 /* HofChallengeCategoryCollectionViewCell.swift */; };
+		897653E32B6F50B6004CA008 /* hofChallengeCategoryCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 897653E22B6F50B6004CA008 /* hofChallengeCategoryCollectionViewCell.swift */; };
 		89791E022B6C9A7700B1DF75 /* FeedDetailCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89791E012B6C9A7700B1DF75 /* FeedDetailCollectionViewCell.swift */; };
 		89854F882B7351E100CB6E4E /* NotificationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89854F872B7351E100CB6E4E /* NotificationViewController.swift */; };
 		89A08A312B655E5D009263F5 /* AccountInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89A08A302B655E5C009263F5 /* AccountInfoViewController.swift */; };
@@ -182,6 +182,7 @@
 		2F08389C2B564086002E2551 /* beilsangUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = beilsangUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2F0838A02B564086002E2551 /* beilsangUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = beilsangUITests.swift; sourceTree = "<group>"; };
 		2F0838A22B564086002E2551 /* beilsangUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = beilsangUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		2F1001922C5D40F200C4711D /* FindViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FindViewController.swift; sourceTree = "<group>"; };
 		2F1DCE052B71495F002F1043 /* beilsangDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = beilsangDebug.entitlements; sourceTree = "<group>"; };
 		2F2EFFF12BEF6CD700068F09 /* BaseModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BaseModel.swift; sourceTree = "<group>"; };
 		2F2F4F872C077DC600B410F1 /* AppleGetCodeManger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleGetCodeManger.swift; sourceTree = "<group>"; };
@@ -223,7 +224,6 @@
 		2FAB99F82B72C99300853BF7 /* CautionCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CautionCollectionViewCell.swift; sourceTree = "<group>"; };
 		2FAB99FA2B72C9B000853BF7 /* GalleryCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryCollectionViewCell.swift; sourceTree = "<group>"; };
 		2FAB99FC2B72C9F000853BF7 /* ChallengeDetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChallengeDetailViewController.swift; sourceTree = "<group>"; };
-		2FAB99FE2B72CA1400853BF7 /* JoinChallengeViewController1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JoinChallengeViewController1.swift; sourceTree = "<group>"; };
 		2FB2BCD72C2359EE009DDEBA /* PatchProfileImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchProfileImage.swift; sourceTree = "<group>"; };
 		2FB2BCDA2C240CD2009DDEBA /* NotificationModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationModel.swift; sourceTree = "<group>"; };
 		2FB2BCDC2C244F1D009DDEBA /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
@@ -256,11 +256,11 @@
 		895A22D52B751A6700A5230D /* GetMyPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetMyPage.swift; sourceTree = "<group>"; };
 		895ACC3B2B7FC67400A0578C /* LearnMoreViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearnMoreViewController.swift; sourceTree = "<group>"; };
 		895BA6172B6B341300FB514F /* MyChallengeFeedViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyChallengeFeedViewController.swift; sourceTree = "<group>"; };
-		895D88792B6D45B8003E5688 /* FindViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FindViewController.swift; sourceTree = "<group>"; };
+		895D88792B6D45B8003E5688 /* FindOldViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FindOldViewController.swift; sourceTree = "<group>"; };
 		89608DBB2B7A36A200B93421 /* FeedModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedModel.swift; sourceTree = "<group>"; };
 		89608DBD2B7A440200B93421 /* GetDuplicateCheck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetDuplicateCheck.swift; sourceTree = "<group>"; };
 		89608DBF2B7A475B00B93421 /* GetMyPageFeedDetail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetMyPageFeedDetail.swift; sourceTree = "<group>"; };
-		8961A14E2B6FC24B00404444 /* HofChallengeCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HofChallengeCollectionViewCell.swift; sourceTree = "<group>"; };
+		8961A14E2B6FC24B00404444 /* hofChallengeCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = hofChallengeCollectionViewCell.swift; sourceTree = "<group>"; };
 		8961A1522B6FCDCD00404444 /* ScrollIndicatorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollIndicatorView.swift; sourceTree = "<group>"; };
 		896335B62B778AD4006434AC /* PatchAccountInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatchAccountInfo.swift; sourceTree = "<group>"; };
 		896335BA2B77C07D006434AC /* GetPoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetPoint.swift; sourceTree = "<group>"; };
@@ -271,7 +271,7 @@
 		896DC0F42B66701A002767B3 /* ChallengeMenuCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChallengeMenuCollectionViewCell.swift; sourceTree = "<group>"; };
 		896DC0F62B669426002767B3 /* MyPageCategoryCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyPageCategoryCollectionViewCell.swift; sourceTree = "<group>"; };
 		896DC0F82B66A072002767B3 /* MedalCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedalCollectionViewCell.swift; sourceTree = "<group>"; };
-		897653E22B6F50B6004CA008 /* HofChallengeCategoryCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HofChallengeCategoryCollectionViewCell.swift; sourceTree = "<group>"; };
+		897653E22B6F50B6004CA008 /* hofChallengeCategoryCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = hofChallengeCategoryCollectionViewCell.swift; sourceTree = "<group>"; };
 		89791E012B6C9A7700B1DF75 /* FeedDetailCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedDetailCollectionViewCell.swift; sourceTree = "<group>"; };
 		89854F872B7351E100CB6E4E /* NotificationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationViewController.swift; sourceTree = "<group>"; };
 		89A08A302B655E5C009263F5 /* AccountInfoViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AccountInfoViewController.swift; sourceTree = "<group>"; };
@@ -686,7 +686,8 @@
 		895D88782B6D45B1003E5688 /* Find */ = {
 			isa = PBXGroup;
 			children = (
-				895D88792B6D45B8003E5688 /* FindViewController.swift */,
+				895D88792B6D45B8003E5688 /* FindOldViewController.swift */,
+				2F1001922C5D40F200C4711D /* FindViewController.swift */,
 			);
 			path = Find;
 			sourceTree = "<group>";
@@ -702,8 +703,8 @@
 		897653E12B6F5095004CA008 /* Find */ = {
 			isa = PBXGroup;
 			children = (
-				897653E22B6F50B6004CA008 /* HofChallengeCategoryCollectionViewCell.swift */,
-				8961A14E2B6FC24B00404444 /* HofChallengeCollectionViewCell.swift */,
+				897653E22B6F50B6004CA008 /* hofChallengeCategoryCollectionViewCell.swift */,
+				8961A14E2B6FC24B00404444 /* hofChallengeCollectionViewCell.swift */,
 				8961A1522B6FCDCD00404444 /* ScrollIndicatorView.swift */,
 				89ABFE682B70F77D00F86A9D /* FindFeedDetailCollectionViewCell.swift */,
 			);
@@ -759,7 +760,6 @@
 				2F8F28AB2C11FC8A009AE563 /* MainChallengeViewController.swift */,
 				AF4403402B63EA3F006B68FE /* ChallengeListViewController.swift */,
 				2FAB99FC2B72C9F000853BF7 /* ChallengeDetailViewController.swift */,
-				2FAB99FE2B72CA1400853BF7 /* JoinChallengeViewController1.swift */,
 				2FFEE9352C3956E800AB3B89 /* JoinChallengeViewController.swift */,
 				AF4403442B66B11E006B68FE /* RegisterFirstViewController.swift */,
 				AF4403462B6A2E34006B68FE /* RegisterSecondViewController.swift */,
@@ -976,7 +976,7 @@
 				AF7E94742B7A906500338DA3 /* MainAfterCollectionViewCell.swift in Sources */,
 				2FB2BCDD2C244F1D009DDEBA /* NotificationService.swift in Sources */,
 				893DF7D82B7B979700B09573 /* URLSetting.swift in Sources */,
-				895D887A2B6D45B8003E5688 /* FindViewController.swift in Sources */,
+				895D887A2B6D45B8003E5688 /* FindOldViewController.swift in Sources */,
 				AF4403342B63DF73006B68FE /* CategoryCollectionViewCell.swift in Sources */,
 				8957B14C2B7B75FB00F99928 /* FindService.swift in Sources */,
 				AF44034E2B6D3A76006B68FE /* RegisterModalViewController.swift in Sources */,
@@ -1002,13 +1002,13 @@
 				2F9D0EC82C0DCE8900C9C859 /* KeyChain.swift in Sources */,
 				89A08A332B656156009263F5 /* MyChallengeViewController.swift in Sources */,
 				2F7A668F2B81BAEF008010C6 /* SearchResultViewController.swift in Sources */,
-				2FAB99FF2B72CA1400853BF7 /* JoinChallengeViewController1.swift in Sources */,
 				AF7E946E2B7A402600338DA3 /* ChallengeService.swift in Sources */,
 				2F8A3A2F2BFA8DCC002926BE /* RevokeToken.swift in Sources */,
 				AF64A4432B828F630055D5B9 /* ChallengeParticipateModel.swift in Sources */,
 				2FFEE9362C3956E800AB3B89 /* JoinChallengeViewController.swift in Sources */,
 				89ABFE692B70F77D00F86A9D /* FindFeedDetailCollectionViewCell.swift in Sources */,
 				89608DBE2B7A440200B93421 /* GetDuplicateCheck.swift in Sources */,
+				2F1001932C5D40F200C4711D /* FindViewController.swift in Sources */,
 				2FC53B0E2B5BBB59007FD879 /* LoginViewController.swift in Sources */,
 				2F7A66972B81BBAF008010C6 /* SearchModel.swift in Sources */,
 				2F0838842B564085002E2551 /* ViewController.swift in Sources */,
@@ -1053,10 +1053,10 @@
 				AF4403392B63E0E3006B68FE /* PageViewController.swift in Sources */,
 				AF7E94722B7A852500338DA3 /* ChallengeTipViewController.swift in Sources */,
 				896335B72B778AD4006434AC /* PatchAccountInfo.swift in Sources */,
-				8961A14F2B6FC24B00404444 /* HofChallengeCollectionViewCell.swift in Sources */,
+				8961A14F2B6FC24B00404444 /* hofChallengeCollectionViewCell.swift in Sources */,
 				AF64A4272B7CD2770055D5B9 /* ChallengePostModel.swift in Sources */,
 				2F8C57AE2B769C17002B4862 /* LoginModel.swift in Sources */,
-				897653E32B6F50B6004CA008 /* HofChallengeCategoryCollectionViewCell.swift in Sources */,
+				897653E32B6F50B6004CA008 /* hofChallengeCategoryCollectionViewCell.swift in Sources */,
 				895ACC3C2B7FC67400A0578C /* LearnMoreViewController.swift in Sources */,
 				89608DBC2B7A36A200B93421 /* FeedModel.swift in Sources */,
 				AFDE65EB2B7249C30041D2D0 /* RegisterCertifyViewController.swift in Sources */,
@@ -1266,7 +1266,7 @@
 				INFOPLIST_FILE = beilsang/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Beilsang 앱은 프로필 사진을 촬영하거나 게시물에 사진을 추가하기 위해 카메라 접근 권한이 필요합니다.";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Beilsang 앱은 프로필 사진을 선택하거나 게시물에 사진을 추가하기 위해 사진 라이브러리 접근 권한이 필요합니다.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Beilsang 앱은 프로필 사진을 촬영하거나 게시물에 사진을 추가하기 위해 앨범 접근 권한이 필요합니다.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIStatusBarStyle = "";
@@ -1306,7 +1306,7 @@
 				INFOPLIST_FILE = beilsang/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Beilsang 앱은 프로필 사진을 촬영하거나 게시물에 사진을 추가하기 위해 카메라 접근 권한이 필요합니다.";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Beilsang 앱은 프로필 사진을 선택하거나 게시물에 사진을 추가하기 위해 사진 라이브러리 접근 권한이 필요합니다.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Beilsang 앱은 프로필 사진을 촬영하거나 게시물에 사진을 추가하기 위해 앨범 접근 권한이 필요합니다.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIStatusBarStyle = "";

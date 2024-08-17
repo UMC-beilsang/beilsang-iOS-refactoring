@@ -111,7 +111,6 @@ class SearchViewController: UIViewController {
 }
 
 // MARK: - setNavigationBar, search Bar
-
 extension SearchViewController {
     func setNavigationBar() {
         navigationController?.navigationBar.barTintColor = .white

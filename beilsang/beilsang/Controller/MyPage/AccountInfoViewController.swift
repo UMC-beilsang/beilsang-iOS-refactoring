@@ -56,6 +56,7 @@ class AccountInfoViewController: UIViewController, UIScrollViewDelegate, UINavig
         let view = UIImageView()
         view.layer.shadowColor = UIColor.black.withAlphaComponent(0.2).cgColor
         view.layer.shadowOpacity = 1
+        view.contentMode = .scaleAspectFill
         view.clipsToBounds = true
         view.image = UIImage(named: "Mask group")
         view.layer.cornerRadius = 48
@@ -645,7 +646,6 @@ class AccountInfoViewController: UIViewController, UIScrollViewDelegate, UINavig
         kakaoZipCodeVC.accountInfoVC = self
         view.backgroundColor = .white
         getMypage()
-        profileImageRequest()
         setImagePicker()
         setupAttribute()
         viewConstraint()
@@ -661,7 +661,22 @@ class AccountInfoViewController: UIViewController, UIScrollViewDelegate, UINavig
 extension AccountInfoViewController {
     func getMypage() {
         MyPageService.shared.getMyPage(baseEndPoint: .mypage, addPath: "") { [self]response in
-            self.nickName = response.data.nickName 
+            
+            if let imageUrl = response.data.profileImage {
+                let url = URL(string: imageUrl)
+                self.profileShadowView.kf.setImage(with: url, completionHandler: { result in
+                    switch result {
+                    case .success(let value):
+                        // 이미지 로드 성공 시 원본 이미지 설정
+                        self.originalProfileImage = value.image
+                    case .failure(let error):
+                        // 이미지 로드 실패 시 에러 처리
+                        print("이미지 로드 실패: \(error.localizedDescription)")
+                    }
+                })
+            }
+            
+            self.nickName = response.data.nickName
             self.nameField.text = response.data.nickName
             if let genderString = response.data.gender {
                 if genderString == "MAN" {
@@ -678,11 +693,12 @@ extension AccountInfoViewController {
                 }
             }
 
-            self.birth = self.dateToDateFormat(dateString: response.data.birth ?? "")
+            self.birth = response.data.birth
             self.birthField.text = self.dateToDateFormat(dateString: response.data.birth ?? "")
 
-            if let fullAddress = response.data.address {
-                let addressComponent = fullAddress.components(separatedBy: ".")
+            self.fullAddress = response.data.address
+            if let newFullAddress = response.data.address {
+                let addressComponent = newFullAddress.components(separatedBy: ".")
 
                 if addressComponent.count > 0 {
                     self.zipCodeField.text = addressComponent[0]
@@ -703,80 +719,109 @@ extension AccountInfoViewController {
         }
     }
     
-    func request() {
-        var gender = ""
-        if genderField.text == "남자" {
-            gender = "MAN"
-        } else if genderField.text == "여자" {
-            gender = "WOMAN"
-        } else if genderField.text == "기타" {
-            gender = "OTHER"
+    func patchAccountInfoRequest(completion: @escaping (Bool) -> Void) {
+        // nickName: 필수
+        var newNickName = ""
+        if (self.nickName != nameField.text) {
+            newNickName = nameField.text!
         }
 
+        // birth: "yyyy-MM-dd"
+        var newFormattedBirth = ""
+        if let birthText = birthField.text, !birthText.isEmpty {
+            // birthText "yyyy년 MM월 dd" -> "yyyy-MM-dd"
+            let formattedDate = formatDate(dateString: birthText)
+            if self.birth != formattedDate {
+                newFormattedBirth = formattedDate ?? ""
+            }
+        }
+
+        // gender
+        var newGender = ""
+        if let genderText = genderField.text, !genderText.isEmpty {
+            if genderText == "남자" && genderText != self.gender {
+                newGender = "MAN"
+            } else if genderField.text == "여자" && genderText != self.gender {
+                newGender = "WOMAN"
+            } else if genderField.text == "기타" && genderText != self.gender {
+                newGender = "OTHER"
+            }
+        }
+
+        // address
+        var newFullAddress = ""
         if let addresstext = addressField.text, let detailAddress = addressDetailField.text, let zipCode = zipCodeField.text {
-            self.fullAddress = "\(zipCode).\(addresstext).\(detailAddress)"
+            let testedAddress = "\(zipCode).\(addresstext).\(detailAddress)"
+            if (testedAddress != self.fullAddress) {
+                newFullAddress = testedAddress
+            }
         }
 
-        var formattedBirth = ""
-        formattedBirth = formatDate(dateString: birthField.text ?? "") ?? ""
-        print("Formatted Birth: \(formattedBirth)")
+        print("Parameters: nickName=\(newNickName), birth=\(newFormattedBirth), gender=\(newGender), address=\(newFullAddress)")
 
-        guard let nickName = nameField.text, !nickName.isEmpty else {
-            print("Nickname is required.")
-            return
+        MyPageService.shared.patchAccountInfo(baseEndPoint: .profile, addPath: "", nickName: newNickName, birth: newFormattedBirth, gender: newGender, address: newFullAddress) { response in
+            if response.success {
+                print("Profile update successful: \(response.message)")
+                completion(true)
+            } else {
+                print("Profile update failed: \(response.message)")
+                completion(false)
+            }
         }
+    }
 
-        print("Parameters: nickName=\(nickName), birth=\(formattedBirth), gender=\(gender), address=\(String(describing: fullAddress))")
-
-        MyPageService.shared.patchAccountInfo(baseEndPoint: .profile, addPath: "", nickName: nickName, birth: formattedBirth, gender: gender, address: fullAddress) { response in
-            print(response.message)
-        }
-
+    func patchProfileImageRequest(completion: @escaping (Bool) -> Void) {
+        // patch profileImage
         guard let image = profileShadowView.image else {
             print("Profile image is required.")
+            completion(false)
             return
         }
 
         let imageData = image.jpegData(compressionQuality: 0.3)
-
         if let parameter = imageData {
             MyPageService.shared.patchProfileImage(imageData: parameter) { response in
-                if let response = response {
+                if let response = response, response.success {
                     print("Profile Image Response: \(response.message)")
                     print("Image upload successful")
+                    completion(true)
                 } else {
                     print("Failed to receive response from patchProfileImage")
+                    completion(false)
                 }
             }
+        } else {
+            completion(false)
         }
+    }
 
+    func updateProfileAndReload() {
+        patchAccountInfoRequest { success in
+            if success {
+                self.patchProfileImageRequest { success in
+                    if success {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                            self.fetchUpdatedProfile()
+                        }
+                    } else {
+                        print("Failed to update profile image")
+                    }
+                }
+            } else {
+                print("Failed to update profile information")
+            }
+        }
+    }
+
+    func fetchUpdatedProfile() {
         if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate, let window = sceneDelegate.window {
             let mainVC = TabBarViewController()
-            UIView.transition(with: window, duration: 1.5, options: .transitionCrossDissolve, animations: {
+            UIView.transition(with: window, duration: 1.0, options: .transitionCrossDissolve, animations: {
                 window.rootViewController = mainVC
             }, completion: nil)
         }
     }
 
-
-
-    func profileImageRequest() {
-        MyPageService.shared.getMyPage(baseEndPoint: .mypage, addPath: "") { response in
-            if let imageUrl = response.data.profileImage {
-                let url = URL(string: imageUrl)
-                self.profileShadowView.kf.setImage(with: url, completionHandler: { result in
-                    switch result {
-                    case .success(let value):
-                        // 이미지 로드 성공 시 원본 이미지 설정
-                        self.originalProfileImage = value.image
-                    case .failure(let error):
-                        // 이미지 로드 실패 시 에러 처리
-                        print("이미지 로드 실패: \(error.localizedDescription)")
-                    }
-                })
-            }
-        }
-    }
 
     func setupAttribute() {
         setFullScrollView()
@@ -1234,15 +1279,7 @@ extension AccountInfoViewController{
     
     // MARK: - Actions
     @objc func representativePhotoButtonClicked() {
-        checkAndRequestPermissions { granted in
-            DispatchQueue.main.async {
-                if granted {
-                    self.showPhotoSelectionActionSheet()
-                } else {
-                    self.showPermissionManagementView()
-                }
-            }
-        }
+        checkPermissionsAndProceed()
     }
     
     @objc private func handleTap() {
@@ -1349,7 +1386,7 @@ extension AccountInfoViewController{
         updateSaveButtonState()
         nameDuplicateButton.isEnabled = false
         nameDuplicateButton.backgroundColor = .beBgDiv
-        request()
+        updateProfileAndReload()
     }
     
     @objc func privacy() {
@@ -1722,7 +1759,7 @@ extension AccountInfoViewController{
         }
     }
     
-    private func appleWithdraw(){ 
+    private func appleWithdraw(){
         AppleLoginManager.shared.startLogin()
     }
 }
@@ -1732,35 +1769,78 @@ extension AccountInfoViewController: UIImagePickerControllerDelegate {
     func setImagePicker() {
         profileImagePicker.delegate = self
     }
-
-    func openGallery(imagePicker: UIImagePickerController) {
-        imagePicker.sourceType = .photoLibrary
-        present(imagePicker, animated: true, completion: nil)
+    
+    func openGallery() {
+        profileImagePicker.sourceType = .photoLibrary
+        present(profileImagePicker, animated: true, completion: nil)
     }
-
-    func openCamera(imagePicker: UIImagePickerController) {
+    
+    func openCamera() {
         if UIImagePickerController.isSourceTypeAvailable(.camera) {
-            imagePicker.sourceType = .camera
-            present(imagePicker, animated: true, completion: nil)
+            profileImagePicker.sourceType = .camera
+            present(profileImagePicker, animated: true, completion: nil)
         } else {
             print("카메라를 사용할 수 없습니다.")
         }
     }
-
+    
+    func requestCameraPermission(completion: @escaping (Bool) -> Void) {
+        AVCaptureDevice.requestAccess(for: .video) { granted in
+            DispatchQueue.main.async {
+                completion(granted)
+            }
+        }
+    }
+    
+    func requestPhotoLibraryPermission(completion: @escaping (Bool) -> Void) {
+        PHPhotoLibrary.requestAuthorization { status in
+            DispatchQueue.main.async {
+                completion(status == .authorized)
+            }
+        }
+    }
+    
+    func checkPermissionsAndProceed() {
+        let cameraStatus = AVCaptureDevice.authorizationStatus(for: .video)
+        let photoLibraryStatus = PHPhotoLibrary.authorizationStatus()
+        
+        if cameraStatus == .authorized && photoLibraryStatus == .authorized {
+            showPhotoSelectionActionSheet()
+        } else {
+            showPermissionRequestAlert()
+        }
+    }
+    
+    func showPermissionRequestAlert() {
+        let alert = UIAlertController(title: "권한 요청", message: "이 기능을 사용하기 위해 카메라 및 사진 라이브러리 접근 권한이 필요합니다.", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "확인", style: .default, handler: { _ in
+            self.requestPermissions { granted in
+                DispatchQueue.main.async {
+                    if granted {
+                        self.showPhotoSelectionActionSheet()
+                    } else {
+                        self.showSettingsAlert()
+                    }
+                }
+            }
+        }))
+        self.present(alert, animated: true, completion: nil)
+    }
+    
     func requestPermissions(completion: @escaping (Bool) -> Void) {
         let group = DispatchGroup()
         var cameraGranted = false
         var albumGranted = false
         
         group.enter()
-        AVCaptureDevice.requestAccess(for: .video) { granted in
+        requestCameraPermission { granted in
             cameraGranted = granted
             group.leave()
         }
         
         group.enter()
-        PHPhotoLibrary.requestAuthorization { status in
-            albumGranted = (status == .authorized)
+        requestPhotoLibraryPermission { granted in
+            albumGranted = granted
             group.leave()
         }
         
@@ -1768,46 +1848,23 @@ extension AccountInfoViewController: UIImagePickerControllerDelegate {
             completion(cameraGranted && albumGranted)
         }
     }
-
+    
     func showPhotoSelectionActionSheet() {
         let alert = UIAlertController(title: nil, message: "사진을 선택하세요", preferredStyle: .actionSheet)
         alert.addAction(UIAlertAction(title: "사진 앨범", style: .default, handler: { _ in
-            self.openGallery(imagePicker: self.profileImagePicker)
+            self.openGallery()
         }))
         alert.addAction(UIAlertAction(title: "카메라", style: .default, handler: { _ in
-            self.openCamera(imagePicker: self.profileImagePicker)
+            self.openCamera()
         }))
         alert.addAction(UIAlertAction(title: "취소", style: .cancel, handler: nil))
         self.present(alert, animated: true, completion: nil)
     }
     
-    func checkAndRequestPermissions(completion: @escaping (Bool) -> Void) {
-        let cameraStatus = AVCaptureDevice.authorizationStatus(for: .video)
-        let albumStatus = PHPhotoLibrary.authorizationStatus()
-        
-        if cameraStatus == .authorized && albumStatus == .authorized {
-            completion(true)
-            return
-        }
-        
+    func showSettingsAlert() {
         let alert = UIAlertController(
             title: "권한 필요",
-            message: "프로필 사진 설정과 게시물 작성을 위해 카메라와 사진 라이브러리 접근 권한이 필요합니다. 허용하시겠습니까?",
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: "확인", style: .default, handler: { _ in
-            self.requestPermissions(completion: completion)
-        }))
-        alert.addAction(UIAlertAction(title: "취소", style: .cancel, handler: { _ in
-            completion(false)
-        }))
-        present(alert, animated: true, completion: nil)
-    }
-
-    func showPermissionManagementView() {
-        let alert = UIAlertController(
-            title: "권한 관리",
-            message: "카메라와 사진 라이브러리 접근 권한을 변경하려면 설정으로 이동하세요.",
+            message: "카메라 및 사진 라이브러리 접근 권한이 필요합니다. 설정에서 권한을 허용해 주세요.",
             preferredStyle: .alert
         )
         alert.addAction(UIAlertAction(title: "설정으로 이동", style: .default, handler: { _ in
@@ -1815,17 +1872,16 @@ extension AccountInfoViewController: UIImagePickerControllerDelegate {
                 UIApplication.shared.open(appSettings, options: [:], completionHandler: nil)
             }
         }))
-        alert.addAction(UIAlertAction(title: "취소", style: .cancel, handler: nil))
-        present(alert, animated: true, completion: nil)
+        self.present(alert, animated: true, completion: nil)
     }
     
     // 이미지 피커에서 이미지를 선택한 후 호출되는 메소드
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         if let image = info[.originalImage] as? UIImage {
-            if picker == profileImagePicker {
-                profileShadowView.image = image
-                isProfileImageChanged = image != originalProfileImage
-                updateSaveButtonState()
+            DispatchQueue.main.async {
+                self.profileShadowView.image = image
+                self.isProfileImageChanged = image != self.originalProfileImage
+                self.updateSaveButtonState()
             }
         }
         picker.dismiss(animated: true, completion: nil)
@@ -1835,4 +1891,5 @@ extension AccountInfoViewController: UIImagePickerControllerDelegate {
     func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
         picker.dismiss(animated: true, completion: nil)
     }
+    
 }

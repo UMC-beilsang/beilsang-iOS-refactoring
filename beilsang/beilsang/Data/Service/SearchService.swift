@@ -33,7 +33,7 @@ class SearchService {
                     case ..<300 :
                         guard let result = response.value else {return}
                         completionHandler(result)
-                        print("get 요청 성공")
+                        print("검색 결과 get 요청 성공")
                     case 401 :
                         print("토큰 만료")
                         TokenManager.shared.refreshToken(refreshToken: refreshToken, completion: { _ in }) {
@@ -45,8 +45,7 @@ class SearchService {
                     }
                     // 호출 실패 시 처리 위함
                 case .failure(let error):
-                    print(error)
-                    print("get 요청 실패")
+                    print("검색 결과 get 요청 실패: \(error)")
                 }
             })
         }

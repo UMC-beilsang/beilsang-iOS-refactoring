@@ -324,12 +324,30 @@ extension LikeViewController: UICollectionViewDataSource, UICollectionViewDelega
             selectedCategory = txt
             request()
         case challengeBoxCollectionView:
-            let cell = collectionView.cellForItem(at: indexPath) as! ChallengeListCollectionViewCell
-            
-            let challengeDetailVC = ChallengeDetailViewController()
-            challengeDetailVC.detailChallengeId = cell.challengeListChallengeId
-            challengeDetailVC.hidesBottomBarWhenPushed = true
-            navigationController?.pushViewController(challengeDetailVC, animated: true)
+            guard let cell = collectionView.cellForItem(at: indexPath) as? ChallengeListCollectionViewCell,
+                  let challengeId = cell.challengeListChallengeId else {
+                return
+            }
+
+            ChallengeService.shared.challengeDetail(detailChallengeId: challengeId) { [weak self] response in
+                guard let self = self else { return }
+
+                // achieveRate가 nil인 경우와 값이 있는 경우를 구분
+                if response.data.achieveRate != nil {
+                    // achieveRate가 nil이 아니고 0 또는 그 이상의 값을 가지는 경우
+                    let nextVC = JoinChallengeViewController()
+                    nextVC.joinChallengeId = challengeId
+                    nextVC.hidesBottomBarWhenPushed = true
+                    self.navigationController?.pushViewController(nextVC, animated: true)
+                } else {
+                    // achieveRate가 nil인 경우
+                    let nextVC = ChallengeDetailViewController()
+                    nextVC.detailChallengeId = challengeId
+                    nextVC.hidesBottomBarWhenPushed = true
+                    self.navigationController?.pushViewController(nextVC, animated: true)
+                }
+            }
+
         default:
             return
         }

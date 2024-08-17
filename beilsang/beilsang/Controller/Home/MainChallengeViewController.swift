@@ -366,13 +366,23 @@ extension MainChallengeViewController: UICollectionViewDataSource, UICollectionV
             let nextVC = JoinChallengeViewController()
             nextVC.joinChallengeId = challengeId
             nextVC.hidesBottomBarWhenPushed = true
-            navigationController?.pushViewController(nextVC, animated: true)
+            hideBottomBarAndPushViewController(nextVC)
         } else {
             let nextVC = ChallengeDetailViewController()
             nextVC.detailChallengeId = challengeId
             nextVC.hidesBottomBarWhenPushed = true
-            navigationController?.pushViewController(nextVC, animated: true)
+            hideBottomBarAndPushViewController(nextVC)
         }
     }
+
+    private func hideBottomBarAndPushViewController(_ viewController: UIViewController) {
+        if let tabBarController = self.tabBarController {
+            tabBarController.tabBar.isHidden = true
+            self.navigationController?.pushViewController(viewController, animated: true)
+        } else {
+            navigationController?.pushViewController(viewController, animated: true)
+        }
+    }
+
 }
 

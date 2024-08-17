@@ -25,7 +25,6 @@ class FindService {
             
             guard let addPath = addPath else { return }
             let url = baseEndPoint.requestURL + addPath
-            print(url)
             
             AF.request(url, method: .get, encoding: JSONEncoding.default, headers: headers).validate().responseDecodable(of: GetRecommendChallenge.self, completionHandler:{ response in
                 debugPrint(response)
@@ -33,7 +32,7 @@ class FindService {
                 case .success:
                     guard let result = response.value else {return}
                     completionHandler(result)
-                    print("get 요청 성공")
+                    print("추천 챌린지 get 요청 성공")
                     // 호출 실패 시 처리 위함
                 case .failure(let error):
                     switch error.responseCode{
@@ -46,8 +45,7 @@ class FindService {
                         }
                     default : print("네트워크 fail")
                     }
-                    print(error)
-                    print("get 요청 실패")
+                    print("추천 챌린지 get 요청 실패: \(error)")
                 }
             })
         }

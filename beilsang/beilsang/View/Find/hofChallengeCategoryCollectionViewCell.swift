@@ -8,7 +8,7 @@
 import UIKit
 
 // 발견 - 명예의 전당 챌린지 모음집 카테고리
-class HofChallengeCategoryCollectionViewCell: UICollectionViewCell {
+class hofChallengeCategoryCollectionViewCell: UICollectionViewCell {
     
     static let identifier = "hofChallengeCategoryCollectionViewCell"
     // 달성 메달 셀 전체 뷰
@@ -50,7 +50,7 @@ class HofChallengeCategoryCollectionViewCell: UICollectionViewCell {
 }
 
 // MARK: - layout setting
-extension HofChallengeCategoryCollectionViewCell {
+extension hofChallengeCategoryCollectionViewCell {
     func setLayout() {
         self.addSubview(categoryLabel)
         categoryLabel.snp.makeConstraints { make in

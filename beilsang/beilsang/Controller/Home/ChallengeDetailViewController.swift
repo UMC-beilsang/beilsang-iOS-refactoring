@@ -762,6 +762,7 @@ class ChallengeDetailViewController: UIViewController {
     }
     
     private func setupLayout() {
+        let height = UIScreen.main.bounds.height
         let width = UIScreen.main.bounds.width
         
         verticalScrollView.snp.makeConstraints { make in
@@ -772,6 +773,11 @@ class ChallengeDetailViewController: UIViewController {
             make.edges.equalTo(verticalScrollView.contentLayoutGuide)
             make.width.equalTo(verticalScrollView.frameLayoutGuide)
             viewHeight = make.height.equalTo(1587).constraint
+        }
+        
+        bottomView.snp.makeConstraints{ make in
+            make.leading.trailing.bottom.equalToSuperview()
+            make.height.equalTo(height * 0.1)
         }
         
         representImageView.snp.makeConstraints{ make in
@@ -983,14 +989,8 @@ class ChallengeDetailViewController: UIViewController {
             make.bottom.equalTo(verticalContentView.snp.bottom)
         }
         
-        bottomView.snp.makeConstraints{ make in
-            make.bottom.equalToSuperview()
-            make.height.equalTo(96)
-            make.leading.trailing.equalToSuperview()
-        }
-        
         bookMarkButton.snp.makeConstraints{ make in
-            make.top.equalToSuperview().offset(15)
+            make.top.equalToSuperview().offset(height * 0.018)
             make.leading.equalToSuperview().offset(28)
             make.height.width.equalTo(30)
         }
@@ -1001,17 +1001,10 @@ class ChallengeDetailViewController: UIViewController {
         }
         
         joinButton.snp.makeConstraints{ make in
-            make.top.equalToSuperview().offset(14)
-            make.trailing.equalToSuperview().offset(-28)
-            make.width.equalTo(140)
-            make.height.equalTo(52)
-        }
-        
-        toastLabel.snp.makeConstraints{ make in
-            make.bottom.equalTo(bottomView.snp.top).offset(12)
-            make.leading.equalToSuperview().offset(24)
-            make.trailing.equalToSuperview().offset(-24)
-            make.height.equalTo(44)
+            make.top.equalToSuperview().offset(16)
+            make.trailing.equalToSuperview().offset(-32)
+            make.width.equalTo(width * 0.41)
+            make.bottom.equalToSuperview().offset(-16)
         }
         
         // 신고하기 팝업
@@ -1176,7 +1169,7 @@ class ChallengeDetailViewController: UIViewController {
     }
     
     @objc func reportButtonTapped() {
-        let reportUrl = NSURL(string: "https://moaform.com/q/dcQIJc")
+        let reportUrl = NSURL(string: "https://answer.moaform.com/answers/M0wYyq")
         let reportSafariView: SFSafariViewController = SFSafariViewController(url: reportUrl! as URL)
         self.present(reportSafariView, animated: true, completion: nil)
         alertViewResponder?.close()
@@ -1323,7 +1316,54 @@ extension ChallengeDetailViewController {
             self.bookMarkLabel.text = String(response.data.likes) // 북마크 수
             
             self.ddayToastLabel.text = "📆 챌린지가 \(response.data.dday)일 뒤 시작됩니다!"
+            
+            //bottomProofButton
+            let convertedStartDate = DateConverter.shared.convertStringToDate(from: response.data.startDate)
+            let originalPeriod = response.data.period
+            
+            var newDate: Date
+            
+            switch originalPeriod {
+            case "WEEK":
+                newDate = self.addPeriodToDate(convertedStartDate!, period: .week, value: 1)
+            case "MONTH":
+                newDate = self.addPeriodToDate(convertedStartDate!, period: .month, value: 1)
+            default:
+                newDate = convertedStartDate!
+            }
+            
+            if newDate < Date() {
+                self.joinButton.isEnabled = false
+                self.joinButton.backgroundColor = .beScPurple400
+            }
         }
+    }
+    
+    //Update Bottombutton
+    func addPeriodToDate(_ date: Date, period: Period, value: Int) -> Date {
+        var dateComponent = DateComponents()
+        
+        switch period {
+        case .week:
+            dateComponent.weekOfYear = value
+        case .month:
+            dateComponent.month = value
+        }
+        
+        let calendar = Calendar.current
+        if let newDate = calendar.date(byAdding: dateComponent, to: date) {
+            print(newDate)
+            return newDate
+        } else {
+            return date // 에러 발생 시 기본적으로 원래 날짜 반환
+        }
+    }
+    
+    func stringToDate(from serverDate: String) -> Date? {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        dateFormatter.timeZone = TimeZone(identifier: "Asia/Seoul") // 한국 시간대 설정
+        return dateFormatter.date(from: serverDate)
     }
     
     // 실천 기간과 횟수만 빨간색 글자로 바꾸기 위한 함수
@@ -1377,6 +1417,11 @@ extension ChallengeDetailViewController {
         self.challengeRecommendData = response
         self.recommendCollectionView.reloadData()
     }
+    
+    enum Period {
+        case week
+        case month
+    }
 }
 
 // MARK: - 챌린지 참여하기 post
@@ -1425,3 +1470,4 @@ extension ChallengeDetailViewController {
         }
     }
 }
+
