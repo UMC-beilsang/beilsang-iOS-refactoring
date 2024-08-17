@@ -95,7 +95,6 @@
 		895ACC3C2B7FC67400A0578C /* LearnMoreViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 895ACC3B2B7FC67400A0578C /* LearnMoreViewController.swift */; };
 		895AE87A2B7B15A6008F9125 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 895AE8792B7B15A6008F9125 /* Kingfisher */; };
 		895BA6182B6B341300FB514F /* MyChallengeFeedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 895BA6172B6B341300FB514F /* MyChallengeFeedViewController.swift */; };
-		895D887A2B6D45B8003E5688 /* FindOldViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 895D88792B6D45B8003E5688 /* FindOldViewController.swift */; };
 		89608DBC2B7A36A200B93421 /* FeedModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89608DBB2B7A36A200B93421 /* FeedModel.swift */; };
 		89608DBE2B7A440200B93421 /* GetDuplicateCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89608DBD2B7A440200B93421 /* GetDuplicateCheck.swift */; };
 		89608DC02B7A475B00B93421 /* GetMyPageFeedDetail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89608DBF2B7A475B00B93421 /* GetMyPageFeedDetail.swift */; };
@@ -256,7 +255,6 @@
 		895A22D52B751A6700A5230D /* GetMyPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetMyPage.swift; sourceTree = "<group>"; };
 		895ACC3B2B7FC67400A0578C /* LearnMoreViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearnMoreViewController.swift; sourceTree = "<group>"; };
 		895BA6172B6B341300FB514F /* MyChallengeFeedViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyChallengeFeedViewController.swift; sourceTree = "<group>"; };
-		895D88792B6D45B8003E5688 /* FindOldViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FindOldViewController.swift; sourceTree = "<group>"; };
 		89608DBB2B7A36A200B93421 /* FeedModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedModel.swift; sourceTree = "<group>"; };
 		89608DBD2B7A440200B93421 /* GetDuplicateCheck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetDuplicateCheck.swift; sourceTree = "<group>"; };
 		89608DBF2B7A475B00B93421 /* GetMyPageFeedDetail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GetMyPageFeedDetail.swift; sourceTree = "<group>"; };
@@ -686,7 +684,6 @@
 		895D88782B6D45B1003E5688 /* Find */ = {
 			isa = PBXGroup;
 			children = (
-				895D88792B6D45B8003E5688 /* FindOldViewController.swift */,
 				2F1001922C5D40F200C4711D /* FindViewController.swift */,
 			);
 			path = Find;
@@ -976,7 +973,6 @@
 				AF7E94742B7A906500338DA3 /* MainAfterCollectionViewCell.swift in Sources */,
 				2FB2BCDD2C244F1D009DDEBA /* NotificationService.swift in Sources */,
 				893DF7D82B7B979700B09573 /* URLSetting.swift in Sources */,
-				895D887A2B6D45B8003E5688 /* FindOldViewController.swift in Sources */,
 				AF4403342B63DF73006B68FE /* CategoryCollectionViewCell.swift in Sources */,
 				8957B14C2B7B75FB00F99928 /* FindService.swift in Sources */,
 				AF44034E2B6D3A76006B68FE /* RegisterModalViewController.swift in Sources */,
