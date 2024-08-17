@@ -49,7 +49,7 @@ class DateConverter {
         
         notificationFormatter = DateFormatter()
         notificationFormatter.dateFormat = "H시간 전"
-  
+        
     }
     
     func convertToFrontFormat(from serverDate: String) -> String? {
@@ -96,5 +96,9 @@ class DateConverter {
         }
         
         return nil
+    }
+    
+    func convertStringToDate(from serverDate: String) -> Date? {
+        return serverFormatter.date(from: serverDate)
     }
 }

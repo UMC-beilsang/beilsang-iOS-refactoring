@@ -16,7 +16,7 @@ class MyChallengeViewController: UIViewController, UIScrollViewDelegate {
     // 전체 화면 scrollview
     let fullScrollView = UIScrollView()
     let fullContentView = UIView()
-    let menuList = ["참여중", "등록한", "완료됨"]
+    let menuList = ["참여중", "등록한", "완료된"]
     var cellList : [ChallengeModel] = []
     var medalCount: Int = 0
     

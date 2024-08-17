@@ -275,15 +275,7 @@ class RegisterCertifyViewController: UIViewController {
     }
     
     @objc func certifyPhotoButtonClicked() {
-        checkAndRequestPermissions { granted in
-            DispatchQueue.main.async {
-                if granted {
-                    self.showPhotoSelectionActionSheet()
-                } else {
-                    self.showPermissionManagementView()
-                }
-            }
-        }
+        checkPermissionsAndProceed()
     }
     
     @objc func photoCloseButtonClicked() {
@@ -492,18 +484,61 @@ extension RegisterCertifyViewController: UIImagePickerControllerDelegate, UINavi
         certifyImagePicker.delegate = self
     }
     
-    func openGallery(imagePicker: UIImagePickerController) {
-        imagePicker.sourceType = .photoLibrary
-        present(imagePicker, animated: true, completion: nil)
+    func openGallery() {
+        certifyImagePicker.sourceType = .photoLibrary
+        present(certifyImagePicker, animated: true, completion: nil)
     }
-
-    func openCamera(imagePicker: UIImagePickerController) {
+    
+    func openCamera() {
         if UIImagePickerController.isSourceTypeAvailable(.camera) {
-            imagePicker.sourceType = .camera
-            present(imagePicker, animated: true, completion: nil)
+            certifyImagePicker.sourceType = .camera
+            present(certifyImagePicker, animated: true, completion: nil)
         } else {
             print("카메라를 사용할 수 없습니다.")
         }
+    }
+    
+    func requestCameraPermission(completion: @escaping (Bool) -> Void) {
+        AVCaptureDevice.requestAccess(for: .video) { granted in
+            DispatchQueue.main.async {
+                completion(granted)
+            }
+        }
+    }
+    
+    func requestPhotoLibraryPermission(completion: @escaping (Bool) -> Void) {
+        PHPhotoLibrary.requestAuthorization { status in
+            DispatchQueue.main.async {
+                completion(status == .authorized)
+            }
+        }
+    }
+    
+    func checkPermissionsAndProceed() {
+        let cameraStatus = AVCaptureDevice.authorizationStatus(for: .video)
+        let photoLibraryStatus = PHPhotoLibrary.authorizationStatus()
+
+        if cameraStatus == .authorized && photoLibraryStatus == .authorized {
+            showPhotoSelectionActionSheet()
+        } else {
+            showPermissionRequestAlert()
+        }
+    }
+
+    func showPermissionRequestAlert() {
+        let alert = UIAlertController(title: "권한 요청", message: "이 기능을 사용하기 위해 카메라 및 사진 라이브러리 접근 권한이 필요합니다.", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "확인", style: .default, handler: { _ in
+            self.requestPermissions { granted in
+                DispatchQueue.main.async {
+                    if granted {
+                        self.showPhotoSelectionActionSheet()
+                    } else {
+                        self.showSettingsAlert()
+                    }
+                }
+            }
+        }))
+        self.present(alert, animated: true, completion: nil)
     }
 
     func requestPermissions(completion: @escaping (Bool) -> Void) {
@@ -512,14 +547,14 @@ extension RegisterCertifyViewController: UIImagePickerControllerDelegate, UINavi
         var albumGranted = false
         
         group.enter()
-        AVCaptureDevice.requestAccess(for: .video) { granted in
+        requestCameraPermission { granted in
             cameraGranted = granted
             group.leave()
         }
         
         group.enter()
-        PHPhotoLibrary.requestAuthorization { status in
-            albumGranted = (status == .authorized)
+        requestPhotoLibraryPermission { granted in
+            albumGranted = granted
             group.leave()
         }
         
@@ -531,42 +566,19 @@ extension RegisterCertifyViewController: UIImagePickerControllerDelegate, UINavi
     func showPhotoSelectionActionSheet() {
         let alert = UIAlertController(title: nil, message: "사진을 선택하세요", preferredStyle: .actionSheet)
         alert.addAction(UIAlertAction(title: "사진 앨범", style: .default, handler: { _ in
-            self.openGallery(imagePicker: self.certifyImagePicker)
+            self.openGallery()
         }))
         alert.addAction(UIAlertAction(title: "카메라", style: .default, handler: { _ in
-            self.openCamera(imagePicker: self.certifyImagePicker)
+            self.openCamera()
         }))
         alert.addAction(UIAlertAction(title: "취소", style: .cancel, handler: nil))
         self.present(alert, animated: true, completion: nil)
     }
-    
-    func checkAndRequestPermissions(completion: @escaping (Bool) -> Void) {
-        let cameraStatus = AVCaptureDevice.authorizationStatus(for: .video)
-        let albumStatus = PHPhotoLibrary.authorizationStatus()
-        
-        if cameraStatus == .authorized && albumStatus == .authorized {
-            completion(true)
-            return
-        }
-        
+
+    func showSettingsAlert() {
         let alert = UIAlertController(
             title: "권한 필요",
-            message: "프로필 사진 설정과 게시물 작성을 위해 카메라와 사진 라이브러리 접근 권한이 필요합니다. 허용하시겠습니까?",
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: "확인", style: .default, handler: { _ in
-            self.requestPermissions(completion: completion)
-        }))
-        alert.addAction(UIAlertAction(title: "취소", style: .cancel, handler: { _ in
-            completion(false)
-        }))
-        present(alert, animated: true, completion: nil)
-    }
-
-    func showPermissionManagementView() {
-        let alert = UIAlertController(
-            title: "권한 관리",
-            message: "카메라와 사진 라이브러리 접근 권한을 변경하려면 설정으로 이동하세요.",
+            message: "카메라 및 사진 라이브러리 접근 권한이 필요합니다. 설정에서 권한을 허용해 주세요.",
             preferredStyle: .alert
         )
         alert.addAction(UIAlertAction(title: "설정으로 이동", style: .default, handler: { _ in
@@ -574,8 +586,7 @@ extension RegisterCertifyViewController: UIImagePickerControllerDelegate, UINavi
                 UIApplication.shared.open(appSettings, options: [:], completionHandler: nil)
             }
         }))
-        alert.addAction(UIAlertAction(title: "취소", style: .cancel, handler: nil))
-        present(alert, animated: true, completion: nil)
+        self.present(alert, animated: true, completion: nil)
     }
     
     // 이미지 피커에서 이미지를 선택한 후 호출되는 메소드

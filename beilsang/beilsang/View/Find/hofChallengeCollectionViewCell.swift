@@ -7,7 +7,7 @@
 
 import UIKit
 
-class HofChallengeCollectionViewCell: UICollectionViewCell {
+class hofChallengeCollectionViewCell: UICollectionViewCell {
     
     static let identifier = "hofChallengeCollectionViewCell"
     var challengeId: Int = 0
@@ -81,7 +81,7 @@ class HofChallengeCollectionViewCell: UICollectionViewCell {
 }
 
 // MARK: - layout setting
-extension HofChallengeCollectionViewCell {
+extension hofChallengeCollectionViewCell {
     func setLayout() {
         self.addSubview(custombutton)
         custombutton.addSubview(challengeImage)

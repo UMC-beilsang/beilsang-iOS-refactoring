@@ -19,7 +19,9 @@ class JoinChallengeViewController: UIViewController {
     var challengeFeedData : [ChallengeJoinFeedData] = []
     var challengeFeedDetailData : MyPageFeedDetailData? = nil
     var challengeGuideData : [String] = []
-    var challengeProgressRate: Double? = nil
+    var challengeProgressRate: Float? = nil
+    
+    var isGalleryAllView : Bool = false
 
     var alertViewResponder: SCLAlertViewResponder? = nil
     
@@ -52,8 +54,8 @@ class JoinChallengeViewController: UIViewController {
     }()
     
     //View
-    let verticalScrollView = UIScrollView()
-    let verticalContentView = UIView()
+    let fullScrollView = UIScrollView()
+    let fullContentView = UIView()
     
     lazy var representImageView : UIImageView = {
         let view = UIImageView()
@@ -582,6 +584,18 @@ class JoinChallengeViewController: UIViewController {
         return view
     }()
     
+    lazy var reportUnderLabel: UILabel = {
+        let view = UILabel()
+        view.text = "신고하기를 누를시 외부 링크로 연결됩니다"
+        view.font = UIFont(name: "NotoSansKR-Regular", size: 11)
+        view.numberOfLines = 2
+        view.textColor = .beTextEx
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.textAlignment = .center
+        
+        return view
+    }()
+    
     lazy var reportCancelButton : UIButton = {
         let button = UIButton()
         button.backgroundColor = .beBgSub
@@ -608,7 +622,6 @@ class JoinChallengeViewController: UIViewController {
     //toastPopUp
     lazy var toastLabel : UILabel = {
         let view = UILabel()
-        view.text = "🌳 현재 진행도는 70%입니다!"
         view.textColor = .white
         view.font = UIFont(name: "NotoSansKR-Medium", size: 16)
         view.clipsToBounds = true
@@ -628,9 +641,11 @@ class JoinChallengeViewController: UIViewController {
         setFeedData()
         setChallengeGuide()
         setCollectionView()
-        
         UISetup()
-        showToast()
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+            self.showToast()
+        }
     }
     
     //MARK: - Actions
@@ -663,7 +678,7 @@ class JoinChallengeViewController: UIViewController {
     }
     
     @objc func reportButtonTapped() {
-        let reportUrl = NSURL(string: "https://moaform.com/q/dcQIJc")
+        let reportUrl = NSURL(string: "https://answer.moaform.com/answers/M0wYyq")
         let reportSafariView: SFSafariViewController = SFSafariViewController(url: reportUrl! as URL)
         self.present(reportSafariView, animated: true, completion: nil)
         alertViewResponder?.close()
@@ -685,8 +700,11 @@ class JoinChallengeViewController: UIViewController {
     @objc func viewAllButtonClicked() {
         print("전체 보기")
         setViewAllFeed()
-        
-        
+    }
+    
+    @objc func viewAllButtonClickedReturn() {
+        print("간략히 보기")
+        setViewOriginalFeed()
     }
     
     // MARK: - UI Setup
@@ -721,10 +739,10 @@ extension JoinChallengeViewController {
     private func setViewLayout() {
         view.addSubview(bottomView)
         
-        view.addSubview(verticalScrollView)
-        verticalScrollView.addSubview(verticalContentView)
+        view.addSubview(fullScrollView)
+        fullScrollView.addSubview(fullContentView)
         
-        [representImageView, challengeTitleLabel, challengeJoinPeopleNumLabel, challengeWriterLabel, divideLine, challengeMadeDateLabel, challengeCategoryView, progressTitleLabel, progressView, challengePeriodView, divider1, galleryTitleLabel, gallerySubTitleLabel, galleryCollectionView, viewAllButton, noFeedLabel, noFeedButton, feedDetailView, divider2, detailTitleLabel, detailView, cautionTitleLabel, cautionSubTitleLabel, cautionView, cautionImageView, divider3, pointExpTitleLabel, pointExpView].forEach{view in verticalContentView.addSubview(view)}
+        [representImageView, challengeTitleLabel, challengeJoinPeopleNumLabel, challengeWriterLabel, divideLine, challengeMadeDateLabel, challengeCategoryView, progressTitleLabel, progressView, challengePeriodView, divider1, galleryTitleLabel, gallerySubTitleLabel, galleryCollectionView, viewAllButton, noFeedLabel, noFeedButton, feedDetailView, divider2, detailTitleLabel, detailView, cautionTitleLabel, cautionSubTitleLabel, cautionView, cautionImageView, divider3, pointExpTitleLabel, pointExpView].forEach{view in fullContentView.addSubview(view)}
         
         challengeCategoryView.addSubview(challengeCategoryIcon)
         challengeCategoryView.addSubview(challengeCategoryLabel)
@@ -758,16 +776,16 @@ extension JoinChallengeViewController {
             make.height.equalTo(height * 0.1)
         }
         
-        verticalScrollView.snp.makeConstraints { make in
+        fullScrollView.snp.makeConstraints { make in
             make.top.equalTo(view.safeAreaLayoutGuide.snp.top)
             make.leading.trailing.equalToSuperview()
             make.bottom.equalTo(bottomView.snp.top)
         }
         
         //verticalContentView
-        verticalContentView.snp.makeConstraints { make in
-            make.edges.equalTo(verticalScrollView.contentLayoutGuide)
-            make.width.equalTo(verticalScrollView.frameLayoutGuide)
+        fullContentView.snp.makeConstraints { make in
+            make.edges.equalTo(fullScrollView.contentLayoutGuide)
+            make.width.equalTo(fullScrollView.frameLayoutGuide)
             make.bottom.equalTo(pointExpView.snp.bottom).offset(48)
         }
         
@@ -905,6 +923,13 @@ extension JoinChallengeViewController {
             make.centerX.equalToSuperview()
             make.height.equalTo(40)
             make.width.equalTo(240)
+        }
+        
+        feedDetailView.snp.makeConstraints { make in
+            make.top.equalTo(galleryCollectionView.snp.top)
+            make.leading.equalToSuperview().offset(16)
+            make.trailing.equalToSuperview().offset(-16)
+            make.height.equalTo(800)
         }
         
         feedDetailCollectionView.snp.makeConstraints { make in
@@ -1052,13 +1077,6 @@ extension JoinChallengeViewController {
             make.bottom.equalTo(reportCancelButton.snp.top).offset(-28)
             make.centerX.equalTo(reportSubView)
         }
-        
-        feedDetailView.snp.makeConstraints { make in
-            make.top.equalTo(galleryCollectionView.snp.top)
-            make.leading.equalToSuperview().offset(16)
-            make.trailing.equalToSuperview().offset(-16)
-            make.height.equalTo(916)
-        }
     }
 }
 
@@ -1075,7 +1093,6 @@ extension JoinChallengeViewController {
     }
 
     private func setupNoFeedView() {
-        
         galleryCollectionView.isHidden = true
         noFeedLabel.isHidden = false
         noFeedButton.isHidden = false
@@ -1122,7 +1139,6 @@ extension JoinChallengeViewController {
                 make.trailing.equalToSuperview().offset(-16)
                 make.height.equalTo(300)
             }
-            print("됨")
             viewAllButton.isHidden = false
         }
         
@@ -1131,6 +1147,9 @@ extension JoinChallengeViewController {
     }
     
     private func setViewAllFeed() {
+        isGalleryAllView = true
+        updateViewAllButton()
+        
         let cellHeight: CGFloat = 140
         let lineSpacing: CGFloat = 12
         
@@ -1138,7 +1157,7 @@ extension JoinChallengeViewController {
         let numberOfRows = ceil(Double(challengeFeedData.count) / 2.0)
         
         // CollectionView의 총 높이 계산
-        let totalHeight = (cellHeight * CGFloat(numberOfRows)) + (lineSpacing * (CGFloat(numberOfRows) - 1) + 120)
+        let totalHeight = (cellHeight * CGFloat(numberOfRows)) + (lineSpacing * (CGFloat(numberOfRows) - 1) + 360)
         
         galleryCollectionView.snp.remakeConstraints{ make in
             make.top.equalTo(gallerySubTitleLabel.snp.bottom).offset(20)
@@ -1147,10 +1166,59 @@ extension JoinChallengeViewController {
             make.height.equalTo(totalHeight)
         }
         
-        verticalContentView.snp.remakeConstraints { make in
-            make.edges.equalTo(verticalScrollView.contentLayoutGuide)
-            make.width.equalTo(verticalScrollView.frameLayoutGuide)
-            make.bottom.equalTo(galleryCollectionView.snp.bottom)
+        fullContentView.snp.remakeConstraints { make in
+            make.edges.equalTo(fullScrollView.contentLayoutGuide)
+            make.width.equalTo(fullScrollView.frameLayoutGuide)
+            make.bottom.equalTo(galleryCollectionView.snp.bottom).offset(-280)
+        }
+    }
+    
+    private func setViewOriginalFeed() {
+        isGalleryAllView = false
+        updateViewAllButton()
+        
+        let feedCount = challengeFeedData.count
+        
+        if feedCount <= 2 {
+            galleryCollectionView.snp.remakeConstraints{ make in
+                make.top.equalTo(gallerySubTitleLabel.snp.bottom).offset(20)
+                make.leading.equalToSuperview().offset(16)
+                make.trailing.equalToSuperview().offset(-16)
+                make.height.equalTo(148)
+            }
+        }
+        else if feedCount <= 4 {
+            galleryCollectionView.snp.remakeConstraints{ make in
+                make.top.equalTo(gallerySubTitleLabel.snp.bottom).offset(20)
+                make.leading.equalToSuperview().offset(16)
+                make.trailing.equalToSuperview().offset(-16)
+                make.height.equalTo(300)
+            }
+        }
+        else if feedCount > 4 {
+            galleryCollectionView.snp.remakeConstraints{ make in
+                make.top.equalTo(gallerySubTitleLabel.snp.bottom).offset(20)
+                make.leading.equalToSuperview().offset(16)
+                make.trailing.equalToSuperview().offset(-16)
+                make.height.equalTo(300)
+            }
+        }
+        
+        fullContentView.snp.remakeConstraints { make in
+            make.edges.equalTo(fullScrollView.contentLayoutGuide)
+            make.width.equalTo(fullScrollView.frameLayoutGuide)
+            make.bottom.equalTo(pointExpView.snp.bottom).offset(20)
+        }
+    }
+    
+    private func updateViewAllButton() {
+        if isGalleryAllView {
+            viewAllButton.setTitle("간략히 보기", for: .normal)
+            viewAllButton.addTarget(self, action: #selector(viewAllButtonClickedReturn), for: .touchUpInside)
+        }
+        else {
+            viewAllButton.setTitle("전체 보기", for: .normal)
+            viewAllButton.addTarget(self, action: #selector(viewAllButtonClicked), for: .touchUpInside)
         }
     }
 
@@ -1215,6 +1283,7 @@ extension JoinChallengeViewController {
         
         ChallengeService.shared.challengeDetail(detailChallengeId: joinChallengeId) { [weak self] response in
             guard let self = self else { return }
+            print(response.data)
             self.updateUI(with: response.data)
         }
     }
@@ -1269,7 +1338,33 @@ extension JoinChallengeViewController {
         self.bottomBookMarkButton.isSelected = data.like
         self.bottomBookMarkLabel.text = String(data.likes)
         
+        //bottomProofButton
+        let convertedStartDate = DateConverter.shared.convertStringToDate(from: data.startDate)
+        let period = data.period
+        
+        var newDate: Date
+        
+        switch period {
+        case "WEEK":
+            newDate = self.addPeriodToDate(convertedStartDate!, period: .week, value: 1)
+        case "MONTH":
+            newDate = self.addPeriodToDate(convertedStartDate!, period: .month, value: 1)
+        default:
+            newDate = convertedStartDate!
+        }
+        
+        if newDate < Date() {
+            self.bottomProofButton.isEnabled = false
+            self.bottomProofButton.backgroundColor = .beScPurple400
+        }
+        
 //        self.toastLabel.text = "📆 챌린지가 \(data.dday)일 뒤 시작됩니다!"
+        
+        //Update ProgressRate
+        let challengeProgressRate = data.achieveRate
+        self.challengeProgressRate = data.achieveRate
+        self.progressView.setProgress(challengeProgressRate ?? 0.0, animated: false)
+        self.toastLabel.text = "🌳 현재 진행도는 \(challengeProgressRate!)% 입니다!"
         
         self.updateNoFeedLabel(startDate: data.startDate)
         
@@ -1280,7 +1375,7 @@ extension JoinChallengeViewController {
     private func updateNoFeedLabel(startDate: String) {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
-        dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
+        dateFormatter.timeZone = TimeZone(abbreviation: "KST")
         
         if let date = dateFormatter.date(from: startDate) {
             let today = Date()
@@ -1343,8 +1438,30 @@ extension JoinChallengeViewController {
         
     }
     
-    //Update ProgressRate
-
+    //Update Bottombutton
+    func addPeriodToDate(_ date: Date, period: Period, value: Int) -> Date {
+        var dateComponent = DateComponents()
+        
+        switch period {
+        case .week:
+            dateComponent.weekOfYear = value
+        case .month:
+            dateComponent.month = value
+        }
+        
+        let calendar = Calendar.current
+        if let newDate = calendar.date(byAdding: dateComponent, to: date) {
+            print(newDate)
+            return newDate
+        } else {
+            return date // 에러 발생 시 기본적으로 원래 날짜 반환
+        }
+    }
+    
+    enum Period {
+        case week
+        case month
+    }
     
     //ChallengeGuide
     func setChallengeGuide() {
@@ -1518,21 +1635,26 @@ extension JoinChallengeViewController: UICollectionViewDataSource, UICollectionV
             
             self.showFeedDetail(feedId: cell.feedId!, feedImage: cell.galleryImage.image!)
             
+            if challengeFeedData.count > 4 {
+                viewAllButton.isHidden = true
+            }
+            
             feedDetailView.isHidden = false
             
             // feedDetailView를 맨 앞으로 가져오기
-            verticalContentView.bringSubviewToFront(feedDetailView)
+            fullContentView.bringSubviewToFront(feedDetailView)
             
-            divider2.snp.remakeConstraints(){ make in
-                make.top.equalTo(feedDetailView.snp.bottom).offset(60)
-                make.leading.trailing.equalToSuperview()
-                make.height.equalTo(8)
+            feedDetailView.snp.remakeConstraints { make in
+                make.top.equalTo(galleryCollectionView.snp.top)
+                make.leading.equalToSuperview().offset(16)
+                make.trailing.equalToSuperview().offset(-16)
+                make.height.equalTo(1200)
             }
             
-            verticalContentView.snp.remakeConstraints { make in
-                make.edges.equalTo(verticalScrollView.contentLayoutGuide)
-                make.width.equalTo(verticalScrollView.frameLayoutGuide)
-                make.bottom.equalTo(feedDetailView.snp.bottom).offset(20)
+            fullContentView.snp.remakeConstraints { make in
+                make.edges.equalTo(fullScrollView.contentLayoutGuide)
+                make.width.equalTo(fullScrollView.frameLayoutGuide)
+                make.bottom.equalTo(feedDetailView.snp.bottom).offset(-420)
             }
             
             view.layoutIfNeeded()
@@ -1559,19 +1681,42 @@ extension JoinChallengeViewController : CustomFeedCellDelegate {
     
     func didTapButton() {
         feedDetailView.isHidden = true
+        fullContentView.sendSubviewToBack(feedDetailView)
         
-        verticalContentView.sendSubviewToBack(feedDetailView)
-        
-        divider2.snp.remakeConstraints { make in
-            make.top.equalTo(galleryCollectionView.snp.bottom).offset(20)
-            make.leading.trailing.equalToSuperview()
-            make.height.equalTo(8)
+        if challengeFeedData.count > 4 {
+            viewAllButton.isHidden = false
         }
         
-        verticalContentView.snp.remakeConstraints { make in
-            make.edges.equalTo(verticalScrollView.contentLayoutGuide)
-            make.width.equalTo(verticalScrollView.frameLayoutGuide)
-            make.bottom.equalTo(pointExpView.snp.bottom).offset(48)
+        if isGalleryAllView {
+            let cellHeight: CGFloat = 140
+            let lineSpacing: CGFloat = 12
+            
+            // 한 줄에 2개의 셀이 존재하므로 총 행의 수를 계산
+            let numberOfRows = ceil(Double(challengeFeedData.count) / 2.0)
+            
+            // CollectionView의 총 높이 계산
+            let totalHeight = (cellHeight * CGFloat(numberOfRows)) + (lineSpacing * (CGFloat(numberOfRows) - 1) + 360)
+            
+            galleryCollectionView.snp.remakeConstraints{ make in
+                make.top.equalTo(gallerySubTitleLabel.snp.bottom).offset(20)
+                make.leading.equalToSuperview().offset(16)
+                make.trailing.equalToSuperview().offset(-16)
+                make.height.equalTo(totalHeight)
+            }
+            
+            fullContentView.snp.remakeConstraints { make in
+                make.edges.equalTo(fullScrollView.contentLayoutGuide)
+                make.width.equalTo(fullScrollView.frameLayoutGuide)
+                make.bottom.equalTo(galleryCollectionView.snp.bottom).offset(-280)
+            }
+        }
+        
+        else {
+            fullContentView.snp.remakeConstraints { make in
+                make.edges.equalTo(fullScrollView.contentLayoutGuide)
+                make.width.equalTo(fullScrollView.frameLayoutGuide)
+                make.bottom.equalTo(pointExpView.snp.bottom).offset(48)
+            }
         }
         
         view.layoutIfNeeded()

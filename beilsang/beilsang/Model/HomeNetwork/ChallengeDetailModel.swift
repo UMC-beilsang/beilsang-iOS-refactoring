@@ -35,4 +35,5 @@ struct ChallengeDetailData : Codable {
     let period : String
     let totalGoalDay : Int
     let dday : Int
+    let achieveRate : Float?
 }

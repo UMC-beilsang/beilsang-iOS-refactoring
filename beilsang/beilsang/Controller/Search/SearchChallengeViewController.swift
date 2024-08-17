@@ -401,7 +401,7 @@ extension SearchChallengeViewController: UICollectionViewDataSource, UICollectio
         }
         else if collectionView == recommendCollectionView {
             guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: RecommendCollectionViewCell.identifier, for: indexPath) as?
-            RecommendCollectionViewCell else {
+                    RecommendCollectionViewCell else {
                 return UICollectionViewCell()
             }
             
@@ -435,30 +435,12 @@ extension SearchChallengeViewController: UICollectionViewDataSource, UICollectio
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         if collectionView == challengeCollectionView {
             let challengeId = challengeList[indexPath.row].challengeId
-            let challengeDetailVC = ChallengeDetailViewController()
-            challengeDetailVC.detailChallengeId = challengeId
-            challengeDetailVC.hidesBottomBarWhenPushed = true
-            self.navigationController?.pushViewController(challengeDetailVC, animated: true)
-        }
-        else if collectionView == recommendCollectionView {
-            let cell = collectionView.cellForItem(at: indexPath) as! RecommendCollectionViewCell
-            let challengeId = cell.recommendChallengeId
-            var isEnrolled = false
-            
-            ChallengeService.shared.challengeEnrolled(EnrollChallengeId: challengeId ?? 0) { response in
-                isEnrolled = response.data.isEnrolled
-            }
-            
-            if isEnrolled {
-                let nextVC = JoinChallengeViewController()
-                nextVC.joinChallengeId = challengeId
-                nextVC.hidesBottomBarWhenPushed = true
-                navigationController?.pushViewController(nextVC, animated: true)
+            handleChallengeSelection(challengeId: challengeId)
+        } else if collectionView == recommendCollectionView {
+            if let cell = collectionView.cellForItem(at: indexPath) as? RecommendCollectionViewCell, let challengeId = cell.recommendChallengeId {
+                handleChallengeSelection(challengeId: challengeId)
             } else {
-                let nextVC = ChallengeDetailViewController()
-                nextVC.detailChallengeId = challengeId
-                nextVC.hidesBottomBarWhenPushed = true
-                navigationController?.pushViewController(nextVC, animated: true)
+                print("No Recommend Challenge")
             }
         }
     }
@@ -496,5 +478,26 @@ extension SearchChallengeViewController {
     private func setRecommendData(_ response: [ChallengeRecommendsData]) {
         self.challengeRecommendData = response
         self.recommendCollectionView.reloadData()
+    }
+    
+    private func handleChallengeSelection(challengeId: Int) {
+        ChallengeService.shared.challengeDetail(detailChallengeId: challengeId) { [weak self] response in
+            guard let self = self else { return }
+            
+            // achieveRate가 nil인 경우와 값이 있는 경우를 구분
+            if let achieveRate = response.data.achieveRate {
+                // achieveRate가 nil이 아니고 0 또는 그 이상의 값을 가지는 경우
+                let nextVC = JoinChallengeViewController()
+                nextVC.joinChallengeId = challengeId
+                nextVC.hidesBottomBarWhenPushed = true
+                self.navigationController?.pushViewController(nextVC, animated: true)
+            } else {
+                // achieveRate가 nil인 경우
+                let nextVC = ChallengeDetailViewController()
+                nextVC.detailChallengeId = challengeId
+                nextVC.hidesBottomBarWhenPushed = true
+                self.navigationController?.pushViewController(nextVC, animated: true)
+            }
+        }
     }
 }

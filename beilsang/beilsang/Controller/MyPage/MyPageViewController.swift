@@ -56,7 +56,7 @@ class MyPageViewController: UIViewController, UIScrollViewDelegate {
         let view =  UIImageView()
         view.backgroundColor = UIColor(red: 1, green: 1, blue: 1, alpha: 1)
         view.image = UIImage(named: "Mask group")
-        view.contentMode = .scaleAspectFit
+        view.contentMode = .scaleAspectFill
         view.layer.cornerRadius = 48
         
         //넘치는 영역 잘라내기
