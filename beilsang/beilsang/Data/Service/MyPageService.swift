@@ -24,6 +24,7 @@ class MyPageService {
             }
         default:
             print("네트워크 실패 - \(functionName): \(error)")
+            print("Error: \(error.localizedDescription)")
         }
     }
     

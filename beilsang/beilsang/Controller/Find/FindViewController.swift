@@ -74,6 +74,7 @@ class FindViewController: UIViewController {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
         layout.minimumInteritemSpacing = 8
+        layout.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 16)
         layout.minimumLineSpacing = 8
         let view = UICollectionView(frame: .zero, collectionViewLayout: layout)
         return view
@@ -83,6 +84,7 @@ class FindViewController: UIViewController {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
         layout.minimumInteritemSpacing = 12
+        layout.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 16)
         layout.minimumLineSpacing = 12
         layout.itemSize = CGSize(width: 160, height: 160)
         let view = UICollectionView(frame: .zero, collectionViewLayout: layout)
@@ -337,8 +339,11 @@ class FindViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        
+        hofChallengeCategoryCollectionView.reloadData()
+        feedCategoryCollectionView.reloadData()
+        
         setFirstIndexIsSelected()
-        setHofIndicator()
     }
     
     //MARK: - Actions
@@ -468,6 +473,7 @@ extension FindViewController {
         fullScrollView.snp.makeConstraints { make in
             make.top.bottom.leading.trailing.equalToSuperview()
         }
+        
         fullContentView.snp.makeConstraints { make in
             make.edges.equalTo(fullScrollView.contentLayoutGuide)
             make.width.equalTo(fullScrollView.frameLayoutGuide)
@@ -931,15 +937,12 @@ extension FindViewController: UICollectionViewDataSource, UICollectionViewDelega
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         switch collectionView {
         case hofChallengeCategoryCollectionView:
-            // Dynamic size of the Cell
-            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: hofChallengeCategoryCollectionViewCell.identifier, for: indexPath) as?
-                    hofChallengeCategoryCollectionViewCell else {
-                return .zero
-            }
-            let target = hofCategoryList[indexPath.row]
-            cell.categoryLabel.text = "\(target.image) \(target.title)"
-            cell.categoryLabel.sizeToFit()
-            return CGSize(width: cell.categoryLabel.frame.width + 20, height: 28)
+                let widths = [100, 125, 100, 112, 88, 76, 100, 88, 88]
+                
+                // 인덱스가 배열의 크기를 초과하지 않는지 확인
+                let width = indexPath.item < widths.count ? widths[indexPath.item] : 120 // 배열에 값이 없으면 기본값 120 사용
+                
+                return CGSize(width: width, height: 28)
         case hofChallengeCollectionView:
             return  CGSize(width: 160, height: 160)
         case feedCategoryCollectionView:
@@ -959,8 +962,12 @@ extension FindViewController: UICollectionViewDataSource, UICollectionViewDelega
         switch collectionView {
                 
         case hofChallengeCategoryCollectionView:
-            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: hofChallengeCategoryCollectionViewCell.identifier, for: indexPath) as? hofChallengeCategoryCollectionViewCell else {
-                return UICollectionViewCell()
+            guard let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: hofChallengeCategoryCollectionViewCell.identifier,
+                for: indexPath
+            ) as? hofChallengeCategoryCollectionViewCell else {
+                print("Could not dequeue hofChallengeCategoryCollectionViewCell")
+                return UICollectionViewCell() // 기본 셀 반환
             }
             let target = hofCategoryList[indexPath.row]
             cell.categoryLabel.text = "\(target.image) \(target.title)"
@@ -968,10 +975,14 @@ extension FindViewController: UICollectionViewDataSource, UICollectionViewDelega
             return cell
                 
         case hofChallengeCollectionView:
-            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: hofChallengeCollectionViewCell.identifier, for: indexPath) as? hofChallengeCollectionViewCell else {
-                return UICollectionViewCell()
+            guard let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: hofChallengeCollectionViewCell.identifier,
+                for: indexPath
+            ) as? hofChallengeCollectionViewCell else {
+                print("Could not dequeue hofChallengeCategoryCollectionViewCell")
+                return UICollectionViewCell() // 기본 셀 반환
             }
-                
+            
             let categoryIndex = changeHofCategoryToInt(category: hofCategory)
             guard categoryIndex != -1, let challenges = hofChallengeDict[categoryIndex], indexPath.row < challenges.count else {
                 return UICollectionViewCell()
@@ -988,9 +999,14 @@ extension FindViewController: UICollectionViewDataSource, UICollectionViewDelega
             return cell
                 
         case feedCategoryCollectionView:
-            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MyPageCategoryCollectionViewCell.identifier, for: indexPath) as? MyPageCategoryCollectionViewCell else {
-                return UICollectionViewCell()
+            guard let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: MyPageCategoryCollectionViewCell.identifier,
+                for: indexPath
+            ) as? MyPageCategoryCollectionViewCell else {
+                print("Could not dequeue hofChallengeCategoryCollectionViewCell")
+                return UICollectionViewCell() // 기본 셀 반환
             }
+            
             let target = feedCategoryList[indexPath.row]
             let img = UIImage(named: "\(target.image).svg")
             cell.keywordImage.image = img
@@ -999,9 +1015,14 @@ extension FindViewController: UICollectionViewDataSource, UICollectionViewDelega
             return cell
                 
         case feedCollectionView:
-            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MyChallengeFeedCollectionViewCell.identifier, for: indexPath) as? MyChallengeFeedCollectionViewCell else {
-                return UICollectionViewCell()
+            guard let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: MyChallengeFeedCollectionViewCell.identifier,
+                for: indexPath
+            ) as? MyChallengeFeedCollectionViewCell else {
+                print("Could not dequeue hofChallengeCategoryCollectionViewCell")
+                return UICollectionViewCell() // 기본 셀 반환
             }
+
             let categoryInt = changeFeedCategoryToInt(category: feedCategory)
             if let feedArray = feedDict[categoryInt] {
                 // 배열에서 indexPath.row에 해당하는 원소를 타겟으로 지정
@@ -1012,12 +1033,17 @@ extension FindViewController: UICollectionViewDataSource, UICollectionViewDelega
             } else {
                 print("해당 카테고리에 대한 데이터가 없습니다.")
             }
-            return cell  // 이 부분에 return이 누락되어 있었음
+            return cell
             
         case feedDetailCollectionView:
-            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedDetailCollectionViewCell.identifier, for: indexPath) as? FeedDetailCollectionViewCell else {
-                return UICollectionViewCell()
+            guard let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: FeedDetailCollectionViewCell.identifier,
+                for: indexPath
+            ) as? FeedDetailCollectionViewCell else {
+                print("Could not dequeue hofChallengeCategoryCollectionViewCell")
+                return UICollectionViewCell() // 기본 셀 반환
             }
+
             cell.delegate = self
             return cell
                 
@@ -1028,112 +1054,127 @@ extension FindViewController: UICollectionViewDataSource, UICollectionViewDelega
     
     // Cell 선택 시 액션
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        switch collectionView{
+        switch collectionView {
         case hofChallengeCategoryCollectionView:
-            let cell = collectionView.cellForItem(at: indexPath) as! hofChallengeCategoryCollectionViewCell
+            guard let cell = collectionView.cellForItem(at: indexPath) as? hofChallengeCategoryCollectionViewCell else {
+                print("Could not retrieve or cast hofChallengeCategoryCollectionViewCell")
+                return
+            }
             
-            let str = cell.categoryLabel.text!
-            let startIndex = str.index(str.startIndex, offsetBy: 2) // 문자열의 세 번째 문자의 인덱스
+            let str = cell.categoryLabel.text ?? ""
+            let startIndex = str.index(str.startIndex, offsetBy: 2)
             let substring = str[startIndex...]
             hofCategory = String(substring)
             print(hofCategory)
             
             setHofChallengeData()
             
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                self.setHofIndicator()
+            }
+
         case hofChallengeCollectionView:
-            let cell = collectionView.cellForItem(at: indexPath) as! hofChallengeCollectionViewCell
-            let challengeId = cell.challengeId
+            guard let cell = collectionView.cellForItem(at: indexPath) as? hofChallengeCollectionViewCell else {
+                print("Could not retrieve or cast hofChallengeCollectionViewCell")
+                return
+            }
             
+            let challengeId = cell.challengeId
             ChallengeService.shared.challengeDetail(detailChallengeId: challengeId) { [weak self] response in
                 guard let self = self else { return }
-
-                // achieveRate가 nil인 경우와 값이 있는 경우를 구분
-                if response.data.achieveRate != nil {
-                    // achieveRate가 nil이 아니고 0 또는 그 이상의 값을 가지는 경우
+                if let achieveRate = response.data.achieveRate {
                     let nextVC = JoinChallengeViewController()
                     nextVC.joinChallengeId = challengeId
                     nextVC.hidesBottomBarWhenPushed = true
                     self.navigationController?.pushViewController(nextVC, animated: true)
                 } else {
-                    // achieveRate가 nil인 경우
                     let nextVC = ChallengeDetailViewController()
                     nextVC.detailChallengeId = challengeId
                     nextVC.hidesBottomBarWhenPushed = true
                     self.navigationController?.pushViewController(nextVC, animated: true)
                 }
             }
-            
+
         case feedCategoryCollectionView:
-            let cell = collectionView.cellForItem(at: indexPath) as! MyPageCategoryCollectionViewCell
-            
-            feedCategory = cell.keywordLabel.text!
-            
+            guard let cell = collectionView.cellForItem(at: indexPath) as? MyPageCategoryCollectionViewCell else {
+                print("Could not retrieve or cast MyPageCategoryCollectionViewCell")
+                return
+            }
+
+            feedCategory = cell.keywordLabel.text ?? ""
             moreFeedButton.setTitle("\(feedCategory) 챌린지 더보기", for: .normal)
-            
             setFeedData()
-            
+
         case feedCollectionView:
             guard let cell = collectionView.cellForItem(at: indexPath) as? MyChallengeFeedCollectionViewCell else {
+                print("Could not retrieve or cast MyChallengeFeedCollectionViewCell")
                 return
             }
+            
             feedDetailView.isHidden = false
-            
             guard let feedCell = feedDetailCollectionView.cellForItem(at: IndexPath(item: 0, section: 0)) as? FeedDetailCollectionViewCell else {
+                print("Could not retrieve or cast FeedDetailCollectionViewCell")
                 return
             }
             
-            // Check if the image is available and assign it
             if let feedImage = cell.challengeFeed.image {
                 feedCell.feedImage.image = feedImage
             } else {
                 feedCell.feedImage.image = UIImage(named: "Mask group")
             }
-            
+
             feedCell.feedId = cell.feedId!
-            
-            // Show feed details
-            self.showFeedDetail(feedId: cell.feedId!, feedImage: feedCell.feedImage.image!)
-            
-            // UI adjustment after ensuring the data is set
+            showFeedDetail(feedId: cell.feedId!, feedImage: feedCell.feedImage.image!)
+
             fullContentView.bringSubviewToFront(feedDetailView)
             feedDetailCollectionView.isHidden = false
-            
+
             feedDetailView.snp.remakeConstraints { make in
                 make.top.equalTo(feedCollectionView.snp.top)
                 make.leading.equalToSuperview().offset(16)
                 make.trailing.equalToSuperview().offset(-16)
                 make.height.equalTo(1200)
             }
-            
+
             fullContentView.snp.remakeConstraints { make in
                 make.edges.equalTo(fullScrollView.contentLayoutGuide)
                 make.width.equalTo(fullScrollView.frameLayoutGuide)
                 make.bottom.equalTo(feedDetailView.snp.bottom).offset(-420)
             }
-            
+
             view.layoutIfNeeded()
             view.setNeedsLayout()
-            
+
         default:
             return
         }
     }
     
     private func setFirstIndexIsSelected() {
+        guard !hofCategoryList.isEmpty, !feedCategoryList.isEmpty else {
+            print("hofCategoryList 또는 feedCategoryList가 비어 있습니다.")
+            return
+        }
+
         let selectedIndexPath = IndexPath(item: 0, section: 0)
-        
+
         // 첫 번째 항목 선택
         hofChallengeCategoryCollectionView.selectItem(at: selectedIndexPath, animated: false, scrollPosition: .bottom)
         feedCategoryCollectionView.selectItem(at: selectedIndexPath, animated: false, scrollPosition: .bottom)
-        
+
         // 선택 후 데이터를 로드
         setHofChallengeData()
         setFeedData()
         
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            self.setHofIndicator()
+        }
+
         // 레이아웃 강제 갱신
         self.view.setNeedsLayout()
         self.view.layoutIfNeeded()
     }
+
 }
 
 //MARK: - Scroll Setting
@@ -1149,19 +1190,25 @@ extension FindViewController: UIScrollViewDelegate {
     }
     
     private func setHofIndicator() {
+        // 스크롤 가능한 전체 길이와 화면에 보이는 너비를 계산
         let allWidth = self.hofChallengeCollectionView.contentSize.width + self.hofChallengeCollectionView.contentInset.left + self.hofChallengeCollectionView.contentInset.right
-        let showingWidth = self.hofChallengeCollectionView.bounds.width
+        let showingWidth = UIScreen.main.bounds.width - 32
         
-        if allWidth > 0 {
-            // 움직일 scroll 길이 설정
+        print(allWidth)
+        print(showingWidth)
+        
+        // allWidth와 showingWidth가 0이 아닌 경우에만 계산하도록 함
+        if allWidth > 0 && showingWidth > 0  && allWidth >= showingWidth {
             self.hofScrollIndicator.widthRatio = showingWidth / allWidth
         } else {
-            // allWidth가 0일 경우, 스크롤바가 전체를 차지하도록 설정
+            // 스크롤이 불가능할 때 기본 값 설정
             self.hofScrollIndicator.widthRatio = 1
         }
         
+        // 레이아웃 업데이트
         self.hofScrollIndicator.layoutIfNeeded()
     }
+
 }
 
 //MARK: - Protocol
