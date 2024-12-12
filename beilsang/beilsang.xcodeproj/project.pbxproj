@@ -16,6 +16,7 @@
 		2F0838A12B564086002E2551 /* beilsangUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F0838A02B564086002E2551 /* beilsangUITests.swift */; };
 		2F0838A32B564086002E2551 /* beilsangUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F0838A22B564086002E2551 /* beilsangUITestsLaunchTests.swift */; };
 		2F1001932C5D40F200C4711D /* FindViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F1001922C5D40F200C4711D /* FindViewController.swift */; };
+		2F1B23FC2D0B063F00EB96B2 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 2F1B23FB2D0B063F00EB96B2 /* GoogleService-Info.plist */; };
 		2F2EFFF22BEF6CD700068F09 /* BaseModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F2EFFF12BEF6CD700068F09 /* BaseModel.swift */; };
 		2F2F4F882C077DC600B410F1 /* AppleGetCodeManger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F2F4F872C077DC600B410F1 /* AppleGetCodeManger.swift */; };
 		2F48E0912B5BB44C002F3D4A /* NotoSansKR-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2F48E0862B5BB44B002F3D4A /* NotoSansKR-Light.ttf */; };
@@ -27,7 +28,6 @@
 		2F4D88022BEE2D4F009C16CE /* KakaoSDK in Frameworks */ = {isa = PBXBuildFile; productRef = 2F4D88012BEE2D4F009C16CE /* KakaoSDK */; };
 		2F4D88042BEE2D4F009C16CE /* KakaoSDKAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 2F4D88032BEE2D4F009C16CE /* KakaoSDKAuth */; };
 		2F4D88062BEE2D4F009C16CE /* KakaoSDKUser in Frameworks */ = {isa = PBXBuildFile; productRef = 2F4D88052BEE2D4F009C16CE /* KakaoSDKUser */; };
-		2F5971562C3FFD1700DD0868 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 2F5971552C3FFD1700DD0868 /* GoogleService-Info.plist */; };
 		2F69039C2B60429700A7716D /* Color+.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F69039B2B60429700A7716D /* Color+.swift */; };
 		2F7A666B2B809617008010C6 /* TokenService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F7A666A2B809617008010C6 /* TokenService.swift */; };
 		2F7A666D2B809D7E008010C6 /* TokenModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F7A666C2B809D7E008010C6 /* TokenModel.swift */; };
@@ -182,6 +182,7 @@
 		2F0838A02B564086002E2551 /* beilsangUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = beilsangUITests.swift; sourceTree = "<group>"; };
 		2F0838A22B564086002E2551 /* beilsangUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = beilsangUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		2F1001922C5D40F200C4711D /* FindViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FindViewController.swift; sourceTree = "<group>"; };
+		2F1B23FB2D0B063F00EB96B2 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		2F1DCE052B71495F002F1043 /* beilsangDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = beilsangDebug.entitlements; sourceTree = "<group>"; };
 		2F2EFFF12BEF6CD700068F09 /* BaseModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BaseModel.swift; sourceTree = "<group>"; };
 		2F2F4F872C077DC600B410F1 /* AppleGetCodeManger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleGetCodeManger.swift; sourceTree = "<group>"; };
@@ -192,7 +193,6 @@
 		2F48E08F2B5BB44C002F3D4A /* NotoSansKR-Thin.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "NotoSansKR-Thin.ttf"; sourceTree = "<group>"; };
 		2F48E0902B5BB44C002F3D4A /* NotoSansKR-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "NotoSansKR-Regular.ttf"; sourceTree = "<group>"; };
 		2F4CD90B2B71428000B2D02D /* beilsangRelease.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = beilsangRelease.entitlements; sourceTree = "<group>"; };
-		2F5971552C3FFD1700DD0868 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		2F69039B2B60429700A7716D /* Color+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+.swift"; sourceTree = "<group>"; };
 		2F7A666A2B809617008010C6 /* TokenService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenService.swift; sourceTree = "<group>"; };
 		2F7A666C2B809D7E008010C6 /* TokenModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenModel.swift; sourceTree = "<group>"; };
@@ -375,7 +375,7 @@
 				2F1DCE052B71495F002F1043 /* beilsangDebug.entitlements */,
 				2F4CD90B2B71428000B2D02D /* beilsangRelease.entitlements */,
 				2F08388D2B564086002E2551 /* Info.plist */,
-				2F5971552C3FFD1700DD0868 /* GoogleService-Info.plist */,
+				2F1B23FB2D0B063F00EB96B2 /* GoogleService-Info.plist */,
 				2F0838882B564086002E2551 /* Assets.xcassets */,
 				2F8C57B22B77A110002B4862 /* Data */,
 				2FC63CD82B5BB3A50050139A /* Model */,
@@ -926,7 +926,7 @@
 			files = (
 				2F48E0992B5BB44C002F3D4A /* NotoSansKR-SemiBold.ttf in Resources */,
 				2F48E09B2B5BB44C002F3D4A /* NotoSansKR-Regular.ttf in Resources */,
-				2F5971562C3FFD1700DD0868 /* GoogleService-Info.plist in Resources */,
+				2F1B23FC2D0B063F00EB96B2 /* GoogleService-Info.plist in Resources */,
 				2F08388C2B564086002E2551 /* LaunchScreen.storyboard in Resources */,
 				2F48E0932B5BB44C002F3D4A /* NotoSansKR-Medium.ttf in Resources */,
 				2F48E0912B5BB44C002F3D4A /* NotoSansKR-Light.ttf in Resources */,
