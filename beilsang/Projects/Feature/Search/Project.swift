@@ -21,7 +21,8 @@ let project = Project(
         .project(target: "NetworkCore", path: "../../Core/Network"),
         .project(target: "ModelsShared", path: "../../Shared/Models"),
         .project(target: "UtilityShared", path: "../../Shared/Utility"),
-        .project(target: "UIShared", path: "../../Shared/UI"),
+        .project(target: "DesignSystemShared", path: "../../Shared/DesignSystem"),
+        .project(target: "UIComponentsShared", path: "../../Shared/UIComponents"),
         .external(name: "SnapKit")
       ]
     )

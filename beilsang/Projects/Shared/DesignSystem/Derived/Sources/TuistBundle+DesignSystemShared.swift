@@ -11,12 +11,12 @@ import Foundation
 // MARK: - Swift Bundle Accessor for Frameworks
 private class BundleFinder {}
 extension Foundation.Bundle {
-/// Since UIShared is a dynamic framework, the bundle for classes within this module can be used directly.
+/// Since DesignSystemShared is a dynamic framework, the bundle for classes within this module can be used directly.
     static let module = Bundle(for: BundleFinder.self)
 }
 // MARK: - Objective-C Bundle Accessor
 @objc
-public class UISharedResources: NSObject {
+public class DesignSystemSharedResources: NSObject {
 @objc public class var bundle: Bundle {
     return .module
 }

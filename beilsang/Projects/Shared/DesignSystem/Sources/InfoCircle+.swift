@@ -25,10 +25,8 @@ class CircleView: UIView {
     }
 
     private func setupView() {
-        backgroundColor = .beCta
+//        backgroundColor = .beCta
         layer.cornerRadius = 2
         // 다른 초기화 코드를 추가할 수 있습니다.
-        
-        
     }
 }

@@ -19,17 +19,17 @@
 // MARK: - Fonts
 
 // swiftlint:disable identifier_name line_length type_body_length
-public enum UISharedFontFamily: Sendable {
+public enum DesignSystemSharedFontFamily: Sendable {
   public enum NotoSansKR: Sendable {
-    public static let bold = UISharedFontConvertible(name: "NotoSansKR-Bold", family: "Noto Sans KR", path: "NotoSansKR-Bold.ttf")
-    public static let light = UISharedFontConvertible(name: "NotoSansKR-Light", family: "Noto Sans KR", path: "NotoSansKR-Light.ttf")
-    public static let medium = UISharedFontConvertible(name: "NotoSansKR-Medium", family: "Noto Sans KR", path: "NotoSansKR-Medium.ttf")
-    public static let regular = UISharedFontConvertible(name: "NotoSansKR-Regular", family: "Noto Sans KR", path: "NotoSansKR-Regular.ttf")
-    public static let semiBold = UISharedFontConvertible(name: "NotoSansKR-SemiBold", family: "Noto Sans KR", path: "NotoSansKR-SemiBold.ttf")
-    public static let thin = UISharedFontConvertible(name: "NotoSansKR-Thin", family: "Noto Sans KR", path: "NotoSansKR-Thin.ttf")
-    public static let all: [UISharedFontConvertible] = [bold, light, medium, regular, semiBold, thin]
+    public static let bold = DesignSystemSharedFontConvertible(name: "NotoSansKR-Bold", family: "Noto Sans KR", path: "NotoSansKR-Bold.ttf")
+    public static let light = DesignSystemSharedFontConvertible(name: "NotoSansKR-Light", family: "Noto Sans KR", path: "NotoSansKR-Light.ttf")
+    public static let medium = DesignSystemSharedFontConvertible(name: "NotoSansKR-Medium", family: "Noto Sans KR", path: "NotoSansKR-Medium.ttf")
+    public static let regular = DesignSystemSharedFontConvertible(name: "NotoSansKR-Regular", family: "Noto Sans KR", path: "NotoSansKR-Regular.ttf")
+    public static let semiBold = DesignSystemSharedFontConvertible(name: "NotoSansKR-SemiBold", family: "Noto Sans KR", path: "NotoSansKR-SemiBold.ttf")
+    public static let thin = DesignSystemSharedFontConvertible(name: "NotoSansKR-Thin", family: "Noto Sans KR", path: "NotoSansKR-Thin.ttf")
+    public static let all: [DesignSystemSharedFontConvertible] = [bold, light, medium, regular, semiBold, thin]
   }
-  public static let allCustomFonts: [UISharedFontConvertible] = [NotoSansKR.all].flatMap { $0 }
+  public static let allCustomFonts: [DesignSystemSharedFontConvertible] = [NotoSansKR.all].flatMap { $0 }
   public static func registerAllCustomFonts() {
     allCustomFonts.forEach { $0.register() }
   }
@@ -38,7 +38,7 @@ public enum UISharedFontFamily: Sendable {
 
 // MARK: - Implementation Details
 
-public struct UISharedFontConvertible: Sendable {
+public struct DesignSystemSharedFontConvertible: Sendable {
   public let name: String
   public let family: String
   public let path: String
@@ -82,8 +82,8 @@ public struct UISharedFontConvertible: Sendable {
   }
 }
 
-public extension UISharedFontConvertible.Font {
-  convenience init?(font: UISharedFontConvertible, size: CGFloat) {
+public extension DesignSystemSharedFontConvertible.Font {
+  convenience init?(font: DesignSystemSharedFontConvertible, size: CGFloat) {
     #if os(iOS) || os(tvOS) || os(watchOS) || os(visionOS)
     if !UIFont.fontNames(forFamilyName: font.family).contains(font.name) {
       font.register()

@@ -8,13 +8,13 @@
 import ProjectDescription
 
 let project = Project(
-  name: "UIShared",
+  name: "UIComponentsShared",
   targets: [
     .target(
-      name: "UIShared",
+      name: "UIComponentsShared",
       destinations: .iOS,
       product: .framework,
-      bundleId: "com.beilsang.UIShared",
+      bundleId: "com.beilsang.UIComponentsShared",
       infoPlist: .default,
       sources: ["Sources/**"],
       resources: ["Resources/**"]

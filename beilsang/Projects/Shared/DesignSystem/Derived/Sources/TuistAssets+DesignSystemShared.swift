@@ -17,22 +17,22 @@
 
 // MARK: - Asset Catalogs
 
-public enum UISharedAsset: Sendable {
-  public static let challengeBox = UISharedColors(name: "challengeBox")
-  public static let challengeLine = UISharedColors(name: "challengeLine")
-  public static let feedLabel = UISharedColors(name: "feedLabel")
-  public static let maskGroup = UISharedImages(name: "Mask group")
-  public static let iconBadge = UISharedImages(name: "icon-badge")
-  public static let iconCheck = UISharedImages(name: "icon-check")
-  public static let iconPoint = UISharedImages(name: "icon-point")
-  public static let iconStar = UISharedImages(name: "icon-star")
-  public static let iconSettings = UISharedImages(name: "icon_settings")
-  public static let iconamoonNotificationBold = UISharedImages(name: "iconamoon_notification-bold")
+public enum DesignSystemSharedAsset: Sendable {
+  public static let challengeBox = DesignSystemSharedColors(name: "challengeBox")
+  public static let challengeLine = DesignSystemSharedColors(name: "challengeLine")
+  public static let feedLabel = DesignSystemSharedColors(name: "feedLabel")
+  public static let maskGroup = DesignSystemSharedImages(name: "Mask group")
+  public static let iconBadge = DesignSystemSharedImages(name: "icon-badge")
+  public static let iconCheck = DesignSystemSharedImages(name: "icon-check")
+  public static let iconPoint = DesignSystemSharedImages(name: "icon-point")
+  public static let iconStar = DesignSystemSharedImages(name: "icon-star")
+  public static let iconSettings = DesignSystemSharedImages(name: "icon_settings")
+  public static let iconamoonNotificationBold = DesignSystemSharedImages(name: "iconamoon_notification-bold")
 }
 
 // MARK: - Implementation Details
 
-public final class UISharedColors: Sendable {
+public final class DesignSystemSharedColors: Sendable {
   public let name: String
 
   #if os(macOS)
@@ -61,9 +61,9 @@ public final class UISharedColors: Sendable {
   }
 }
 
-public extension UISharedColors.Color {
+public extension DesignSystemSharedColors.Color {
   @available(iOS 11.0, tvOS 11.0, watchOS 4.0, macOS 10.13, visionOS 1.0, *)
-  convenience init?(asset: UISharedColors) {
+  convenience init?(asset: DesignSystemSharedColors) {
     let bundle = Bundle.module
     #if os(iOS) || os(tvOS) || os(visionOS)
     self.init(named: asset.name, in: bundle, compatibleWith: nil)
@@ -78,14 +78,14 @@ public extension UISharedColors.Color {
 #if canImport(SwiftUI)
 @available(iOS 13.0, tvOS 13.0, watchOS 6.0, macOS 10.15, visionOS 1.0, *)
 public extension SwiftUI.Color {
-  init(asset: UISharedColors) {
+  init(asset: DesignSystemSharedColors) {
     let bundle = Bundle.module
     self.init(asset.name, bundle: bundle)
   }
 }
 #endif
 
-public struct UISharedImages: Sendable {
+public struct DesignSystemSharedImages: Sendable {
   public let name: String
 
   #if os(macOS)
@@ -120,17 +120,17 @@ public struct UISharedImages: Sendable {
 #if canImport(SwiftUI)
 @available(iOS 13.0, tvOS 13.0, watchOS 6.0, macOS 10.15, visionOS 1.0, *)
 public extension SwiftUI.Image {
-  init(asset: UISharedImages) {
+  init(asset: DesignSystemSharedImages) {
     let bundle = Bundle.module
     self.init(asset.name, bundle: bundle)
   }
 
-  init(asset: UISharedImages, label: Text) {
+  init(asset: DesignSystemSharedImages, label: Text) {
     let bundle = Bundle.module
     self.init(asset.name, bundle: bundle, label: label)
   }
 
-  init(decorative asset: UISharedImages) {
+  init(decorative asset: DesignSystemSharedImages) {
     let bundle = Bundle.module
     self.init(decorative: asset.name, bundle: bundle)
   }
