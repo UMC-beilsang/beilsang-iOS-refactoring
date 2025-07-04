@@ -19,8 +19,6 @@ let project = Project(
       sources: ["Sources/**"],
       resources: ["Resources/**"],
       dependencies: [
-        .external(name: "SnapKit"),
-        .external(name: "Alamofire"),
         .project(target: "HomeFeature", path: "../Feature/Home"),
         .project(target: "DiscoverFeature", path: "../Feature/Discover"),
         .project(target: "AuthFeature", path: "../Feature/Auth"),
@@ -28,9 +26,7 @@ let project = Project(
         .project(target: "SearchFeature", path: "../Feature/Search"),
         .project(target: "MyPageFeature", path: "../Feature/MyPage"),
         .project(target: "LearnMoreFeature", path: "../Feature/LearnMore"),
-        .project(target: "ChallengeFeature", path: "../Feature/Challenge"),
-        .project(target: "NetworkCore", path: "../Core/Network"),
-        .project(target: "ModelsShared", path: "../Shared/Models"),
+        .project(target: "ChallengeFeature", path: "../Feature/Challenge")
       ]
     )
   ]

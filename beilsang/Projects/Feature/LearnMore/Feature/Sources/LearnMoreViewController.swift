@@ -122,7 +122,7 @@ extension LearnMoreViewController{
     // 사이드 버튼 액션
     @objc func tabBarButtonTapped() {
         print("알림버튼")
-        let notificationVC = NotificationViewController()
-        navigationController?.pushViewController(notificationVC, animated: true)
+//        let notificationVC = NotificationViewController()
+//        navigationController?.pushViewController(notificationVC, animated: true)
     }
 }

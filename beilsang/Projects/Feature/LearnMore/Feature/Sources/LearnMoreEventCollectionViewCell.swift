@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import UIShared
 
 class LearnMoreEventCollectionViewCell: UICollectionViewCell {
     
