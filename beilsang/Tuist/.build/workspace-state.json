@@ -24,6 +24,23 @@
       {
         "basedOn" : null,
         "packageRef" : {
+          "identity" : "kingfisher",
+          "kind" : "remoteSourceControl",
+          "location" : "https://github.com/onevcat/Kingfisher.git",
+          "name" : "Kingfisher"
+        },
+        "state" : {
+          "checkoutState" : {
+            "revision" : "ef40458c27ccc65aec62c0cc65da296e07264ffd",
+            "version" : "8.4.0"
+          },
+          "name" : "sourceControlCheckout"
+        },
+        "subpath" : "Kingfisher"
+      },
+      {
+        "basedOn" : null,
+        "packageRef" : {
           "identity" : "snapkit",
           "kind" : "remoteSourceControl",
           "location" : "https://github.com/SnapKit/SnapKit.git",
