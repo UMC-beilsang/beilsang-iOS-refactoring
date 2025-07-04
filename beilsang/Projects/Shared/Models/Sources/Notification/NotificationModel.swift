@@ -7,14 +7,14 @@
 
 import Foundation
 
-struct NotificationModel: Codable {
+public struct NotificationModel: Codable {
     let code: String
     let message: String
     let data: [NotificationDataModel]?
     let success: Bool
 }
 
-struct NotificationDataModel: Codable {
+public struct NotificationDataModel: Codable {
     let notificationId: Int
     let challengeId: Int
     let title: String

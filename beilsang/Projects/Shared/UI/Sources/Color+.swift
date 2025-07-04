@@ -7,7 +7,7 @@
 
 import UIKit
 
-extension UIColor {
+public extension UIColor {
     convenience init(hex: Int, alpha: Double = 1.0) {
         let red = Double((hex >> 16) & 0xff) / 255
         let green = Double((hex >> 8) & 0xff) / 255
