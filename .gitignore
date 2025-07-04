@@ -1,60 +1,33 @@
-# Created by https://www.toptal.com/developers/gitignore/api/macos,xcode
-# Edit at https://www.toptal.com/developers/gitignore?templates=macos,xcode
+# Tuist generated
+/.build
+/Tuist/Dependencies
+/Tuist/Cache
+/Tuist/Generated
 
-### macOS ###
-# General
-*.DS_Store
-.AppleDouble
-.LSOverride
+# Don't track generated Xcode projects or workspaces
+*.xcodeproj
+*.xcworkspace
 
-# Icon must end with two \r
-Icon
+# Derived data
+DerivedData/
 
-
-# Thumbnails
-._*
-
-# Files that might appear in the root of a volume
-.DocumentRevisions-V100
-.fseventsd
-.Spotlight-V100
-.TemporaryItems
-.Trashes
-.VolumeIcon.icns
-.com.apple.timemachine.donotpresent
-
-# Directories potentially created on remote AFP share
-.AppleDB
-.AppleDesktop
-Network Trash Folder
-Temporary Items
-.apdisk
-
-### macOS Patch ###
-# iCloud generated files
-*.icloud
-
-### Xcode ###
-## User settings
-xcuserdata/
-
-## Xcode 8 and earlier
+# Xcode user data
+*.xcuserstate
+*.xcuserdatad
 *.xcscmblueprint
+xcuserdata/
 *.xccheckout
 
-### Xcode Patch ###
-*.xcodeproj/*
-!*.xcodeproj/project.pbxproj
-!*.xcodeproj/xcshareddata/
-!*.xcodeproj/project.xcworkspace/
-!*.xcworkspace/contents.xcworkspacedata
-/*.gcno
-**/xcshareddata/WorkspaceSettings.xcsettings
+# SwiftPM
+Package.resolved
 
-# Delegate 
-SceneDelegate.swift
-AppDelegate.swift
-# End of https://www.toptal.com/developers/gitignore/api/macos,xcode
+# Logs
+*.log
 
-# Notification
+# macOS
+.DS_Store
+.apdisk
+*.icloud
+
+# Firebase / Google files (local secrets)
 GoogleService-Info.plist
