@@ -7,7 +7,7 @@
 
 import UIKit
 
-public enum fontStyle {
+public enum Fonts {
     case title1
     case heading1
     case heading2
@@ -57,3 +57,4 @@ public enum fontStyle {
         }
     }
 }
+

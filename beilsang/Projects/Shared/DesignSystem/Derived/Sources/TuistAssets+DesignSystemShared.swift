@@ -18,6 +18,17 @@
 // MARK: - Asset Catalogs
 
 public enum DesignSystemSharedAsset: Sendable {
+  public static let npSfontBold = DesignSystemSharedData(name: "NPSfont_bold")
+  public static let npSfontExtrabold = DesignSystemSharedData(name: "NPSfont_extrabold")
+  public static let npSfontRegular = DesignSystemSharedData(name: "NPSfont_regular")
+  public static let notoSansKRBold = DesignSystemSharedData(name: "NotoSansKR-Bold")
+  public static let notoSansKRLight = DesignSystemSharedData(name: "NotoSansKR-Light")
+  public static let notoSansKRMedium = DesignSystemSharedData(name: "NotoSansKR-Medium")
+  public static let notoSansKRRegular = DesignSystemSharedData(name: "NotoSansKR-Regular")
+  public static let notoSansKRSemiBold = DesignSystemSharedData(name: "NotoSansKR-SemiBold")
+  public static let notoSansKRThin = DesignSystemSharedData(name: "NotoSansKR-Thin")
+  public static let notificationIcon = DesignSystemSharedImages(name: "NotificationIcon")
+  public static let searchIcon = DesignSystemSharedImages(name: "SearchIcon")
   public static let challengeBox = DesignSystemSharedColors(name: "challengeBox")
   public static let challengeLine = DesignSystemSharedColors(name: "challengeLine")
   public static let feedLabel = DesignSystemSharedColors(name: "feedLabel")
@@ -28,6 +39,7 @@ public enum DesignSystemSharedAsset: Sendable {
   public static let iconStar = DesignSystemSharedImages(name: "icon-star")
   public static let iconSettings = DesignSystemSharedImages(name: "icon_settings")
   public static let iconamoonNotificationBold = DesignSystemSharedImages(name: "iconamoon_notification-bold")
+  public static let typoLogo = DesignSystemSharedImages(name: "typoLogo")
 }
 
 // MARK: - Implementation Details
@@ -81,6 +93,34 @@ public extension SwiftUI.Color {
   init(asset: DesignSystemSharedColors) {
     let bundle = Bundle.module
     self.init(asset.name, bundle: bundle)
+  }
+}
+#endif
+
+public struct DesignSystemSharedData: Sendable {
+  public let name: String
+
+  #if os(iOS) || os(tvOS) || os(macOS) || os(visionOS)
+  @available(iOS 9.0, macOS 10.11, visionOS 1.0, *)
+  public var data: NSDataAsset {
+    guard let data = NSDataAsset(asset: self) else {
+      fatalError("Unable to load data asset named \(name).")
+    }
+    return data
+  }
+  #endif
+}
+
+#if os(iOS) || os(tvOS) || os(macOS) || os(visionOS)
+@available(iOS 9.0, macOS 10.11, visionOS 1.0, *)
+public extension NSDataAsset {
+  convenience init?(asset: DesignSystemSharedData) {
+    let bundle = Bundle.module
+    #if os(iOS) || os(tvOS) || os(visionOS)
+    self.init(name: asset.name, bundle: bundle)
+    #elseif os(macOS)
+    self.init(name: NSDataAsset.Name(asset.name), bundle: bundle)
+    #endif
   }
 }
 #endif

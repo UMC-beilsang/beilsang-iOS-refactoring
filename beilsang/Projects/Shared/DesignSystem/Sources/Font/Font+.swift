@@ -38,3 +38,20 @@ public extension UIFont {
         return UIFont(name: name, size: size) ?? UIFont.systemFont(ofSize: size, weight: weight)
     }
 }
+
+extension UILabel {
+    public func applyStyle(_ fontType: Fonts) {
+        self.font = fontType.font
+        
+        guard let text = self.text, !text.isEmpty else { return }
+        
+        let attributed = NSMutableAttributedString(string: text)
+        attributed.addAttribute(.kern, value: fontType.letterSpacing, range: NSRange(location: 0, length: text.count))
+        
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.lineHeightMultiple = fontType.lineHeightMultiple
+        attributed.addAttribute(.paragraphStyle, value: paragraph, range: NSRange(location: 0, length: text.count))
+        
+        self.attributedText = attributed
+    }
+}
