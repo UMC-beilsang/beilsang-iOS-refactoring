@@ -1,8 +1,11 @@
 # Tuist generated
 /.build
-/Tuist/Dependencies
 /Tuist/Cache
+/Tuist/Dependencies
 /Tuist/Generated
+/Tuist/repositories
+/Tuist/.build
+/tuist-derived
 
 # Don't track generated Xcode projects or workspaces
 *.xcodeproj
