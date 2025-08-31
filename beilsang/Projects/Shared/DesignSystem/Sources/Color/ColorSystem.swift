@@ -5,7 +5,7 @@
 //  Created by Park Seyoung on 7/5/25.
 //
 
-import UIKit
+import SwiftUI
 
 public enum ColorSystem {
     // MARK: - Primary
@@ -41,21 +41,21 @@ public enum ColorSystem {
     public static let semanticCautionaryHeavy = AtomicColor.orange55
 
     // MARK: - Decorate (직접 hex 코드 사용)
-    public static let decorateDimmerNormal = UIColor(hex: "#00000099")
-    public static let decorateInteractionNormal = UIColor(hex: "#00000014")
-    public static let decorateShadowNormal = UIColor(hex: "#00000029")
-    public static let decorateScrimNormal = UIColor(hex: "#00000099")
+    public static let decorateDimmerNormal = Color(hex: "#000000", alpha: 0.6)   // 99 = 약 60%
+    public static let decorateInteractionNormal = Color(hex: "#000000", alpha: 0.08) // 14 = 약 8%
+    public static let decorateShadowNormal = Color(hex: "#000000", alpha: 0.16) // 29 = 약 16%
+    public static let decorateScrimNormal = Color(hex: "#000000", alpha: 0.6)   // 99 = 약 60%
 
     // MARK: - Line
-    public static let lineAlternative = UIColor(hex: "#0000000A")
-    public static let lineNormal = UIColor(hex: "#0000001F")
-    public static let lineNeutral = UIColor(hex: "#00000014")
-    public static let lineStrong = UIColor(hex: "#0000003D")
+    public static let lineAlternative = Color(hex: "#000000", alpha: 0.04) // 0A = 약 4%
+    public static let lineNormal = Color(hex: "#000000", alpha: 0.12)      // 1F = 약 12%
+    public static let lineNeutral = Color(hex: "#000000", alpha: 0.08)     // 14 = 약 8%
+    public static let lineStrong = Color(hex: "#000000", alpha: 0.24)      // 3D = 약 24%
 
     // MARK: - Brand
-    public static let brandKakaoContainer = UIColor(hex: "#FEE500")
-    public static let brandKakaoSymbol = UIColor(hex: "#000000E6")
-    public static let brandKakaoLabel = UIColor(hex: "#191919")
+    public static let brandKakaoContainer = Color(hex: "#FEE500")
+    public static let brandKakaoSymbol = Color(hex: "#000000", alpha: 0.9) // E6 = 약 90%
+    public static let brandKakaoLabel = Color(hex: "#191919")
 
     // MARK: - Background
     public static let backgroundNormalNormal = AtomicColor.common0
@@ -63,3 +63,4 @@ public enum ColorSystem {
     public static let backgroundElevatedNormal = AtomicColor.common0
     public static let backgroundElevatedAlternative = AtomicColor.coolNeutral5
 }
+

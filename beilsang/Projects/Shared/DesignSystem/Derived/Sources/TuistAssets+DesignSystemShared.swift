@@ -18,17 +18,39 @@
 // MARK: - Asset Catalogs
 
 public enum DesignSystemSharedAsset: Sendable {
-  public static let npSfontBold = DesignSystemSharedData(name: "NPSfont_bold")
-  public static let npSfontExtrabold = DesignSystemSharedData(name: "NPSfont_extrabold")
-  public static let npSfontRegular = DesignSystemSharedData(name: "NPSfont_regular")
-  public static let notoSansKRBold = DesignSystemSharedData(name: "NotoSansKR-Bold")
-  public static let notoSansKRLight = DesignSystemSharedData(name: "NotoSansKR-Light")
-  public static let notoSansKRMedium = DesignSystemSharedData(name: "NotoSansKR-Medium")
-  public static let notoSansKRRegular = DesignSystemSharedData(name: "NotoSansKR-Regular")
-  public static let notoSansKRSemiBold = DesignSystemSharedData(name: "NotoSansKR-SemiBold")
-  public static let notoSansKRThin = DesignSystemSharedData(name: "NotoSansKR-Thin")
+  public static let bicycle = DesignSystemSharedImages(name: "bicycle")
+  public static let bicycleDefault = DesignSystemSharedImages(name: "bicycleDefault")
+  public static let ecoProduct = DesignSystemSharedImages(name: "ecoProduct")
+  public static let ecoProductDefault = DesignSystemSharedImages(name: "ecoProductDefault")
+  public static let plogging = DesignSystemSharedImages(name: "plogging")
+  public static let ploggingDefault = DesignSystemSharedImages(name: "ploggingDefault")
+  public static let publicTransit = DesignSystemSharedImages(name: "publicTransit")
+  public static let publicTransitDefault = DesignSystemSharedImages(name: "publicTransitDefault")
+  public static let recycle = DesignSystemSharedImages(name: "recycle")
+  public static let recycleDefault = DesignSystemSharedImages(name: "recycleDefault")
+  public static let refillStation = DesignSystemSharedImages(name: "refillStation")
+  public static let refillStationDefault = DesignSystemSharedImages(name: "refillStationDefault")
+  public static let reusableContainer = DesignSystemSharedImages(name: "reusableContainer")
+  public static let reusableContainerDefault = DesignSystemSharedImages(name: "reusableContainerDefault")
+  public static let reusableCup = DesignSystemSharedImages(name: "reusableCup")
+  public static let reusableCupDefault = DesignSystemSharedImages(name: "reusableCupDefault")
+  public static let vegan = DesignSystemSharedImages(name: "vegan")
+  public static let veganDefault = DesignSystemSharedImages(name: "veganDefault")
   public static let notificationIcon = DesignSystemSharedImages(name: "NotificationIcon")
   public static let searchIcon = DesignSystemSharedImages(name: "SearchIcon")
+  public static let agreeCheckIcon = DesignSystemSharedImages(name: "agreeCheckIcon")
+  public static let agreeCheckIconSelected = DesignSystemSharedImages(name: "agreeCheckIconSelected")
+  public static let characterBlue = DesignSystemSharedImages(name: "characterBlue")
+  public static let characterGreen = DesignSystemSharedImages(name: "characterGreen")
+  public static let characterRed = DesignSystemSharedImages(name: "characterRed")
+  public static let clearIcon = DesignSystemSharedImages(name: "clearIcon")
+  public static let dropDownIcon = DesignSystemSharedImages(name: "dropDownIcon")
+  public static let locationIcon = DesignSystemSharedImages(name: "locationIcon")
+  public static let nonprimaryCheckIcon = DesignSystemSharedImages(name: "nonprimaryCheckIcon")
+  public static let normalCheckIcon = DesignSystemSharedImages(name: "normalCheckIcon")
+  public static let primaryCheckIcon = DesignSystemSharedImages(name: "primaryCheckIcon")
+  public static let toastCheckIcon = DesignSystemSharedImages(name: "toastCheckIcon")
+  public static let warningIcon = DesignSystemSharedImages(name: "warningIcon")
   public static let challengeBox = DesignSystemSharedColors(name: "challengeBox")
   public static let challengeLine = DesignSystemSharedColors(name: "challengeLine")
   public static let feedLabel = DesignSystemSharedColors(name: "feedLabel")
@@ -93,34 +115,6 @@ public extension SwiftUI.Color {
   init(asset: DesignSystemSharedColors) {
     let bundle = Bundle.module
     self.init(asset.name, bundle: bundle)
-  }
-}
-#endif
-
-public struct DesignSystemSharedData: Sendable {
-  public let name: String
-
-  #if os(iOS) || os(tvOS) || os(macOS) || os(visionOS)
-  @available(iOS 9.0, macOS 10.11, visionOS 1.0, *)
-  public var data: NSDataAsset {
-    guard let data = NSDataAsset(asset: self) else {
-      fatalError("Unable to load data asset named \(name).")
-    }
-    return data
-  }
-  #endif
-}
-
-#if os(iOS) || os(tvOS) || os(macOS) || os(visionOS)
-@available(iOS 9.0, macOS 10.11, visionOS 1.0, *)
-public extension NSDataAsset {
-  convenience init?(asset: DesignSystemSharedData) {
-    let bundle = Bundle.module
-    #if os(iOS) || os(tvOS) || os(visionOS)
-    self.init(name: asset.name, bundle: bundle)
-    #elseif os(macOS)
-    self.init(name: NSDataAsset.Name(asset.name), bundle: bundle)
-    #endif
   }
 }
 #endif

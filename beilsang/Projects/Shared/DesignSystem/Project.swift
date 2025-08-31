@@ -17,7 +17,10 @@ let project = Project(
       bundleId: "com.beilsang.DesignSystemShared",
       infoPlist: .default,
       sources: ["Sources/**"],
-      resources: ["Resources/**"]
+      resources: ["Resources/**"],
+      dependencies: [
+        .project(target: "ModelsShared", path: "../Models")
+      ]
     )
   ]
 )
