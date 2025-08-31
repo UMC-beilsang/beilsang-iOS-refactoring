@@ -18,6 +18,7 @@ let project = Project(
       infoPlist: .default,
       sources: ["Sources/**"],
       dependencies: [
+        .project(target: "ModelsShared", path: "../../Shared/Models"),
         .external(name: "Alamofire")
       ]
     )
