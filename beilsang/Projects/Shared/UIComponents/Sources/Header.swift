@@ -9,7 +9,7 @@ import SwiftUI
 import DesignSystemShared
 
 public enum HeaderType {
-    case primary
+    case primary(onNotification: () -> Void, onSearch: () -> Void)
     case secondary(title: String, onBack: () -> Void)
     case tertiary(title: String, onBack: () -> Void, onOption: () -> Void)
 }
@@ -23,10 +23,13 @@ public struct Header: View {
     
     public var body: some View {
         VStack {
+            
+            Spacer()
+            
             HStack {
                 switch type {
-                case .primary:
-                    primaryHeader
+                case  .primary(let onNotification, let onSearch):
+                    primaryHeader(onNotification: onNotification, onSearch: onSearch)
                 case .secondary(let title, let onBack):
                     secondaryHeader(title: title, onBack: onBack)
                 case .tertiary(let title, let onBack, let onOption):
@@ -34,6 +37,8 @@ public struct Header: View {
                 }
             }
             .padding(.horizontal, 24)
+            
+            Spacer()
             
             Divider()
         }
@@ -43,30 +48,39 @@ public struct Header: View {
 }
 
 extension Header {
-    private var primaryHeader: some View {
+    private func primaryHeader(
+        onNotification: @escaping () -> Void,
+        onSearch: @escaping () -> Void
+    ) -> some View {
         HStack(spacing: 6) {
-            Image("logoSymbol")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 32, height: 32)
-            
-            Image("typoLogo")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(height: 20)
+//            Image("logoSymbol", bundle: .designSystem)
+//                .resizable()
+//                .aspectRatio(contentMode: .fit)
+//                .frame(width: 32, height: 32)
+//            
+//            Image("typoLogo", bundle: .designSystem)
+//                .resizable()
+//                .aspectRatio(contentMode: .fit)
+//                .frame(height: 20)
             
             Spacer()
             
             HStack(spacing: 16) {
-                Image("notificationIcon")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 28, height: 28)
+                Button(action: onNotification) {
+                    Image("notificationIcon", bundle: .designSystem)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 28, height: 28)
+                }
+                .buttonStyle(.plain)
                 
-                Image("searchIcon")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 28, height: 28)
+                Button(action: onSearch) {
+                    Image("searchIcon", bundle: .designSystem)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 28, height: 28)
+                }
+                .buttonStyle(.plain)
             }
         }
     }
@@ -87,7 +101,7 @@ extension Header {
             
             Spacer()
             
-            Spacer().frame(width: 28) 
+            Spacer().frame(width: 28)
         }
     }
     
@@ -114,16 +128,4 @@ extension Header {
             }
         }
     }
-}
-
-#Preview {
-    do {
-        FontRegister.registerFonts()
-    }
-    return VStack(spacing: 20) {
-        Header(type: .primary)
-        Header(type: .secondary(title: "헤헤", onBack: {}))
-        Header(type: .tertiary(title: "후후", onBack: {}, onOption: {}))
-    }
-    .previewLayout(.sizeThatFits)
 }

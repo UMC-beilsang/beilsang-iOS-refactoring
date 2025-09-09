@@ -8,6 +8,7 @@
 import Foundation
 
 public enum Keyword: String, CaseIterable, Hashable, Equatable, Codable {
+    case all = "all"       
     case reusableCup = "reusable_cup"
     case refillStation = "refill_station"
     case multiUse = "multi_use"
@@ -20,6 +21,7 @@ public enum Keyword: String, CaseIterable, Hashable, Equatable, Codable {
     
     public var title: String {
         switch self {
+        case .all: return "전체"
         case .reusableCup: return "다회용컵"
         case .refillStation: return "리필스테이션"
         case .multiUse: return "다회용기"
@@ -34,6 +36,7 @@ public enum Keyword: String, CaseIterable, Hashable, Equatable, Codable {
     
     public var iconName: String {
         switch self {
+        case .all: return "all"
         case .reusableCup: return "reusableCup"
         case .refillStation: return "refillStation"
         case .multiUse: return "reusableContainer"

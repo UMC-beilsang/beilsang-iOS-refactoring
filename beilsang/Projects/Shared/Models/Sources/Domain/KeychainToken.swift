@@ -1,5 +1,5 @@
 //
-//  AuthToken.swift
+//  KeychainToken.swift
 //  ModelsShared
 //
 //  Created by Seyoung Park on 8/31/25.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct AuthToken: Codable, Equatable, Sendable {
+public struct KeychainToken: Codable, Equatable, Sendable {
     public let accessToken: String
     public let refreshToken: String
     public let tokenType: String

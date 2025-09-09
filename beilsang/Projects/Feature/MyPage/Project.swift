@@ -18,7 +18,7 @@ let project = Project(
       infoPlist: .default,
       sources: ["Feature/Sources/**"],
       dependencies: [
-        .project(target: "NetworkCore", path: "../../Core/Network"),
+        .project(target: "NetworkCore", path: "../../Core/NetworkCore"),
         .project(target: "ModelsShared", path: "../../Shared/Models"),
         .project(target: "UtilityShared", path: "../../Shared/Utility"),
         .project(target: "DesignSystemShared", path: "../../Shared/DesignSystem"),

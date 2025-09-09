@@ -93,20 +93,35 @@ extension Fonts {
         }
     }
     
-    /// 공통 letterSpacing (토큰에서 -4%)
-    public var letterSpacing: CGFloat { -0.04 }
+    public var letterSpacing: CGFloat {
+        return fontSize * -0.04
+    }
     
-    /// lineHeightMultiple (JSON 기준)
     public var lineHeightMultiple: CGFloat {
         switch self {
         case .title1Bold:
             return 1.0
         case .heading1Bold, .heading1SemiBold,
-             .heading2Bold, .heading2SemiBold,
-             .heading3Bold, .heading3SemiBold, .heading3Medium:
+                .heading2Bold, .heading2SemiBold,
+                .heading3Bold, .heading3SemiBold, .heading3Medium:
             return 1.2
         default:
             return 1.5
         }
     }
+    
+    public var fontSize: CGFloat {
+            switch self {
+            case .title1Bold: return 28
+            case .heading1Bold, .heading1SemiBold: return 24
+            case .heading2Bold, .heading2SemiBold: return 22
+            case .heading3Bold, .heading3SemiBold, .heading3Medium: return 18
+            case .body1Bold, .body1SemiBold, .body1Medium: return 16
+            case .body2SemiBold, .body2Medium, .body2Regular: return 14
+            case .detail1Medium, .detail1Regular: return 12
+            case .detail2Regular: return 11
+            case .subHeading1Bold: return 24
+            case .subHeading2ExtraBold: return 18
+            }
+        }
 }
