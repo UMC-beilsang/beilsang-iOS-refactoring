@@ -57,5 +57,12 @@ let project = Project(
         ]
       )
     )
+  ],
+  schemes: [
+      .scheme(
+        name: "AuthFeatureExample",
+        buildAction: .buildAction(targets: ["AuthFeatureExample"]),
+        runAction: .runAction(executable: "AuthFeatureExample")
+      )
   ]
 )
