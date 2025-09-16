@@ -7,85 +7,79 @@
 
 import Foundation
 import Combine
-import KakaoSDKAuth
-import KakaoSDKUser
 import ModelsShared
+import AuthDomain
+import NetworkCore
+import StorageCore
 
 final class AuthRepositoryImpl: AuthRepositoryProtocol {
     private let networkService: AuthNetworkServiceProtocol
-    private let tokenStorage: AuthTokenStorageProtocol
+    private let tokenStorage: KeychainTokenStorageProtocol
     
-    init(networkService: AuthNetworkServiceProtocol, tokenStorage: AuthTokenStorageProtocol) {
+    init(networkService: AuthNetworkServiceProtocol, tokenStorage: KeychainTokenStorageProtocol) {
         self.networkService = networkService
         self.tokenStorage = tokenStorage
     }
     
-    func loginWithKakao(request: KakaoLoginRequest) -> AnyPublisher<AuthToken, AuthError> {
+    func loginWithKakao(request: KakaoLoginRequest) -> AnyPublisher<KeychainToken, AuthError> {
         networkService.loginWithKakao(request: request)
-            .map { response in
-                // KakaoLoginResponse → AuthToken 변환
-                AuthToken(
-                    accessToken: response.data.accessToken,
-                    refreshToken: response.data.refreshToken,
-                    tokenType: "Bearer"
-                )
-            }
-            .flatMap { [weak self] token -> AnyPublisher<AuthToken, AuthError> in
-                guard let self = self else {
+            .flatMap { [weak self] token -> AnyPublisher<KeychainToken, AuthError> in
+                guard let self else {
                     return Fail(error: .unknownError("Repository deallocated")).eraseToAnyPublisher()
                 }
-                return self.tokenStorage.saveToken(token).map { token }.eraseToAnyPublisher()
+                return self.tokenStorage.saveToken(token)
+                    .mapError { _ in AuthError.networkError } // 단순 매핑
+                    .map { token }
+                    .eraseToAnyPublisher()
             }
             .eraseToAnyPublisher()
     }
     
-    func loginWithApple(request: AppleLoginRequest) -> AnyPublisher<AuthToken, AuthError> {
+    func loginWithApple(request: AppleLoginRequest) -> AnyPublisher<KeychainToken, AuthError> {
         networkService.loginWithApple(request: request)
-            .map { response in
-                // AppleLoginResponse → AuthToken 변환
-                AuthToken(
-                    accessToken: response.data.accessToken,
-                    refreshToken: response.data.refreshToken,
-                    tokenType: "Bearer"
-                )
-            }
-            .flatMap { [weak self] token -> AnyPublisher<AuthToken, AuthError> in
-                guard let self = self else {
+            .flatMap { [weak self] token -> AnyPublisher<KeychainToken, AuthError> in
+                guard let self else {
                     return Fail(error: .unknownError("Repository deallocated")).eraseToAnyPublisher()
                 }
-                return self.tokenStorage.saveToken(token).map { token }.eraseToAnyPublisher()
+                return self.tokenStorage.saveToken(token)
+                    .mapError { _ in AuthError.networkError }
+                    .map { token }
+                    .eraseToAnyPublisher()
             }
             .eraseToAnyPublisher()
     }
     
-    func signUp(request: SignUpRequest) -> AnyPublisher<AuthToken, AuthError> {
+    func signUp(request: SignUpRequest) -> AnyPublisher<KeychainToken, AuthError> {
         networkService.signUp(request: request)
-            .map { _ in
-                // 회원가입 성공 시 refreshToken API로 토큰 받아야 할 수도 있음 (서버 스펙에 맞게 조정)
-                AuthToken(
-                    accessToken: "", // 서버 응답 구조 확인 필요
-                    refreshToken: "",
-                    tokenType: "Bearer"
-                )
+            .flatMap { [weak self] token -> AnyPublisher<KeychainToken, AuthError> in
+                guard let self else {
+                    return Fail(error: .unknownError("Repository deallocated")).eraseToAnyPublisher()
+                }
+                return self.tokenStorage.saveToken(token)
+                    .mapError { _ in AuthError.networkError }
+                    .map { token }
+                    .eraseToAnyPublisher()
             }
             .eraseToAnyPublisher()
     }
     
-    func refreshToken() -> AnyPublisher<AuthToken, AuthError> {
+    func refreshToken() -> AnyPublisher<KeychainToken, AuthError> {
         tokenStorage.getToken()
-            .setFailureType(to: AuthError.self)
-            .flatMap { [weak self] token -> AnyPublisher<AuthToken, AuthError> in
-                guard let self = self,
-                      let token = token else {
+            .mapError { _ in AuthError.networkError }
+            .flatMap { [weak self] token -> AnyPublisher<KeychainToken, AuthError> in
+                guard let self, let token else {
                     return Fail(error: .tokenExpired).eraseToAnyPublisher()
                 }
                 return self.networkService.refreshToken(token.refreshToken)
             }
-            .flatMap { [weak self] newToken -> AnyPublisher<AuthToken, AuthError> in
-                guard let self = self else {
+            .flatMap { [weak self] newToken -> AnyPublisher<KeychainToken, AuthError> in
+                guard let self else {
                     return Fail(error: .unknownError("Repository deallocated")).eraseToAnyPublisher()
                 }
-                return self.tokenStorage.saveToken(newToken).map { newToken }.eraseToAnyPublisher()
+                return self.tokenStorage.saveToken(newToken)
+                    .mapError { _ in AuthError.networkError }
+                    .map { newToken }
+                    .eraseToAnyPublisher()
             }
             .eraseToAnyPublisher()
     }
@@ -93,10 +87,12 @@ final class AuthRepositoryImpl: AuthRepositoryProtocol {
     func revokeKakao() -> AnyPublisher<Void, AuthError> {
         networkService.revokeKakao()
             .flatMap { [weak self] _ -> AnyPublisher<Void, AuthError> in
-                guard let self = self else {
+                guard let self else {
                     return Fail(error: .unknownError("Repository deallocated")).eraseToAnyPublisher()
                 }
                 return self.tokenStorage.deleteToken()
+                    .mapError { _ in AuthError.networkError }
+                    .eraseToAnyPublisher()
             }
             .eraseToAnyPublisher()
     }
@@ -104,10 +100,12 @@ final class AuthRepositoryImpl: AuthRepositoryProtocol {
     func revokeApple() -> AnyPublisher<Void, AuthError> {
         networkService.revokeApple()
             .flatMap { [weak self] _ -> AnyPublisher<Void, AuthError> in
-                guard let self = self else {
+                guard let self else {
                     return Fail(error: .unknownError("Repository deallocated")).eraseToAnyPublisher()
                 }
                 return self.tokenStorage.deleteToken()
+                    .mapError { _ in AuthError.networkError }
+                    .eraseToAnyPublisher()
             }
             .eraseToAnyPublisher()
     }

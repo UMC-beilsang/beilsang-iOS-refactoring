@@ -11,6 +11,8 @@ import ModelsShared
 public protocol ChallengeRepositoryProtocol {
     func fetchActiveChallenges() async throws -> [Challenge]
     func fetchRecommendedChallenges() async throws -> [Challenge]
+    func participateInChallenge(challengeId: String) async throws
+    func reportChallenge(challengeId: String) async throws
 }
 
 public final class MockChallengeRepository: ChallengeRepositoryProtocol {
@@ -111,5 +113,16 @@ public final class MockChallengeRepository: ChallengeRepositoryProtocol {
             )
         ]
         return responses.map { Challenge(from: $0) }
+    }
+    
+    // 새로 추가된 메서드들
+    public func participateInChallenge(challengeId: String) async throws {
+        // 실제 구현은 나중에 - 지금은 성공한다고 가정
+        print("Mock: 챌린지 \(challengeId) 참여 완료")
+    }
+    
+    public func reportChallenge(challengeId: String) async throws {
+        // 실제 구현은 나중에 - 지금은 성공한다고 가정
+        print("Mock: 챌린지 \(challengeId) 신고 완료")
     }
 }

@@ -10,6 +10,7 @@ import UIComponentsShared
 import ModelsShared
 import DesignSystemShared
 import UtilityShared
+import AuthDomain
 
 struct SignUpView: View {
     @StateObject private var viewModel: SignUpViewModel
@@ -73,7 +74,7 @@ struct SignUpView: View {
                                 ReferralStepView(viewModel: viewModel)
                                     .transition(transitionForCurrentDirection)
                             case .complete:
-                                EmptyView() // complete는 위에서 처리
+                                EmptyView()
                             }
                         }
                         .animation(.easeInOut, value: viewModel.currentStep)

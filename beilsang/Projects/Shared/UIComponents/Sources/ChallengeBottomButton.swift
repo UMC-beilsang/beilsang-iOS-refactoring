@@ -31,7 +31,14 @@ public struct ChallengeBottomButton: View {
     }
     
     public var body: some View {
-        HStack(alignment: .center) {
+        // 정산 완료 시 바텀버튼 숨김
+        if shouldShowBottomButton {
+            bottomButtonContent
+        }
+    }
+    
+    private var bottomButtonContent: some View {
+        HStack(alignment: .top) {
             VStack(spacing: 8) {
                 Button(action: onLikeTap) {
                     Image(isLiked ? "starIconFill" : "starIcon", bundle: .designSystem)
@@ -56,11 +63,11 @@ public struct ChallengeBottomButton: View {
                     .background(mainButtonBackground)
                     .clipShape(RoundedRectangle(cornerRadius: 20))
             }
-            .disabled(!isMainActionEnabled)
             .frame(width: UIScreen.main.bounds.width * 0.5)
         }
+        .padding(.bottom, 20)
         .padding(.horizontal, 28)
-        .padding(.vertical, 12)
+        .padding(.top, 12)
         .background(
             UnevenRoundedRectangle(
                 cornerRadii: RectangleCornerRadii(
@@ -72,53 +79,60 @@ public struct ChallengeBottomButton: View {
             )
             .fill(ColorSystem.labelWhite)
             .shadow(
-                    color: ColorSystem.decorateShadowNormal,
-                    radius: 7,
-                    x: 0, y: 0 
-                )
-            .frame(height: UIScreen.main.bounds.height * 0.11)
+                color: ColorSystem.decorateShadowNormal,
+                radius: 7,
+                x: 0, y: 0
+            )
+            .frame(height: UIScreen.main.bounds.height * 0.13)
         )
     }
     
-    // MARK: - Helpers
-    private var mainButtonTitle: String {
+    // MARK: - UI Logic Helpers
+    
+    /// 바텀 버튼 표시 여부
+    private var shouldShowBottomButton: Bool {
         switch state {
-        case .enrolled(let enrolled):
-            switch enrolled {
-            case .beforeStart:
-                return "참여중"
-            case .inProgress(let canCertify):
-                return canCertify ? "인증하기" : "오늘은 완료!"
-            case .finished(let success):
-                return success ? "챌린지 성공" : "챌린지 실패"
-            }
-        case .notEnrolled(let notEnrolled):
-            switch notEnrolled {
-            case .canApply:
-                return "참여하기"
-            case .applied:
-                return "신청 완료"
-            case .closed:
-                return "마감됨"
-            }
+        case .enrolled(.finished):
+            return false // 정산 완료 시 바텀버튼 없음
+        default:
+            return true
         }
     }
     
+    /// 메인 액션 버튼 활성화 여부
     private var isMainActionEnabled: Bool {
         switch state {
-        case .enrolled(let enrolled):
-            switch enrolled {
-            case .inProgress(let canCertify):
-                return canCertify
-            default:
-                return false
-            }
+        case .notEnrolled(.canApply):
+            return true
+        case .enrolled(.inProgress(let canCertify)):
+            return canCertify
+        default:
+            return false
+        }
+    }
+    
+    /// 메인 버튼 텍스트
+    private var mainButtonTitle: String {
+        switch state {
         case .notEnrolled(let notEnrolled):
             switch notEnrolled {
             case .canApply:
-                return true
-            default:
-                return false
+                return "챌린지 참여하기"
+            case .applied:
+                return "신청 완료"
+            case .closed:
+                return "모집 마감"
+            }
+        case .enrolled(let enrolled):
+            switch enrolled {
+            case .beforeStart:
+                return "인증하기"
+            case .inProgress(let canCertify):
+                return canCertify ? "인증하기" : "인증 완료"
+            case .calculating:
+                return "챌린지 종료"
+            case .finished(let success):
+                return ""
             }
         }
     }

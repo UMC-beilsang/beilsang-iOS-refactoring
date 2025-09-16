@@ -10,6 +10,7 @@ import Combine
 import Alamofire
 import NetworkCore
 import ModelsShared
+import AuthDomain
 
 final class AuthNetworkService: AuthNetworkServiceProtocol {
     private let session: Session
@@ -20,13 +21,12 @@ final class AuthNetworkService: AuthNetworkServiceProtocol {
         self.baseURL = baseURL
     }
     
-    // ✅ 카카오 로그인
-    func loginWithKakao(request: KakaoLoginRequest) -> AnyPublisher<KakaoLoginResponse, AuthError> {
+    func loginWithKakao(request: KakaoLoginRequest) -> AnyPublisher<KeychainToken, AuthError> {
         do {
             let urlRequest = try AuthRouter.kakaoLogin(request).asURLRequest(baseURL: baseURL)
             return session.request(urlRequest)
                 .validate()
-                .publishDecodable(type: KakaoLoginResponse.self)
+                .publishDecodable(type: KeychainToken.self)
                 .value()
                 .mapError { self.mapNetworkError($0) }
                 .eraseToAnyPublisher()
@@ -35,13 +35,12 @@ final class AuthNetworkService: AuthNetworkServiceProtocol {
         }
     }
     
-    // ✅ 애플 로그인
-    func loginWithApple(request: AppleLoginRequest) -> AnyPublisher<AppleLoginResponse, AuthError> {
+    func loginWithApple(request: AppleLoginRequest) -> AnyPublisher<KeychainToken, AuthError> {
         do {
             let urlRequest = try AuthRouter.appleLogin(request).asURLRequest(baseURL: baseURL)
             return session.request(urlRequest)
                 .validate()
-                .publishDecodable(type: AppleLoginResponse.self)
+                .publishDecodable(type: KeychainToken.self)
                 .value()
                 .mapError { self.mapNetworkError($0) }
                 .eraseToAnyPublisher()
@@ -50,13 +49,12 @@ final class AuthNetworkService: AuthNetworkServiceProtocol {
         }
     }
     
-    // ✅ 회원가입
-    func signUp(request: SignUpRequest) -> AnyPublisher<SignUpResponse, AuthError> {
+    func signUp(request: SignUpRequest) -> AnyPublisher<KeychainToken, AuthError> {
         do {
             let urlRequest = try AuthRouter.signup(request).asURLRequest(baseURL: baseURL)
             return session.request(urlRequest)
                 .validate()
-                .publishDecodable(type: SignUpResponse.self)
+                .publishDecodable(type: KeychainToken.self)
                 .value()
                 .mapError { self.mapNetworkError($0) }
                 .eraseToAnyPublisher()
@@ -65,13 +63,12 @@ final class AuthNetworkService: AuthNetworkServiceProtocol {
         }
     }
     
-    // ✅ 토큰 갱신
-    func refreshToken(_ token: String) -> AnyPublisher<AuthToken, AuthError> {
+    func refreshToken(_ token: String) -> AnyPublisher<KeychainToken, AuthError> {
         do {
             let urlRequest = try AuthRouter.refresh(token).asURLRequest(baseURL: baseURL)
             return session.request(urlRequest)
                 .validate()
-                .publishDecodable(type: AuthToken.self) // 서버가 바로 토큰 내려주는 구조라고 가정
+                .publishDecodable(type: KeychainToken.self)
                 .value()
                 .mapError { self.mapNetworkError($0) }
                 .eraseToAnyPublisher()
@@ -80,13 +77,12 @@ final class AuthNetworkService: AuthNetworkServiceProtocol {
         }
     }
     
-    // ✅ 카카오 계정 연결 해제 (탈퇴)
     func revokeKakao() -> AnyPublisher<Void, AuthError> {
         do {
             let urlRequest = try AuthRouter.revokeKakao.asURLRequest(baseURL: baseURL)
             return session.request(urlRequest)
                 .validate()
-                .publishData() // Void 타입일 경우
+                .publishData()
                 .map { _ in () }
                 .mapError { self.mapNetworkError($0) }
                 .eraseToAnyPublisher()
@@ -95,7 +91,6 @@ final class AuthNetworkService: AuthNetworkServiceProtocol {
         }
     }
     
-    // ✅ 애플 계정 연결 해제 (탈퇴)
     func revokeApple() -> AnyPublisher<Void, AuthError> {
         do {
             let urlRequest = try AuthRouter.revokeApple.asURLRequest(baseURL: baseURL)

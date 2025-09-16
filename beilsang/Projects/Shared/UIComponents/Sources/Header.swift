@@ -121,11 +121,15 @@ extension Header {
             
             Spacer()
             
-            Button(action: onOption) {
+            Menu {
+                Button("신고하기", action: onOption)
+                
+            } label: {
                 Image(systemName: "ellipsis")
                     .font(.system(size: 20, weight: .medium))
                     .foregroundColor(ColorSystem.labelNormalStrong)
             }
+            .buttonStyle(.plain)
         }
     }
 }

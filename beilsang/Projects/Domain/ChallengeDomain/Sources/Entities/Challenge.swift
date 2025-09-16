@@ -16,7 +16,7 @@ public struct Challenge: Identifiable, Equatable {
     public let category: String
     public let status: String
     
-    public let progress: Double       // 달성률 (%)
+    public let progress: Double      
     
     public let startDate: Date
     public let endDate: Date

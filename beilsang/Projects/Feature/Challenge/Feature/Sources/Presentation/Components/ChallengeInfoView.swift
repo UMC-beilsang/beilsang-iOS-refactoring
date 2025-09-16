@@ -16,6 +16,7 @@ struct ChallengeInfoView: View {
     let dDayText: String
     let startDateText: String
     let depositText: String
+    let onProgressTap: () -> Void
     
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
@@ -53,7 +54,9 @@ struct ChallengeInfoView: View {
                 ChallengeInfoRow(title: "진행도") {
                     HStack(spacing: 10) {
                         // TODO: 연결 필요
-                        ProgressBar(value: 0.3)
+                        Button(action : {onProgressTap()}) {
+                            ProgressBar(value: 0.3)
+                        }
                     }
                 }
             }

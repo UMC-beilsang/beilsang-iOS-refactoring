@@ -7,6 +7,9 @@
 
 import Foundation
 import Combine
+import AuthDomain
+import NetworkCore
+import StorageCore
 
 @MainActor
 public final class AuthContainer: ObservableObject {
@@ -20,7 +23,7 @@ public final class AuthContainer: ObservableObject {
     private let authNetworkService: AuthNetworkServiceProtocol
 
     // MARK: - Storage
-    private lazy var tokenStorage: AuthTokenStorageProtocol = AuthTokenStorage()
+    private lazy var tokenStorage: KeychainTokenStorageProtocol = KeychainTokenStorage()
 
     // MARK: - Use Cases
     lazy var kakaoLoginUseCase: KakaoLoginUseCaseProtocol = KakaoLoginUseCase(repository: authRepository)

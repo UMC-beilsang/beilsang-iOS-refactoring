@@ -27,6 +27,52 @@ let project = Project(
         .external(name: "SnapKit")
       ]
     ),
+    
+    // 단위 테스트 타겟 추가
+    .target(
+      name: "ChallengeFeatureTests",
+      destinations: .iOS,
+      product: .unitTests,
+      bundleId: "com.beilsang.ChallengeFeature.Tests",
+      infoPlist: .default,
+      sources: ["Feature/Tests/**"],
+      dependencies: [
+        .target(name: "ChallengeFeature"),
+        .project(target: "ChallengeDomain", path: "../../Domain/ChallengeDomain"),
+        .project(target: "ModelsShared", path: "../../Shared/Models"),
+        .project(target: "UtilityShared", path: "../../Shared/Utility")
+      ],
+      settings: .settings(
+        base: ["SWIFT_VERSION": "5.9"],
+        configurations: [
+          .debug(name: "dev", xcconfig: "../../App/Config/dev.xcconfig"),
+          .debug(name: "stag", xcconfig: "../../App/Config/stag.xcconfig"),
+          .release(name: "prod", xcconfig: "../../App/Config/prod.xcconfig"),
+        ]
+      )
+    ),
+    
+    // UI 테스트 타겟 추가 (선택사항)
+    .target(
+      name: "ChallengeFeatureUITests",
+      destinations: .iOS,
+      product: .uiTests,
+      bundleId: "com.beilsang.ChallengeFeature.UITests",
+      infoPlist: .default,
+      sources: ["Feature/UITests/**"],
+      dependencies: [
+        .target(name: "ChallengeFeature")
+      ],
+      settings: .settings(
+        base: ["SWIFT_VERSION": "5.9"],
+        configurations: [
+          .debug(name: "dev", xcconfig: "../../App/Config/dev.xcconfig"),
+          .debug(name: "stag", xcconfig: "../../App/Config/stag.xcconfig"),
+          .release(name: "prod", xcconfig: "../../App/Config/prod.xcconfig"),
+        ]
+      )
+    ),
+    
     .target(
       name: "ChallengeFeatureExample",
       destinations: .iOS,
@@ -51,5 +97,22 @@ let project = Project(
         ]
       )
     )
+  ],
+  schemes: [
+      .scheme(
+        name: "ChallengeFeature",
+        buildAction: .buildAction(targets: ["ChallengeFeature"]),
+        testAction: .targets(["ChallengeFeatureTests"])
+      ),
+      .scheme(
+        name: "ChallengeFeatureTests",
+        buildAction: .buildAction(targets: ["ChallengeFeature", "ChallengeFeatureTests"]),
+        testAction: .targets(["ChallengeFeatureTests"])
+      ),
+      .scheme(
+        name: "ChallengeFeatureExample",
+        buildAction: .buildAction(targets: ["ChallengeFeatureExample"]),
+        runAction: .runAction(executable: "ChallengeFeatureExample")
+      )
   ]
 )

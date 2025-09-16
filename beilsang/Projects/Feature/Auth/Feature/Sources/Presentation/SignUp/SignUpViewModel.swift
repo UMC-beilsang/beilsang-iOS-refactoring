@@ -9,6 +9,7 @@ import Foundation
 import Combine
 import ModelsShared
 import SwiftUI
+import AuthDomain
 
 struct Terms {
     var service: Bool = false

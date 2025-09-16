@@ -9,6 +9,7 @@ import Foundation
 import Combine
 import SwiftUI
 import ModelsShared
+import AuthDomain
 
 @MainActor
 final class LoginViewModel: ObservableObject {

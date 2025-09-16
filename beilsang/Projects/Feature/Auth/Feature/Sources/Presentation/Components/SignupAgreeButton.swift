@@ -42,9 +42,10 @@ struct SignupAgreeButton: View {
             
             if let onShowTerms = onShowTerms {
                 Button(action: onShowTerms) {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(ColorSystem.labelNormalAlternative)
+                    Image("authCaretIcon", bundle: .designSystem)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 24, height: 24)
                 }
             }
         }

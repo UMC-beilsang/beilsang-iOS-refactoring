@@ -9,9 +9,11 @@ import SwiftUI
 import ChallengeDomain
 import UtilityShared
 import ModelsShared
+import UIComponentsShared
 
 public final class ChallengeDetailViewModel: ObservableObject {
     private let repository: ChallengeRepositoryProtocol
+    private let challenge: Challenge
     
     @Published var title: String
     @Published var description: String
@@ -28,11 +30,20 @@ public final class ChallengeDetailViewModel: ObservableObject {
     @Published var isLiked: Bool
     @Published var likeCount: Int
     @Published var recommendChallenges: [Challenge] = []
-    
     @Published var state: ChallengeDetailState
+    
+    // 팝업 관련 상태
+    @Published var showingPopup = false
+    @Published var currentPopupType: ChallengePopupType?
+    @Published var userPoint: Int = 2500 // TODO: 실제 사용자 포인트로 교체
+    
+    public var startDate: Date { challenge.startDate }
+    public var progress: Double { challenge.progress }
+    public var depositAmount: Int { challenge.depositAmount }
     
     public init(challenge: Challenge, repository: ChallengeRepositoryProtocol) {
         self.repository = repository
+        self.challenge = challenge
         
         self.title = challenge.title
         self.description = challenge.description
@@ -61,56 +72,215 @@ public final class ChallengeDetailViewModel: ObservableObject {
         self.state = ChallengeDetailViewModel.makeState(from: challenge)
     }
     
-    @MainActor
-        public func loadRecommendedChallenges() async {
-            do {
-                let challenges = try await repository.fetchRecommendedChallenges()
-                self.recommendChallenges = challenges
-            } catch {
-                print("❌ 추천 챌린지 로드 실패: \(error)")
-            }
-        }
+    // MARK: - 기존 메서드들
     
-    // TODO: - 서버 값 따라 수정
+    @MainActor
+    public func loadRecommendedChallenges() async {
+        do {
+            let challenges = try await repository.fetchRecommendedChallenges()
+            self.recommendChallenges = challenges
+        } catch {
+            print("❌ 추천 챌린지 로드 실패: \(error)")
+        }
+    }
+    
+    @MainActor
+    public func updateTodayCertificationStatus(completed: Bool) {
+        if case .enrolled(.inProgress(_)) = state {
+            state = .enrolled(.inProgress(canCertify: !completed))
+        }
+    }
+
+    @MainActor
+    public func handleChallengeJoined() {
+        state = .enrolled(.beforeStart)
+    }
+
+    @MainActor
+    public func handleCertificationCompleted() {
+        if case .enrolled(.inProgress(_)) = state {
+            state = .enrolled(.inProgress(canCertify: false))
+        }
+    }
+    
+    // MARK: - 팝업 관련 비즈니스 로직
+    
+    public func handleMainAction() {
+        switch state {
+        case .notEnrolled(.canApply):
+            handleParticipateAction()
+        case .enrolled(.calculating):
+            showSettlementPopup()
+        default:
+            break
+        }
+    }
+    
+    public func showReportPopup() {
+        currentPopupType = .report
+        showingPopup = true
+    }
+    
+    public func dismissPopup() {
+        showingPopup = false
+        currentPopupType = nil
+    }
+    
+    // MARK: - 팝업 액션 처리
+    
+    @MainActor
+    public func handlePrimaryAction(for popupType: ChallengePopupType) async -> ChallengeActionResult {
+        dismissPopup()
+        
+        switch popupType {
+        case .participate:
+            return await participateInChallenge()
+        case .insufficientPoint:
+            return .navigateToPointCharge
+        case .report:
+            return await reportChallenge()
+        case .settlement:
+            return .none
+        default:
+            return .none
+        }
+    }
+    
+    // MARK: - Private 메서드들
+    
+    private func handleParticipateAction() {
+        let requiredPoint = depositAmount
+        
+        if userPoint >= requiredPoint {
+            currentPopupType = .participate(
+                requiredPoint: requiredPoint,
+                currentPoint: userPoint,
+                periodText: calculatePeriodText()
+            )
+        } else {
+            currentPopupType = .insufficientPoint(
+                required: requiredPoint,
+                current: userPoint
+            )
+        }
+        showingPopup = true
+    }
+    
+    private func showSettlementPopup() {
+        let remainingSeconds = calculateRemainingSettlementTime()
+        currentPopupType = .settlement(secondsRemaining: remainingSeconds)
+        showingPopup = true
+    }
+    
+    private func calculatePeriodText() -> String {
+        let calendar = Calendar.current
+        let days = calendar.dateComponents([.day], from: challenge.startDate, to: challenge.endDate).day ?? 0
+        
+        if days <= 7 {
+            return "1주일"
+        } else if days <= 30 {
+            return "1개월"
+        } else {
+            return "\(days)일"
+        }
+    }
+    
+    private func calculateRemainingSettlementTime() -> Int {
+        // TODO: 실제 정산 남은 시간 계산 로직
+        return 120
+    }
+    
+    @MainActor
+    private func participateInChallenge() async -> ChallengeActionResult {
+        do {
+            // TODO: 실제 API 호출로 교체
+            // try await repository.participateInChallenge(challengeId: challenge.id)
+            
+            // 성공 시 상태 업데이트
+            await handleChallengeJoined()
+            return .success(message: "챌린지 신청을 완료했어요!")
+        } catch {
+            return .error(message: "챌린지 참여에 실패했습니다.")
+        }
+    }
+    
+    @MainActor
+    private func reportChallenge() async -> ChallengeActionResult {
+        do {
+            // TODO: 실제 API 호출로 교체
+            // try await repository.reportChallenge(challengeId: challenge.id)
+            
+            return .success(message: "신고가 완료되었습니다")
+        } catch {
+            return .error(message: "신고 처리에 실패했습니다.")
+        }
+    }
+    
+    // MARK: - Static 메서드들
+    
     private static func makeState(from challenge: Challenge) -> ChallengeDetailState {
         let now = Date()
         
         if challenge.isParticipating {
-            if now < challenge.startDate {
+            switch challenge.status.uppercased() {
+            case "RECRUITING", "WAITING":
                 return .enrolled(.beforeStart)
-            } else if now >= challenge.startDate && now <= challenge.endDate {
-                // TODO: 오늘 인증 여부 서버 값 필요
-                return .enrolled(.inProgress(canCertify: true))
-            } else {
-                // TODO: 성공/실패 여부 서버 값 필요 → status 활용
-                let success = challenge.status == "ENDED_SUCCESS"
+                
+            case "IN_PROGRESS", "ONGOING":
+                let canCertify = now >= challenge.startDate && now <= challenge.endDate
+                return .enrolled(.inProgress(canCertify: false))
+                
+            case "CALCULATING", "SETTLEMENT":
+                return .enrolled(.calculating)
+                
+            case "ENDED_SUCCESS", "ENDED_FAILURE", "FINISHED", "COMPLETED":
+                let success = challenge.status == "ENDED_SUCCESS" || challenge.progress >= 100.0
                 return .enrolled(.finished(success: success))
+                
+            default:
+                return .enrolled(.beforeStart)
             }
         } else {
-            if challenge.currentParticipants >= challenge.maxParticipants {
-                return .notEnrolled(.closed)
-            } else if now <= challenge.startDate {
-                return .notEnrolled(.canApply)
-            } else {
+            switch challenge.status.uppercased() {
+            case "RECRUITING":
+                if now > challenge.endDate || challenge.currentParticipants >= challenge.maxParticipants {
+                    return .notEnrolled(.closed)
+                } else {
+                    return .notEnrolled(.canApply)
+                }
+                
+            case "APPLIED", "PENDING":
                 return .notEnrolled(.applied)
+                
+            default:
+                return .notEnrolled(.closed)
             }
         }
     }
     
     private static func makeDDayText(from startDate: Date) -> String {
-           let calendar = Calendar.current
-           let today = calendar.startOfDay(for: Date())
-           let start = calendar.startOfDay(for: startDate)
-           
-           let components = calendar.dateComponents([.day], from: today, to: start)
-           guard let days = components.day else { return "" }
-           
-           if days == 0 {
-               return "D-DAY"
-           } else if days > 0 {
-               return "D-\(days)"
-           } else {
-               return "D+\(-days)" // 이미 시작된 경우
-           }
-       }
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let start = calendar.startOfDay(for: startDate)
+        
+        let components = calendar.dateComponents([.day], from: today, to: start)
+        guard let days = components.day else { return "" }
+        
+        if days == 0 {
+            return "D-DAY"
+        } else if days > 0 {
+            return "D-\(days)"
+        } else {
+            return "D+\(-days)"
+        }
+    }
+}
+
+// MARK: - Supporting Types
+
+public enum ChallengeActionResult {
+    case success(message: String)
+    case error(message: String)
+    case navigateToPointCharge
+    case none
 }
