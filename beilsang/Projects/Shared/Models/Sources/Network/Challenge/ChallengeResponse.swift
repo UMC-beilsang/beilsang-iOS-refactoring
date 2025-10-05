@@ -20,6 +20,7 @@ public struct ChallengeResponse: Codable {
     public let depositAmount: Int
     public let startDate: Date
     public let endDate: Date
+    public let author: String
     public let certificationMethod: String
     public let infoImageUrls: [String]
     public let certImageUrls: [String]
@@ -41,6 +42,7 @@ public struct ChallengeResponse: Codable {
         depositAmount: Int,
         startDate: Date,
         endDate: Date,
+        author: String,
         certificationMethod: String,
         infoImageUrls: [String],
         certImageUrls: [String],
@@ -61,6 +63,7 @@ public struct ChallengeResponse: Codable {
         self.depositAmount = depositAmount
         self.startDate = startDate
         self.endDate = endDate
+        self.author = author
         self.certificationMethod = certificationMethod
         self.infoImageUrls = infoImageUrls
         self.certImageUrls = certImageUrls

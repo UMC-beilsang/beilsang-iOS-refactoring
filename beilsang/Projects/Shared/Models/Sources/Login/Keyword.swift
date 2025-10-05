@@ -49,3 +49,7 @@ public enum Keyword: String, CaseIterable, Hashable, Equatable, Codable {
         }
     }
 }
+
+extension Keyword: Identifiable {
+    public var id: String { rawValue }
+}

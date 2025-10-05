@@ -12,7 +12,7 @@ public enum ColorSystem {
     public static let primaryAlternative = AtomicColor.blue5
     public static let primaryNeutral = AtomicColor.blue10
     public static let primaryNormal = AtomicColor.blue40
-    public static let primaryStrong = AtomicColor.blue45
+    public static let primaryStrong = AtomicColor.blue50
     public static let primaryHeavy = AtomicColor.blue55
 
     // MARK: - Label

@@ -10,7 +10,7 @@ import Foundation
 public struct UserInfo {
     public var nickname: String
     public var birthDate: Date?
-    public var gender: String
+    public var gender: String? = nil
     public var address: String
     public var addressDetail: String
     
@@ -31,7 +31,7 @@ public struct UserInfo {
     public var isFilled: Bool {
         !nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
         birthDate != nil &&
-        !gender.isEmpty &&
+        ((gender?.isEmpty) == nil) &&
         !address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 }
