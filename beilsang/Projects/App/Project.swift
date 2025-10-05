@@ -26,6 +26,7 @@ let project = Project(
         sources: ["Sources/**"],
         resources: ["Resources/**"],
         dependencies: [
+            .project(target: "NavigationShared", path: "../Shared/Navigation"),
             .project(target: "DiscoverFeature", path: "../Feature/Discover"),
             .project(target: "AuthFeature", path: "../Feature/Auth"),
             .project(target: "NotificationFeature", path: "../Feature/Notification"),
