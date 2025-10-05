@@ -14,13 +14,13 @@ struct MottoSelectionStepView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            SignupTitleView(title: "비일상을 통해 이루고 싶은\n다짐을 선택해 주세요!")
+            StepTitleView(title: "비일상을 통해 이루고 싶은\n다짐을 선택해 주세요!")
             
             Spacer()
             
             VStack(spacing: 12) {
                 ForEach(viewModel.availableMottos) { motto in
-                    MottoItemView(
+                    SelectableItemView(
                         title: motto.title,
                         iconName: motto.iconName,
                         isSelected: viewModel.selectedMotto == motto,

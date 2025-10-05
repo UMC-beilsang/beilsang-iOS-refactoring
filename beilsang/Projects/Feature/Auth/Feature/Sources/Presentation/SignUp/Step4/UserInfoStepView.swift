@@ -19,7 +19,7 @@ struct UserInfoStepView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             
-            SignupTitleView(title: "비일상에 필요한 정보를\n입력해 주세요")
+            StepTitleView(title: "비일상에 필요한 정보를\n입력해 주세요")
             
             Spacer()
             
@@ -134,7 +134,8 @@ struct UserInfoStepView: View {
             DropdownField(
                 selected: $viewModel.userInfo.gender,
                 placeholder: "성별을 선택해 주세요",
-                options: ["여성", "남성", "설정 안 함"]
+                options: ["여자", "남자", "기타"],
+                optionTitle: { $0 }
             )
         }
     }

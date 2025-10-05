@@ -15,12 +15,11 @@ struct AgreeTermsStepView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            SignupTitleView(title: "비일상을 시작하기 위해\n약관을 동의해 주세요")
+            StepTitleView(title: "비일상을 시작하기 위해\n약관을 동의해 주세요")
             
             Spacer()
             
             VStack {
-                
                 allAgreeButton
                 
                 Spacer().frame(height: 20)

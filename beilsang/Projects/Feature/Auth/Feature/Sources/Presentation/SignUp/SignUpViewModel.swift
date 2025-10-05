@@ -156,7 +156,7 @@ final class SignUpViewModel: ObservableObject {
         
         // SignUpData 업데이트
         signUpData.nickName = userInfo.nickname
-        signUpData.gender = userInfo.gender
+        signUpData.gender = userInfo.gender ?? "기타"
         
         if let birth = userInfo.birthDate {
             let formatter = DateFormatter()

@@ -24,7 +24,7 @@ struct KeywordSelectionStepView: View {
         let filteredKeywords = viewModel.availableKeywords.filter { $0 != .all }
         
         VStack(alignment: .leading, spacing: 20) {
-            SignupTitleView(title: "친환경 키워드를\n한 가지 선택해 주세요!")
+            StepTitleView(title: "친환경 키워드를\n한 가지 선택해 주세요!")
             
             Spacer()
             

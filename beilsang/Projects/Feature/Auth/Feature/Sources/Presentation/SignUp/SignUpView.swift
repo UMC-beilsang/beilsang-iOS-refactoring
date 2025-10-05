@@ -47,9 +47,8 @@ struct SignUpView: View {
                     
                     ScrollView(.vertical, showsIndicators: false) {
                         VStack(alignment: .leading, spacing: 0) {
-                            
-                            SignupProgressView(
-                                currentStep: viewModel.currentStep,
+                            StepProgressView(
+                                currentIndex: viewModel.currentStep.rawValue,
                                 totalSteps: 5
                             )
                             .padding(.top, 20)
@@ -78,7 +77,6 @@ struct SignUpView: View {
                                     EmptyView()
                                 }
                             }
-                            .animation(.easeInOut, value: viewModel.currentStep)
                             .frame(maxWidth: .infinity)
                             .padding(.top, 20)
                             
@@ -96,7 +94,7 @@ struct SignUpView: View {
                     .frame(height: UIScreen.main.bounds.height * 0.17)
                     .allowsHitTesting(false)
                 
-                SignupNextButton(
+                NextStepButton(
                     title: {
                         switch viewModel.currentStep {
                         case .referral: return "회원가입 완료"
@@ -107,7 +105,6 @@ struct SignUpView: View {
                     isEnabled: viewModel.isNextEnabled,
                     onTap: {
                         if viewModel.currentStep == .complete {
-                            // TODO: 메인 전환
                             dismiss()
                         } else {
                             viewModel.nextStep()
@@ -116,10 +113,7 @@ struct SignUpView: View {
                     onDisabledTap: {
                         if let reason = viewModel.disabledReason {
                             withAnimation {
-                                toastManager.show(
-                                    iconName: reason.icon,
-                                    message: reason.message
-                                )
+                                toastManager.show(iconName: reason.icon, message: reason.message)
                             }
                         }
                     }
@@ -127,7 +121,6 @@ struct SignUpView: View {
                 .padding(.horizontal, 24)
                 .padding(.bottom, UIScreen.main.bounds.height * 0.085)
             }
-            
         }
         .ignoresSafeArea(edges: .bottom)
         .alert(item: $viewModel.alert) { alert in
@@ -143,8 +136,16 @@ struct SignUpView: View {
     
     private var transitionForCurrentDirection: AnyTransition {
         switch viewModel.navigationDirection {
-        case .forward: return .move(edge: .trailing).combined(with: .opacity)
-        case .backward: return .move(edge: .leading).combined(with: .opacity)
+        case .forward:
+            return .asymmetric(
+                insertion: .move(edge: .trailing).combined(with: .opacity),
+                removal: .move(edge: .leading).combined(with: .opacity)
+            )
+        case .backward:
+            return .asymmetric(
+                insertion: .move(edge: .leading).combined(with: .opacity),
+                removal: .move(edge: .trailing).combined(with: .opacity)
+            )
         }
     }
 }

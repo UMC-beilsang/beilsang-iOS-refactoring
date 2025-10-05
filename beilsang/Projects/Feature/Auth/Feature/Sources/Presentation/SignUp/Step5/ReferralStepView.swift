@@ -16,7 +16,7 @@ struct ReferralStepView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            SignupTitleView(title: "마지막으로 비일상을\n알게 된 경로를 알려주세요!")
+            StepTitleView(title: "마지막으로 비일상을\n알게 된 경로를 알려주세요!")
             
             Spacer()
             
