@@ -15,11 +15,13 @@ public struct Challenge: Identifiable, Equatable {
     public let description: String
     public let category: String
     public let status: String
-    
-    public let progress: Double      
+     
+    public let progress: Double
     
     public let startDate: Date
     public let endDate: Date
+    
+    public let author: String
     
     public let currentParticipants: Int
     public let maxParticipants: Int
@@ -44,6 +46,7 @@ public struct Challenge: Identifiable, Equatable {
         progress: Double,
         startDate: Date,
         endDate: Date,
+        author: String,
         currentParticipants: Int,
         maxParticipants: Int,
         depositAmount: Int,
@@ -64,6 +67,7 @@ public struct Challenge: Identifiable, Equatable {
         self.progress = progress
         self.startDate = startDate
         self.endDate = endDate
+        self.author = author
         self.currentParticipants = currentParticipants
         self.maxParticipants = maxParticipants
         self.depositAmount = depositAmount
@@ -89,6 +93,7 @@ public extension Challenge {
         self.progress = response.progress
         self.startDate = response.startDate
         self.endDate = response.endDate
+        self.author = response.author
         
         self.currentParticipants = response.currentParticipants
         self.maxParticipants = response.maxParticipants
