@@ -11,7 +11,7 @@ import DesignSystemShared
 public enum HeaderType {
     case primary(onNotification: () -> Void, onSearch: () -> Void)
     case secondary(title: String, onBack: () -> Void)
-    case tertiary(title: String, onBack: () -> Void, onOption: () -> Void)
+    case tertiaryReport(title: String, onBack: () -> Void, onOption: () -> Void)
 }
 
 public struct Header: View {
@@ -32,8 +32,8 @@ public struct Header: View {
                     primaryHeader(onNotification: onNotification, onSearch: onSearch)
                 case .secondary(let title, let onBack):
                     secondaryHeader(title: title, onBack: onBack)
-                case .tertiary(let title, let onBack, let onOption):
-                    tertiaryHeader(title: title, onBack: onBack, onOption: onOption)
+                case .tertiaryReport(let title, let onBack, let onOption):
+                    tertiaryReportHeader(title: title, onBack: onBack, onOption: onOption)
                 }
             }
             .padding(.horizontal, 24)
@@ -105,7 +105,7 @@ extension Header {
         }
     }
     
-    private func tertiaryHeader(title: String, onBack: @escaping () -> Void, onOption: @escaping () -> Void) -> some View {
+    private func tertiaryReportHeader(title: String, onBack: @escaping () -> Void, onOption: @escaping () -> Void) -> some View {
         HStack {
             Button(action: onBack) {
                 Image(systemName: "chevron.left")

@@ -6,32 +6,34 @@
 import SwiftUI
 import DesignSystemShared
 
-public struct DropdownField: View {
-    @Binding var selected: String
+public struct DropdownField<Option: Hashable>: View {
+    @Binding var selected: Option?
     @State private var isExpanded = false
     
     let placeholder: String
-    let options: [String]
+    let options: [Option]
+    let optionTitle: (Option) -> String
     
     public init(
-        selected: Binding<String>,
+        selected: Binding<Option?>,
         placeholder: String,
-        options: [String]
+        options: [Option],
+        optionTitle: @escaping (Option) -> String
     ) {
         self._selected = selected
         self.placeholder = placeholder
         self.options = options
+        self.optionTitle = optionTitle
     }
     
     public var body: some View {
         VStack(spacing: 0) {
-            // 메인 버튼
             Button {
                 withAnimation { isExpanded.toggle() }
             } label: {
                 HStack {
-                    Text(selected.isEmpty ? placeholder : selected)
-                        .foregroundColor(selected.isEmpty ? ColorSystem.labelNormalBasic : ColorSystem.labelNormalStrong)
+                    Text(selected.map(optionTitle) ?? placeholder)
+                        .foregroundColor(selected == nil ? ColorSystem.labelNormalBasic : ColorSystem.labelNormalStrong)
                         .fontStyle(Fonts.body2Medium)
                     
                     Spacer()
@@ -54,10 +56,18 @@ public struct DropdownField: View {
                             withAnimation { isExpanded = false }
                         } label: {
                             HStack {
-                                Text(option)
+                                Text(optionTitle(option))
                                     .foregroundColor(.primary)
                                     .fontStyle(Fonts.body2Medium)
+                                
                                 Spacer()
+                                
+                                if selected == option {
+                                    Image("primaryCheckIcon", bundle: .designSystem)
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 20, height: 20)
+                                }
                             }
                             .padding(.horizontal, 12)
                             .frame(height: 48)

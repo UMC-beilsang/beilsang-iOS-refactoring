@@ -33,15 +33,3 @@ public struct ProgressBar: View {
         .frame(height: 20)
     }
 }
-
-struct ProgressBar_Previews: PreviewProvider {
-    static var previews: some View {
-        VStack(spacing: 16) {
-            ProgressBar(value: 0.3)
-            ProgressBar(value: 0.6)
-            ProgressBar(value: 1.0)
-        }
-        .padding()
-        .previewLayout(.sizeThatFits)
-    }
-}
