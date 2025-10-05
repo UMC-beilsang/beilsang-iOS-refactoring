@@ -12,6 +12,12 @@ import ChallengeDomain
 
 struct ChallengeRecommendView: View {
     let recommendChallenges: [Challenge]
+    let showOnlyFirst: Bool
+    
+    init(recommendChallenges: [Challenge], showOnlyFirst: Bool = false) {
+        self.recommendChallenges = recommendChallenges
+        self.showOnlyFirst = showOnlyFirst
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -20,7 +26,9 @@ struct ChallengeRecommendView: View {
                 .foregroundStyle(ColorSystem.labelNormalStrong)
             
             VStack(spacing: 8) {
-                ForEach(recommendChallenges, id: \.id) { challenge in
+                let challengesToShow = showOnlyFirst ? Array(recommendChallenges.prefix(1)) : recommendChallenges
+                
+                ForEach(challengesToShow, id: \.id) { challenge in
                     ChallengeRecommendItemView(challenge: challenge)
                 }
             }

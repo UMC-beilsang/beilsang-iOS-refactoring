@@ -12,67 +12,58 @@ import ModelsShared
 import UIComponentsShared
 
 public final class ChallengeDetailViewModel: ObservableObject {
-    private let repository: ChallengeRepositoryProtocol
-    private let challenge: Challenge
+    public let repository: ChallengeRepositoryProtocol
+    public let challengeId: String
     
-    @Published var title: String
-    @Published var description: String
-    @Published var category: String
-    @Published var status: String
-    @Published var imageURL: String
-    @Published var certImages: [String]
-    @Published var periodText: String
-    @Published var startDateText: String
-    @Published var dDayText: String
-    @Published var participantText: String
-    @Published var depositText: String
-    @Published var createdAtText: String
-    @Published var isLiked: Bool
-    @Published var likeCount: Int
-    @Published var recommendChallenges: [Challenge] = []
-    @Published var state: ChallengeDetailState
+    @Published public private(set) var challenge: Challenge?
+    @Published public var recommendChallenges: [Challenge] = []
+    @Published public var state: ChallengeDetailState = .notEnrolled(.closed)
     
     // 팝업 관련 상태
     @Published var showingPopup = false
     @Published var currentPopupType: ChallengePopupType?
-    @Published var userPoint: Int = 2500 // TODO: 실제 사용자 포인트로 교체
+    @Published var userPoint: Int = 2500
+    @Published var showFeeds = false
+    @Published var showCertification = false
     
-    public var startDate: Date { challenge.startDate }
-    public var progress: Double { challenge.progress }
-    public var depositAmount: Int { challenge.depositAmount }
-    
-    public init(challenge: Challenge, repository: ChallengeRepositoryProtocol) {
+    public init(challengeId: String, repository: ChallengeRepositoryProtocol) {
+        self.challengeId = challengeId
         self.repository = repository
-        self.challenge = challenge
-        
-        self.title = challenge.title
-        self.description = challenge.description
-        self.category = challenge.category
-        self.status = challenge.status
-        self.imageURL = challenge.thumbnailImageUrl ?? ""
-        self.certImages = challenge.certImageUrls
-        
-        let formatter = DateFormatter.koreanDate
-        let weekFormatter = DateFormatter.koreanDateWithWeekday
-        self.periodText = "\(formatter.string(from: challenge.startDate)) ~ \(formatter.string(from: challenge.endDate))"
-        
-        self.startDateText = weekFormatter.string(from: challenge.startDate)
-        self.dDayText = ChallengeDetailViewModel.makeDDayText(from: challenge.startDate)
-        
-        self.participantText = "\(challenge.currentParticipants)명"
-        self.depositText = "\(challenge.depositAmount)P"
-        
-        self.createdAtText = formatter.string(from: challenge.createdAt)
-        
-        self.likeCount = challenge.likeCount
-        self.isLiked = challenge.isLiked
-        
-        self.recommendChallenges = []
-        
-        self.state = ChallengeDetailViewModel.makeState(from: challenge)
     }
     
-    // MARK: - 기존 메서드들
+    // MARK: - Computed Properties
+    public var title: String { challenge?.title ?? "" }
+    public var description: String { challenge?.description ?? "" }
+    public var category: String { challenge?.category ?? "" }
+    public var status: String { challenge?.status ?? "" }
+    public var imageURL: String { challenge?.thumbnailImageUrl ?? "" }
+    public var certImages: [String] { challenge?.certImageUrls ?? [] }
+    public var startDate: Date { challenge?.startDate ?? Date() }
+    public var endDate: Date { challenge?.endDate ?? Date() }
+    public var progress: Double { challenge?.progress ?? 0 }
+    public var depositAmount: Int { challenge?.depositAmount ?? 0 }
+    public var participantText: String { "\(challenge?.currentParticipants ?? 0)명" }
+    public var depositText: String { "\(challenge?.depositAmount ?? 0)P" }
+    public var createdAtText: String {
+        guard let createdAt = challenge?.createdAt else { return "" }
+        return DateFormatter.koreanDate.string(from: createdAt)
+    }
+    public var dDayText: String {
+        guard let start = challenge?.startDate else { return "" }
+        return ChallengeDetailViewModel.makeDDayText(from: start)
+    }
+    
+    // MARK: - API
+    @MainActor
+    public func loadChallengeDetail() async {
+        do {
+            let detail = try await repository.fetchChallengeDetail(challengeId: challengeId)
+            self.challenge = detail
+            self.state = ChallengeDetailViewModel.makeState(from: detail)
+        } catch {
+            print("❌ 상세 불러오기 실패: \(error)")
+        }
+    }
     
     @MainActor
     public func loadRecommendedChallenges() async {
@@ -90,12 +81,12 @@ public final class ChallengeDetailViewModel: ObservableObject {
             state = .enrolled(.inProgress(canCertify: !completed))
         }
     }
-
+    
     @MainActor
     public func handleChallengeJoined() {
         state = .enrolled(.beforeStart)
     }
-
+    
     @MainActor
     public func handleCertificationCompleted() {
         if case .enrolled(.inProgress(_)) = state {
@@ -104,7 +95,6 @@ public final class ChallengeDetailViewModel: ObservableObject {
     }
     
     // MARK: - 팝업 관련 비즈니스 로직
-    
     public func handleMainAction() {
         switch state {
         case .notEnrolled(.canApply):
@@ -126,8 +116,12 @@ public final class ChallengeDetailViewModel: ObservableObject {
         currentPopupType = nil
     }
     
-    // MARK: - 팝업 액션 처리
+    public func showFeedGallery() { showFeeds = true }
+    public func dismissFeedGallery() { showFeeds = false }
+    public func showCert() { showCertification = true }
+    public func dismissCert() { showCertification = false }
     
+    // MARK: - 팝업 액션 처리
     @MainActor
     public func handlePrimaryAction(for popupType: ChallengePopupType) async -> ChallengeActionResult {
         dismissPopup()
@@ -146,8 +140,7 @@ public final class ChallengeDetailViewModel: ObservableObject {
         }
     }
     
-    // MARK: - Private 메서드들
-    
+    // MARK: - Private 메서드
     private func handleParticipateAction() {
         let requiredPoint = depositAmount
         
@@ -173,6 +166,7 @@ public final class ChallengeDetailViewModel: ObservableObject {
     }
     
     private func calculatePeriodText() -> String {
+        guard let challenge else { return "" }
         let calendar = Calendar.current
         let days = calendar.dateComponents([.day], from: challenge.startDate, to: challenge.endDate).day ?? 0
         
@@ -193,10 +187,7 @@ public final class ChallengeDetailViewModel: ObservableObject {
     @MainActor
     private func participateInChallenge() async -> ChallengeActionResult {
         do {
-            // TODO: 실제 API 호출로 교체
-            // try await repository.participateInChallenge(challengeId: challenge.id)
-            
-            // 성공 시 상태 업데이트
+            // try await repository.participateInChallenge(challengeId: challengeId)
             await handleChallengeJoined()
             return .success(message: "챌린지 신청을 완료했어요!")
         } catch {
@@ -207,17 +198,14 @@ public final class ChallengeDetailViewModel: ObservableObject {
     @MainActor
     private func reportChallenge() async -> ChallengeActionResult {
         do {
-            // TODO: 실제 API 호출로 교체
-            // try await repository.reportChallenge(challengeId: challenge.id)
-            
+            // try await repository.reportChallenge(challengeId: challengeId)
             return .success(message: "신고가 완료되었습니다")
         } catch {
             return .error(message: "신고 처리에 실패했습니다.")
         }
     }
     
-    // MARK: - Static 메서드들
-    
+    // MARK: - Static 메서드
     private static func makeState(from challenge: Challenge) -> ChallengeDetailState {
         let now = Date()
         
@@ -225,18 +213,14 @@ public final class ChallengeDetailViewModel: ObservableObject {
             switch challenge.status.uppercased() {
             case "RECRUITING", "WAITING":
                 return .enrolled(.beforeStart)
-                
             case "IN_PROGRESS", "ONGOING":
                 let canCertify = now >= challenge.startDate && now <= challenge.endDate
-                return .enrolled(.inProgress(canCertify: false))
-                
+                return .enrolled(.inProgress(canCertify: canCertify))
             case "CALCULATING", "SETTLEMENT":
                 return .enrolled(.calculating)
-                
             case "ENDED_SUCCESS", "ENDED_FAILURE", "FINISHED", "COMPLETED":
                 let success = challenge.status == "ENDED_SUCCESS" || challenge.progress >= 100.0
                 return .enrolled(.finished(success: success))
-                
             default:
                 return .enrolled(.beforeStart)
             }
@@ -248,10 +232,8 @@ public final class ChallengeDetailViewModel: ObservableObject {
                 } else {
                     return .notEnrolled(.canApply)
                 }
-                
             case "APPLIED", "PENDING":
                 return .notEnrolled(.applied)
-                
             default:
                 return .notEnrolled(.closed)
             }
@@ -262,22 +244,16 @@ public final class ChallengeDetailViewModel: ObservableObject {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
         let start = calendar.startOfDay(for: startDate)
-        
         let components = calendar.dateComponents([.day], from: today, to: start)
         guard let days = components.day else { return "" }
         
-        if days == 0 {
-            return "D-DAY"
-        } else if days > 0 {
-            return "D-\(days)"
-        } else {
-            return "D+\(-days)"
-        }
+        if days == 0 { return "D-DAY" }
+        else if days > 0 { return "D-\(days)" }
+        else { return "D+\(-days)" }
     }
 }
 
 // MARK: - Supporting Types
-
 public enum ChallengeActionResult {
     case success(message: String)
     case error(message: String)

@@ -12,7 +12,7 @@ import ChallengeDomain
 import ModelsShared
 
 @MainActor
-final class HomeViewModel: ObservableObject {
+public final class HomeViewModel: ObservableObject {
     // MARK: - Published
     @Published var activeChallenges: [Challenge] = []
     @Published var recommendedChallenges: [Challenge] = []

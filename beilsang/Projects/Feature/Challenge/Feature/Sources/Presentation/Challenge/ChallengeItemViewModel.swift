@@ -17,7 +17,7 @@ struct ChallengeItemViewModel: Identifiable {
     let progressText: String        // "45%" 형식 (달성률)
     let participantsText: String    // "23/50명" (참여 인원)
     
-    let author: String?
+    let author: String
     
     init(challenge: Challenge, author: String? = nil) {
         self.id = challenge.id
@@ -25,6 +25,6 @@ struct ChallengeItemViewModel: Identifiable {
         self.thumbnailImageUrl = challenge.thumbnailImageUrl ?? "" 
         self.progressText = String(format: "%.0f%%", challenge.progress)
         self.participantsText = "\(challenge.currentParticipants)명"
-        self.author = author
+        self.author = challenge.author
     }
 }

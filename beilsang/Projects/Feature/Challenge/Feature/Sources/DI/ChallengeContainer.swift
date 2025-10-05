@@ -5,13 +5,21 @@
 //  Created by Seyoung Park on 9/1/25.
 //
 
-import Foundation
+import ChallengeDomain
 
 @MainActor
 public final class ChallengeContainer {
-    let homeViewModel: HomeViewModel
+    public let homeViewModel: HomeViewModel
+    public let router: ChallengeRouter
     
     public init() {
-        self.homeViewModel = HomeViewModel()
+        // 데이터 레이어 (Repository)
+        let repository = MockChallengeRepository()
+        
+        // ViewModel 생성
+        self.homeViewModel = HomeViewModel(repository: repository)
+        
+        // Router 생성
+        self.router = ChallengeRouter()
     }
 }
