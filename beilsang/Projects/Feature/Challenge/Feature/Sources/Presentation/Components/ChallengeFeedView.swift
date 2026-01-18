@@ -6,28 +6,31 @@
 //
 
 import SwiftUI
+import UIComponentsShared
 import DesignSystemShared
+import ModelsShared
 
 struct ChallengeFeedView: View {
+    let thumbnails: [ChallengeFeedThumbnail]
+    let onThumbnailTap: (ChallengeFeedThumbnail) -> Void
     let onSeeAllTap: () -> Void
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
+            // Header
             HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("인증 갤러리")
                         .fontStyle(.heading3Bold)
                         .foregroundStyle(ColorSystem.labelNormalStrong)
                     
-                    Text("함께하는 챌린지들의 이야기를 확인해 보세요!")
+                    Text("참여자들의 인증 사진을 확인해 보세요!")
                         .fontStyle(.detail1Medium)
                         .foregroundStyle(ColorSystem.labelNormalBasic)
                 }
-                
                 Spacer()
-                
                 Button(action: onSeeAllTap) {
-                    HStack(alignment: .center) {
+                    HStack(spacing: 4) {
                         Text("전체보기")
                             .fontStyle(.detail1Medium)
                             .foregroundStyle(ColorSystem.labelNormalBasic)
@@ -40,17 +43,19 @@ struct ChallengeFeedView: View {
                 }
             }
             
+            // Thumbnails
             LazyVGrid(
-                columns: Array(repeating: GridItem(.flexible(), spacing: 14), count: 2),
+                columns: [GridItem(.flexible(), spacing: 14),
+                          GridItem(.flexible(), spacing: 14)],
                 spacing: 14
             ) {
-                ForEach(0..<4, id: \.self) { index in
-                    Image("challengeThumbnail2", bundle: .designSystem) // TODO: 실제 URL/이미지로 교체
-                        .resizable()
-                        .frame(width: (UIScreen.main.bounds.width)/2 - 24 - 7, height: UIScreen.main.bounds.height * 0.15)
-                        .scaledToFill()
-                        .clipped()
-                        .cornerRadius(12)
+                ForEach(thumbnails.prefix(4)) { thumbnail in
+                    FeedThumbnailCard(
+                        imageUrl: thumbnail.feedUrl,
+                        isMyFeed: thumbnail.isMyFeed
+                    ) {
+                        onThumbnailTap(thumbnail)
+                    }
                 }
             }
         }

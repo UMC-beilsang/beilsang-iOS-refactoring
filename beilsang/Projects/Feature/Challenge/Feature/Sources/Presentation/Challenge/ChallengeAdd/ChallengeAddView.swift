@@ -12,18 +12,19 @@ import DesignSystemShared
 import UtilityShared
 import ChallengeDomain
 
-struct ChallengeAddView: View {
+public struct ChallengeAddView: View {
     @StateObject private var viewModel: ChallengeAddViewModel
     @StateObject private var keyboard = KeyboardResponder()
     @EnvironmentObject var toastManager: ToastManager
     @Environment(\.dismiss) private var dismiss
     @State private var scrollPosition: String? = "top"
-    
-    init(viewModel: ChallengeAddViewModel) {
+    @EnvironmentObject var coordinator: ChallengeCoordinator
+
+    public init(viewModel: ChallengeAddViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
     }
     
-    var body: some View {
+    public var body: some View {
         ZStack(alignment: .bottom) {
             VStack(alignment: .leading, spacing: 0) {
                 Header(type: .secondary(title: "챌린지 만들기", onBack: {
@@ -156,13 +157,3 @@ struct ChallengeAddView: View {
     }
 }
 
-#Preview {
-    let _ = FontRegister.registerFonts()
-    
-    ChallengeAddView(
-        viewModel: ChallengeAddViewModel(
-            repository: MockChallengeRepository()
-        )
-    )
-    .environmentObject(ToastManager())
-}

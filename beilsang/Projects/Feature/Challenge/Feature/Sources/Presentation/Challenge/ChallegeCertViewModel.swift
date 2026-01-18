@@ -12,7 +12,7 @@ import ModelsShared
 import UIComponentsShared
 
 @MainActor
-class ChallengeCertViewModel: ObservableObject {
+public final class ChallengeCertViewModel: ObservableObject {
     // MARK: - Published Properties
     @Published var selectedPhotoStates: [PhotoState] = []
     @Published var selectedPhotos: [PhotosPickerItem] = []
@@ -33,7 +33,7 @@ class ChallengeCertViewModel: ObservableObject {
     private let maxReviewLength = 200
     
     // MARK: - Initialization
-    init(challengeId: Int, repository: ChallengeRepositoryProtocol) {
+    public init(challengeId: Int, repository: ChallengeRepositoryProtocol) {
         self.challengeId = challengeId
         self.repository = repository
         loadCertImages()
@@ -125,13 +125,31 @@ class ChallengeCertViewModel: ObservableObject {
         isSubmitting = true
         defer { isSubmitting = false }
         
-        // TODO: API 호출
-        // return await repository.submitCertification(
-        //     challengeId: challengeId,
-        //     images: validImages,
-        //     review: reviewText
-        // )
-        
-        return true
+        do {
+            // 첫 번째 이미지만 업로드 (API가 한 개만 지원)
+            guard let firstImage = validImages.first,
+                  let imageData = firstImage.jpegData(compressionQuality: 0.8) else {
+                return false
+            }
+            
+            let request = FeedCreateRequest(
+                challengeId: challengeId,
+                review: reviewText,
+                feedImage: imageData
+            )
+            
+            let result = try await repository.createFeed(request: request)
+            
+            #if DEBUG
+            print("✅ Feed created successfully - feedId: \(result.feedId)")
+            #endif
+            
+            return true
+        } catch {
+            #if DEBUG
+            print("❌ Failed to create feed: \(error)")
+            #endif
+            return false
+        }
     }
 }

@@ -19,16 +19,16 @@ struct HomeMainCard: View {
                                height: UIScreen.main.bounds.height * 0.26)
             .clipped()
             .cornerRadius(24)
-            .shadow(color: .black.opacity(0.1), radius: 3, x: 0, y: 4)
     }
 }
 
 struct HomeMainCardCrousel: View {
-    let images = ["thumbnailBanner1", "thumbnailBanner2", "thumbnailBanner3"]
+    // 같은 이미지라도 SwiftUI ForEach ID는 유니크해야 해서 인덱스를 ID로 사용
+    let images = ["thumbnailBanner1", "thumbnailBanner1", "thumbnailBanner1"]
     
     var body: some View {
         TabView {
-            ForEach(images, id: \.self) { image in
+            ForEach(Array(images.enumerated()), id: \.offset) { _, image in
                 HomeMainCard(imageName: image)
             }
         }

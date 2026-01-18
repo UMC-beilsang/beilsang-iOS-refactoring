@@ -9,12 +9,23 @@ import ProjectDescription
 
 let project = Project(
   name: "ChallengeFeature",
+  settings: .settings(
+    base: [
+      "SWIFT_VERSION": "5.9"
+    ],
+    configurations: [
+      .debug(name: "dev"),
+      .debug(name: "stag"),
+      .release(name: "prod"),
+    ]
+  ),
   targets: [
     .target(
       name: "ChallengeFeature",
       destinations: .iOS,
       product: .framework,
       bundleId: "com.beilsang.ChallengeFeature",
+      deploymentTargets: .iOS("18.5"),
       infoPlist: .default,
       sources: ["Feature/Sources/**"],
       dependencies: [
@@ -22,13 +33,11 @@ let project = Project(
         .project(target: "NetworkCore", path: "../../Core/NetworkCore"),
         .project(target: "ModelsShared", path: "../../Shared/Models"),
         .project(target: "UtilityShared", path: "../../Shared/Utility"),
+        .project(target: "NavigationShared", path: "../../Shared/Navigation"),
         .project(target: "DesignSystemShared", path: "../../Shared/DesignSystem"),
         .project(target: "UIComponentsShared", path: "../../Shared/UIComponents"),
-        .external(name: "SnapKit")
       ]
     ),
-    
-    // 단위 테스트 타겟 추가
     .target(
       name: "ChallengeFeatureTests",
       destinations: .iOS,
@@ -51,8 +60,6 @@ let project = Project(
         ]
       )
     ),
-    
-    // UI 테스트 타겟 추가 (선택사항)
     .target(
       name: "ChallengeFeatureUITests",
       destinations: .iOS,
@@ -72,7 +79,6 @@ let project = Project(
         ]
       )
     ),
-    
     .target(
       name: "ChallengeFeatureExample",
       destinations: .iOS,
@@ -102,17 +108,17 @@ let project = Project(
       .scheme(
         name: "ChallengeFeature",
         buildAction: .buildAction(targets: ["ChallengeFeature"]),
-        testAction: .targets(["ChallengeFeatureTests"])
+        testAction: .targets(["ChallengeFeatureTests"], configuration: .configuration("dev"))
       ),
       .scheme(
         name: "ChallengeFeatureTests",
         buildAction: .buildAction(targets: ["ChallengeFeature", "ChallengeFeatureTests"]),
-        testAction: .targets(["ChallengeFeatureTests"])
+        testAction: .targets(["ChallengeFeatureTests"], configuration: .configuration("dev"))
       ),
       .scheme(
         name: "ChallengeFeatureExample",
         buildAction: .buildAction(targets: ["ChallengeFeatureExample"]),
-        runAction: .runAction(executable: "ChallengeFeatureExample")
+        runAction: .runAction(configuration: .configuration("dev"), executable: "ChallengeFeatureExample")
       )
   ]
 )

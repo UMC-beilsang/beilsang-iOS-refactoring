@@ -7,24 +7,22 @@
 
 import Foundation
 import ChallengeDomain
+import ModelsShared
 
-struct ChallengeItemViewModel: Identifiable {
-    let id: String
-    let title: String
-    let thumbnailImageUrl: String
+public struct ChallengeItemViewModel: Identifiable {
+    public let id: Int
+    public let title: String
+    public let thumbnailImageUrl: String
+    public let progressText: String
+    public let author: String?
+    public let isRecruitmentClosed: Bool
     
-    // 카드에서 보여줄 값들
-    let progressText: String        // "45%" 형식 (달성률)
-    let participantsText: String    // "23/50명" (참여 인원)
-    
-    let author: String
-    
-    init(challenge: Challenge, author: String? = nil) {
+    public init(challenge: Challenge) {
         self.id = challenge.id
         self.title = challenge.title
-        self.thumbnailImageUrl = challenge.thumbnailImageUrl ?? "" 
+        self.thumbnailImageUrl = challenge.thumbnailImageUrl ?? ""
         self.progressText = String(format: "%.0f%%", challenge.progress)
-        self.participantsText = "\(challenge.currentParticipants)명"
         self.author = challenge.author
+        self.isRecruitmentClosed = challenge.isRecruitmentClosed
     }
 }

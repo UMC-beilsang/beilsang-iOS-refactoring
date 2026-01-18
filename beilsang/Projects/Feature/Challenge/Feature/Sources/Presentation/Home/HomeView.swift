@@ -2,7 +2,7 @@
 //  HomeView.swift
 //  ChallengeFeature
 //
-//  Created by Seyoung Park on 9/1/25.
+// Created by Park Seyoung on 8/28/25.
 //
 
 import SwiftUI
@@ -10,82 +10,97 @@ import UIComponentsShared
 import ModelsShared
 import DesignSystemShared
 import UtilityShared
-import ChallengeDomain
+import NavigationShared
 
-struct HomeView: View {
+public struct HomeView: View {
+    @EnvironmentObject var appRouter: AppRouter
+    @EnvironmentObject var coordinator: ChallengeCoordinator
+    
     @StateObject private var viewModel: HomeViewModel
-    @ObservedObject private var router: ChallengeRouter
     @StateObject private var keyboard = KeyboardResponder()
     
-    init(container: ChallengeContainer, router: ChallengeRouter) {
+    public init(container: ChallengeContainer) {
         _viewModel = StateObject(wrappedValue: container.homeViewModel)
-        self._router = ObservedObject(initialValue: router)
     }
     
-    var body: some View {
-        NavigationStack(path: $router.path) {
-            ZStack(alignment: .bottom) {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 0) {
-                        Header(type: .primary(onNotification: {}, onSearch: {}))
-                        
-                        Spacer().frame(height: 20)
-                        
-                        HomeMainCardCrousel()
-                            .padding(.horizontal, 24)
-                        
-                        Spacer().frame(height: 24)
-                        
-                        HomeCategoryScrollView(onCategoryTapped: { category in
-                            router.navigateToChallengeList(category: category)
-                        })
-                        
-                        Spacer().frame(height: 20)
-                        
-                        Rectangle()
-                            .fill(ColorSystem.labelNormalDisable)
-                            .frame(height: 8)
-                        
-                        // 참여 중인 챌린지
-                        activeChallengesSection
-                        
-                        // 추천 챌린지
-                        recommendedChallengesSection
-                    }
-                    
-                    Spacer().frame(minHeight: 180)
-                }
-                .padding(.bottom, keyboard.currentHeight)
-                .scrollBounceBehavior(.basedOnSize)
-            }
-            .navigationDestination(for: ChallengeRoute.self) { route in
-                switch route {
-                case .challengeList(let category):
-                    ChallengeListView(
-                        category: category,
-                        repository: MockChallengeRepository(),
-                        onChallengeSelected: { challengeId in
-                            router.navigateToDetail(id: challengeId)
+    public var body: some View {
+        ZStack(alignment: .bottom) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    Header(type: .primary(
+                        onNotification: {
+                            coordinator.presentNotification()
                         },
-                        onBannerTapped: {
-                            router.navigateToCreate()
+                        onSearch: {
+                            coordinator.presentSearch()
                         }
-                    )
+                    ))
                     
-                case .challengeDetail(let id):
-                    ChallengeDetailView(id: id, repository: MockChallengeRepository())
-                    
-                case .challengeCreate:
-                    ChallengeAddView(
-                        viewModel: ChallengeAddViewModel(repository: MockChallengeRepository())
-                    )
+                    ZStack {
+                        if viewModel.isLoading {
+                            skeletonContentView
+                                .transition(.opacity)
+                        }
+                        
+                        if !viewModel.isLoading {
+                            contentView
+                                .transition(.opacity)
+                        }
+                    }
+                    .animation(.easeOut(duration: 0.4), value: viewModel.isLoading)
                 }
+                
+                Spacer().frame(minHeight: 180)
             }
-            .ignoresSafeArea(edges: .bottom)
-            .task {
-                await viewModel.loadChallenges()
+            .padding(.bottom, keyboard.currentHeight)
+            .scrollBounceBehavior(.basedOnSize)
+            .refreshable {
+                await viewModel.loadChallenges(showSkeleton: true)
             }
         }
+        .ignoresSafeArea(edges: .bottom)
+        .onAppear {
+            // 이미 데이터가 있으면 로딩 상태 즉시 해제 (깜빡임 방지)
+            if !viewModel.activeChallenges.isEmpty || !viewModel.recommendedChallenges.isEmpty {
+                viewModel.isLoading = false
+            }
+        }
+        .task {
+            // 초기 로딩 (데이터가 비어있을 때만)
+            if viewModel.activeChallenges.isEmpty && viewModel.recommendedChallenges.isEmpty {
+                await viewModel.loadChallenges(showSkeleton: true)
+            }
+        }
+    }
+    
+    // MARK: - Content View
+    private var contentView: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Spacer().frame(height: 20)
+            
+            HomeMainCardCrousel()
+                .padding(.horizontal, 24)
+            
+            Spacer().frame(height: 24)
+            
+            CategoryGridView(layout: .twoRow) { keyword in
+                coordinator.navigateToChallengeList(category: keyword)
+            }
+            
+            Spacer().frame(height: 20)
+            
+            Rectangle()
+                .fill(ColorSystem.labelNormalDisable)
+                .frame(height: 8)
+            
+            activeChallengesSection
+            recommendedChallengesSection
+        }
+    }
+    
+    // MARK: - Skeleton Content View
+    private var skeletonContentView: some View {
+        HomeSkeletonView()
     }
     
     // MARK: - Active Challenges Section
@@ -95,7 +110,7 @@ struct HomeView: View {
                 title: "참여 중인 챌린지",
                 showAllButton: viewModel.activeChallenges.count > 2,
                 onShowAllTapped: {
-                    router.navigateToChallengeList(category: .all)
+                    coordinator.navigateToChallengeList(category: .all)
                 }
             )
             .padding(.horizontal, 24)
@@ -108,25 +123,24 @@ struct HomeView: View {
                         .padding(.top, 36)
                     
                     ActiveButton(title: "챌린지 둘러보기", action: {
-                        router.navigateToChallengeList(category: .all)
+                        coordinator.navigateToChallengeList(category: .all)
                     })
                 }
                 .frame(maxWidth: .infinity, alignment: .center)
             } else {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 14) {
-                        ForEach(viewModel.activeChallenges) { challenge in
-                            ChallengeItemView(
-                                title: challenge.title,
-                                imageUrl: challenge.thumbnailImageUrl ?? "",
-                                style: .progressGrid(String(format: "%.0f%%", challenge.progress))
-                            ) {
-                                router.navigateToDetail(id: challenge.id)
-                            }
+                HStack(spacing: 14) {
+                    ForEach(viewModel.activeChallenges.prefix(2)) { challenge in
+                        ChallengeItemView(
+                            title: challenge.title,
+                            imageUrl: challenge.thumbnailImageUrl ?? "",
+                            style: .progressGrid(String(format: "%.0f%%", challenge.progress)),
+                            isRecruitmentClosed: challenge.isRecruitmentClosed
+                        ) {
+                            coordinator.navigateToDetail(id: challenge.id)
                         }
                     }
-                    .padding(.horizontal, 24)
                 }
+                .padding(.horizontal, 24)
             }
         }
     }
@@ -138,7 +152,7 @@ struct HomeView: View {
                 title: "오늘의 추천 챌린지",
                 showAllButton: viewModel.recommendedChallenges.count > 2,
                 onShowAllTapped: {
-                    router.navigateToChallengeList(category: .all)
+                    coordinator.navigateToChallengeList(category: .all)
                 }
             )
             .padding(.horizontal, 24)
@@ -151,7 +165,7 @@ struct HomeView: View {
                         .padding(.top, 36)
                     
                     ActiveButton(title: "다른 챌린지 둘러보기", action: {
-                        router.navigateToChallengeList(category: .all)
+                        coordinator.navigateToChallengeList(category: .all)
                     })
                 }
                 .frame(maxWidth: .infinity, alignment: .center)
@@ -162,9 +176,10 @@ struct HomeView: View {
                             ChallengeItemView(
                                 title: challenge.title,
                                 imageUrl: challenge.thumbnailImageUrl ?? "",
-                                style: .participantsGrid("\(challenge.currentParticipants)명")
+                                style: .participantsGrid("\(challenge.currentParticipants)명"),
+                                isRecruitmentClosed: challenge.isRecruitmentClosed
                             ) {
-                                router.navigateToDetail(id: challenge.id)
+                                coordinator.navigateToDetail(id: challenge.id)
                             }
                         }
                     }
@@ -179,7 +194,7 @@ struct HomeView: View {
                     ActiveButton(
                         title: "전체 챌린지 보기",
                         action: {
-                            router.navigateToChallengeList(category: .all)
+                            coordinator.navigateToChallengeList(category: .all)
                         }
                     )
                     

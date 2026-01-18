@@ -12,21 +12,17 @@ import DesignSystemShared
 import UtilityShared
 import ChallengeDomain
 
-struct ChallengeFeedDetailView: View {
+public struct ChallengeFeedDetailView: View {
     @StateObject private var viewModel: ChallengeFeedDetailViewModel
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var toastManager: ToastManager
+    @EnvironmentObject var coordinator: ChallengeCoordinator
     
-    init(feedId: Int, repository: ChallengeRepositoryProtocol) {
-        self._viewModel = StateObject(
-            wrappedValue: ChallengeFeedDetailViewModel(
-                feedId: feedId,
-                repository: repository
-            )
-        )
+    public init(viewModel: ChallengeFeedDetailViewModel) {
+        _viewModel = StateObject(wrappedValue: viewModel)
     }
     
-    var body: some View {
+    public var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Header(type: .tertiaryReport(
                 title: headerTitle,
@@ -40,141 +36,150 @@ struct ChallengeFeedDetailView: View {
             ))
             
             ScrollView(.vertical, showsIndicators: false) {
-                if let feedDetail = viewModel.feedDetail {
-                    VStack(alignment: .leading, spacing: 0) {
-                        // 사용자 프로필 영역
-                        VStack(alignment: .leading, spacing: 16) {
-                            HStack(spacing: 20) {
-                                AsyncImage(url: URL(string: feedDetail.userProfileImageUrl ?? "")) { image in
+                ZStack {
+                    if viewModel.isLoading {
+                        ChallengeFeedDetailSkeletonView()
+                            .transition(.opacity)
+                    } else if let feedDetail = viewModel.feedDetail {
+                        VStack(alignment: .leading, spacing: 0) {
+                            // 사용자 프로필 영역
+                            VStack(alignment: .leading, spacing: 16) {
+                                HStack(spacing: 20) {
+                                    AsyncImage(url: URL(string: feedDetail.userProfileImageUrl ?? "")) { image in
+                                        image
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fill)
+                                    } placeholder: {
+                                        Image("profilePlaceholderImage", bundle: .designSystem)
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fill)
+                                    }
+                                    .frame(width: 52, height: 52)
+                                    .clipShape(Circle())
+                                    
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        HStack(alignment: .center, spacing: 12) {
+                                            Text(feedDetail.userName)
+                                                .fontStyle(.body1Bold)
+                                                .foregroundStyle(ColorSystem.labelNormalStrong)
+                                            
+                                            //TODO: Action 연결
+                                            Button(action : {
+                                                print("프로필 보기")
+                                            }) {
+                                                HStack(alignment: .center, spacing: 0){
+                                                    Text("프로필 보기")
+                                                        .fontStyle(.detail1Medium)
+                                                        .foregroundStyle(ColorSystem.labelNormalBasic)
+                                                    
+                                                    Image("caretIcon", bundle: .designSystem)
+                                                        .resizable()
+                                                        .scaledToFit()
+                                                        .frame(width: 16, height: 16)
+                                                }
+                                            }
+                                        }
+                                        
+                                        Text(createdAtText)
+                                            .fontStyle(.body2Medium)
+                                            .foregroundColor(ColorSystem.labelNormalBasic)
+                                    }
+                                }
+                                .padding(.top, 24)
+                                
+                                // 피드 이미지
+                                AsyncImage(url: URL(string: feedDetail.feedUrl)) { image in
                                     image
                                         .resizable()
-                                        .aspectRatio(contentMode: .fill)
+                                        .aspectRatio(contentMode: .fit)
                                 } placeholder: {
-                                    Image("profilePlaceholderImage", bundle: .designSystem)
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fill)
+                                    Rectangle()
+                                        .fill(Color.gray.opacity(0.3))
+                                        .aspectRatio(1.5, contentMode: .fill)
                                 }
-                                .frame(width: 52, height: 52)
-                                .clipShape(Circle())
+                                .frame(maxWidth: .infinity)
+                                .cornerRadius(16)
                                 
-                                VStack(alignment: .leading, spacing: 2) {
-                                    HStack(alignment: .center, spacing: 12) {
-                                        Text(feedDetail.userName)
-                                            .fontStyle(.body1Bold)
-                                            .foregroundStyle(ColorSystem.labelNormalStrong)
-                                        
-                                        //TODO: Action 연결
-                                        Button(action : {
-                                            print("프로필 보기")
-                                        }) {
-                                            HStack(alignment: .center, spacing: 0){
-                                                Text("프로필 보기")
-                                                    .fontStyle(.detail1Medium)
-                                                    .foregroundStyle(ColorSystem.labelNormalBasic)
+                                // 좋아요
+                                HStack {
+                                    Button {
+                                        Task {
+                                            await viewModel.toggleLike()
+                                        }
+                                    } label: {
+                                        HStack(alignment: .center, spacing: 10) {
+                                            Image(feedDetail.isLiked ? "feedsHeartFillIcon" : "feedsHeartIcon", bundle: .designSystem)
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: 28, height: 28)
+                                            
+                                            HStack(alignment: .center, spacing: 4) {
+                                                Text("좋아요")
+                                                    .fontStyle(.body1SemiBold)
+                                                    .foregroundStyle(ColorSystem.labelNormalNormal)
                                                 
-                                                Image("caretIcon", bundle: .designSystem)
-                                                    .resizable()
-                                                    .scaledToFit()
-                                                    .frame(width: 16, height: 16)
+                                                Text(" \(feedDetail.likeCount)")
+                                                    .fontStyle(.body1Bold)
+                                                    .foregroundColor(ColorSystem.primaryStrong)
                                             }
                                         }
                                     }
-                                    
-                                    Text(createdAtText)
-                                        .fontStyle(.body2Medium)
-                                        .foregroundColor(ColorSystem.labelNormalBasic)
+                                    Spacer()
                                 }
-                            }
-                            .padding(.top, 24)
-                            
-                            // 피드 이미지
-                            AsyncImage(url: URL(string: feedDetail.feedUrl)) { image in
-                                image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                            } placeholder: {
-                                Rectangle()
-                                    .fill(Color.gray.opacity(0.3))
-                                    .aspectRatio(1.5, contentMode: .fill)
-                            }
-                            .cornerRadius(16)
-                            
-                            // 좋아요
-                            HStack {
-                                Button {
-                                    Task {
-                                        await viewModel.toggleLike()
+                                
+                                
+                                // 피드 설명
+                                if !feedDetail.description.isEmpty {
+                                    Text(feedDetail.description)
+                                        .fontStyle(.body2SemiBold)
+                                        .foregroundStyle(ColorSystem.labelNormalNormal)
+                                        .lineLimit(nil)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .padding(.horizontal, 20)
+                                        .padding(.vertical, 20)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 20)
+                                                .fill(ColorSystem.labelNormalDisable)
+                                        )
+                                }
+                                
+                                // 챌린지 태그들
+                                HStack(alignment: .center, spacing: 6) {
+                                    ForEach(feedDetail.challengeTags, id: \.self) { tag in
+                                        Text("#\(tag)")
+                                            .fontStyle(.detail1Medium)
+                                            .foregroundColor(ColorSystem.primaryStrong)
+                                            .padding(.horizontal, 12)
+                                            .frame(minHeight: 26)
+                                            .background(ColorSystem.labelNormalDisable)
+                                            .cornerRadius(999)
                                     }
-                                } label: {
-                                    HStack(alignment: .center, spacing: 10) {
-                                        Image(feedDetail.isLiked ? "feedsHeartFillIcon" : "feedsHeartIcon", bundle: .designSystem)
-                                            .resizable()
-                                            .scaledToFit()
-                                            .frame(width: 28, height: 28)
-                                        
-                                        HStack(alignment: .center, spacing: 4) {
-                                            Text("좋아요")
-                                                .fontStyle(.body1SemiBold)
-                                                .foregroundStyle(ColorSystem.labelNormalNormal)
-                                            
-                                            Text(" \(feedDetail.likeCount)")
-                                                .fontStyle(.body1Bold)
-                                                .foregroundColor(ColorSystem.primaryStrong)
-                                        }
-                                    }
+                                    Spacer()
                                 }
-                                Spacer()
+                                .padding(.bottom, 16)
                             }
+                            .padding(.horizontal, 24)
                             
+                            // Divider
+                            Rectangle()
+                                .fill(ColorSystem.labelNormalDisable)
+                                .frame(height: 8)
+                                .padding(.top, 40)
                             
-                            // 피드 설명
-                            if !feedDetail.description.isEmpty {
-                                Text(feedDetail.description)
-                                    .fontStyle(.body2SemiBold)
-                                    .foregroundStyle(ColorSystem.labelNormalNormal)
-                                    .lineLimit(nil)
-                                    .padding(.horizontal, 20)
-                                    .padding(.vertical, 20)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 20)
-                                            .fill(ColorSystem.labelNormalDisable)
-                                    )
+                            // 추천 챌린지
+                            if !viewModel.recommendedChallenges.isEmpty {
+                                ChallengeRecommendView(recommendChallenges: viewModel.recommendedChallenges, showOnlyFirst: true)
+                                    .padding(.horizontal, 24)
                             }
-                            
-                            // 챌린지 태그들
-                            HStack(alignment: .center, spacing: 6) {
-                                ForEach(feedDetail.challengeTags, id: \.self) { tag in
-                                    Text("#\(tag)")
-                                        .fontStyle(.detail1Medium)
-                                        .foregroundColor(ColorSystem.primaryStrong)
-                                        .padding(.horizontal, 12)
-                                        .frame(minHeight: 26)
-                                        .background(ColorSystem.labelNormalDisable)
-                                        .cornerRadius(999)
-                                }
-                                Spacer()
-                            }
-                            .padding(.bottom, 16)
                         }
-                        .padding(.horizontal, 24)
-                        
-                        // Divider
-                        Rectangle()
-                            .fill(ColorSystem.labelNormalDisable)
-                            .frame(height: 8)
-                            .padding(.top, 40)
-                        
-                        // 추천 챌린지
-                        if !viewModel.recommendedChallenges.isEmpty {
-                            ChallengeRecommendView(recommendChallenges: viewModel.recommendedChallenges, showOnlyFirst: true)
-                                .padding(.horizontal, 24)
-                        }
+                        .transition(.opacity)
                     }
                 }
+                .animation(.easeOut(duration: 0.4), value: viewModel.isLoading)
             }
-        }
-        .task {
-            await viewModel.loadFeedDetail()
+            .task {
+                await viewModel.loadFeedDetail()
+            }
         }
     }
     
@@ -231,35 +236,4 @@ struct ChallengeFeedDetailView: View {
             }
         }
     }
-}
-
-// ChallengeFeedDetailView 파일 맨 아래에 추가
-#Preview("내 인증 사진") {
-    let _ = FontRegister.registerFonts()
-    
-    return ChallengeFeedDetailView(
-        feedId: 1,
-        repository: MockChallengeRepository()
-    )
-    .environmentObject(ToastManager())
-}
-
-#Preview("참여자 인증 사진") {
-    let _ = FontRegister.registerFonts()
-    
-    return ChallengeFeedDetailView(
-        feedId: 2,
-        repository: MockChallengeRepository()
-    )
-    .environmentObject(ToastManager())
-}
-
-#Preview("로딩 상태") {
-    let _ = FontRegister.registerFonts()
-    
-    return ChallengeFeedDetailView(
-        feedId: 999, // 존재하지 않는 ID로 로딩 상태 시뮬레이션
-        repository: MockChallengeRepository()
-    )
-    .environmentObject(ToastManager())
 }

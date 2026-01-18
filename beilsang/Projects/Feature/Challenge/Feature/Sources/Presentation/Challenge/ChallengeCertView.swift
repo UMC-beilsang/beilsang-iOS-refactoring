@@ -2,8 +2,6 @@
 //  ChallengeCertView.swift
 //  ChallengeFeature
 //
-//  Created by Seyoung Park on 9/17/25.
-//
 
 import SwiftUI
 import UIComponentsShared
@@ -13,22 +11,17 @@ import UtilityShared
 import ChallengeDomain
 import PhotosUI
 
-struct ChallengeCertView: View {
+public struct ChallengeCertView: View {
     @StateObject private var viewModel: ChallengeCertViewModel
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var toastManager: ToastManager
     @FocusState private var focusedField: ChallengeInfoField?
     
-    init(challengeId: Int, repository: ChallengeRepositoryProtocol) {
-        self._viewModel = StateObject(
-            wrappedValue: ChallengeCertViewModel(
-                challengeId: challengeId,
-                repository: repository
-            )
-        )
+    public init(viewModel: ChallengeCertViewModel) {
+        _viewModel = StateObject(wrappedValue: viewModel)
     }
     
-    var body: some View {
+    public var body: some View {
         ZStack(alignment: .bottom) {
             VStack(alignment: .leading, spacing: 0) {
                 headerView
@@ -38,7 +31,6 @@ struct ChallengeCertView: View {
             submitButton
         }
         .ignoresSafeArea(edges: .bottom)
-        .withToast()
         .dismissKeyboardOnTap(focusedField: $focusedField)
         .sheet(isPresented: $viewModel.showGuideModal) {
             GuideModalView(
@@ -281,13 +273,3 @@ struct GuideModalView: View {
     }
 }
 
-// MARK: - Preview
-#Preview {
-    let _ = FontRegister.registerFonts()
-    
-    return ChallengeCertView(
-        challengeId: 1,
-        repository: MockChallengeRepository()
-    )
-    .environmentObject(ToastManager())
-}

@@ -8,56 +8,106 @@
 import SwiftUI
 import ChallengeDomain
 import ModelsShared
+import UtilityShared
 
 @MainActor
-class ChallengeFeedDetailViewModel: ObservableObject {
+public final class ChallengeFeedDetailViewModel: ObservableObject {
     @Published var feedDetail: ChallengeFeedDetail?
-    @Published var isLoading = false
+    @Published var isLoading = true
     @Published var recommendedChallenges: [Challenge] = []
     @Published var showingPopup = false
     @Published var currentPopupType: ChallengePopupType?
-    
-    private let feedId: Int
-    private let repository: ChallengeRepositoryProtocol
-    
-    init(feedId: Int, repository: ChallengeRepositoryProtocol) {
+
+    public let feedId: Int
+    public let repository: ChallengeRepositoryProtocol
+
+    public init(feedId: Int, repository: ChallengeRepositoryProtocol) {
         self.feedId = feedId
         self.repository = repository
     }
-    
+
+    // MARK: - Load
     func loadFeedDetail() async {
         isLoading = true
+        
+        let shouldDelay = MockConfig.useMockData
+        let delayTask: Task<Void, Never>? = shouldDelay ? Task {
+            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+        } : nil
+
         do {
             feedDetail = try await repository.fetchChallengeFeedDetail(feedId: feedId)
             recommendedChallenges = try await repository.fetchRecommendedChallenges()
+            
+            if let delay = delayTask {
+                await delay.value
+            }
         } catch {
-            print("피드 상세 로딩 실패: \(error)")
+            if let delay = delayTask {
+                await delay.value
+            }
+            print("❌ 피드 상세 로딩 실패:", error.localizedDescription)
         }
+        
         isLoading = false
     }
-    
+
+    // MARK: - 좋아요 토글
     func toggleLike() async {
-        // 좋아요 토글 로직
+        guard var detail = feedDetail else { return }
+        
+        // UI 먼저 업데이트 (낙관적 업데이트)
+        let originalIsLiked = detail.isLiked
+        let originalLikeCount = detail.likeCount
+        
+        detail.isLiked.toggle()
+        detail.likeCount += detail.isLiked ? 1 : -1
+        feedDetail = detail
+
+        // 서버 반영 (원래 상태를 전달)
+        do {
+            let result = try await repository.toggleFeedLike(
+                feedId: feedId,
+                currentlyLiked: originalIsLiked
+            )
+            
+            // 서버 응답으로 정확한 값 업데이트
+            detail.isLiked = result.isLiked
+            detail.likeCount = result.likeCount
+            feedDetail = detail
+            
+            #if DEBUG
+            print("✅ 좋아요 토글 완료 - feedId: \(feedId), isLiked: \(result.isLiked)")
+            #endif
+        } catch {
+            // 실패 시 롤백
+            detail.isLiked = originalIsLiked
+            detail.likeCount = originalLikeCount
+            feedDetail = detail
+            
+            #if DEBUG
+            print("❌ 좋아요 토글 실패: \(error.localizedDescription)")
+            #endif
+        }
     }
+
+    // MARK: - 신고 관련
     func showReportPopup() {
-        currentPopupType = .certify
+        currentPopupType = .report
         showingPopup = true
     }
-    
-    // 팝업 닫기
+
     func dismissPopup() {
         showingPopup = false
         currentPopupType = nil
     }
-    
-    // 신고 처리
+
     func handleReport() async -> Bool {
         do {
-            // Repository에 신고 API 호출 (feedId를 String으로 변환)
-            try await repository.reportChallenge(challengeId: "\(feedId)")
+            try await repository.reportChallenge(challengeId: feedId)
             return true
         } catch {
-            print("신고 실패: \(error)")
+            print("❌ 신고 실패:", error.localizedDescription)
             return false
         }
     }

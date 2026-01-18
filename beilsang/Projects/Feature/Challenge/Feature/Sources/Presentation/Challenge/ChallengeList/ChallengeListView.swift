@@ -11,63 +11,73 @@ import DesignSystemShared
 import ModelsShared
 import ChallengeDomain
 
-struct ChallengeListView: View {
+public struct ChallengeListView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: ChallengeListViewModel
+    @EnvironmentObject var coordinator: ChallengeCoordinator
     
     let category: Keyword
-    let onChallengeSelected: (String) -> Void
-    let onBannerTapped: () -> Void
     
-    init(
-        category: Keyword,
-        repository: ChallengeRepositoryProtocol,
-        onChallengeSelected: @escaping (String) -> Void,
-        onBannerTapped: @escaping () -> Void
-    ) {
+    public init(viewModel: ChallengeListViewModel, category: Keyword) {
+        _viewModel = StateObject(wrappedValue: viewModel)
         self.category = category
-        _viewModel = StateObject(wrappedValue: ChallengeListViewModel(repository: repository))
-        self.onChallengeSelected = onChallengeSelected
-        self.onBannerTapped = onBannerTapped
     }
     
-    var body: some View {
+    public var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // MARK: - Header
             Header(type: .tertiaryReport(
                 title: category.title,
                 onBack: { dismiss() },
-                onOption: {
-                    // TODO: - 신고/공유 액션
-                }
+                onOption: {}
             ))
             
-            // MARK: - Content
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 0) {
-                    // 배너
-                    bannerSection
-                        .padding(.top, 20)
-                        .padding(.bottom, 32)
-                    
-                    // 챌린지 리스트
-                    challengeListSection
+                    ZStack {
+                        if viewModel.isLoading {
+                            ChallengeListSkeletonView()
+                                .transition(.opacity)
+                        }
+                        
+                        if !viewModel.isLoading {
+                            VStack(alignment: .leading, spacing: 0) {
+                                bannerSection
+                                    .padding(.top, 20)
+                                    .padding(.bottom, 32)
+                                
+                                challengeListSection
+                            }
+                            .transition(.opacity)
+                        }
+                    }
+                    .animation(.easeOut(duration: 0.4), value: viewModel.isLoading)
                 }
                 .padding(.horizontal, 24)
                 .padding(.bottom, 40)
             }
             .scrollBounceBehavior(.basedOnSize)
+            .refreshable {
+                await viewModel.fetchChallenges(for: category, showSkeleton: true)
+            }
         }
         .toolbar(.hidden, for: .navigationBar)
+        .onAppear {
+            // 이미 데이터가 있으면 로딩 상태 즉시 해제 (깜빡임 방지)
+            if !viewModel.items.isEmpty {
+                viewModel.isLoading = false
+            }
+        }
         .task {
-            await viewModel.fetchChallenges(for: category)
+            // 초기 로딩 (데이터가 비어있을 때만)
+            if viewModel.items.isEmpty {
+                await viewModel.fetchChallenges(for: category, showSkeleton: true)
+            }
         }
     }
     
-    // MARK: - Banner Section
     private var bannerSection: some View {
         Button(action: {
-            onBannerTapped()
+            coordinator.navigateToCreate()
         }) {
             Image("listBannerIcon", bundle: .designSystem)
                 .resizable()
@@ -77,19 +87,21 @@ struct ChallengeListView: View {
         }
     }
     
-    // MARK: - Challenge List Section
     private var challengeListSection: some View {
         VStack(spacing: 16) {
             ForEach(viewModel.items) { item in
                 ChallengeItemView(
                     title: item.title,
                     imageUrl: item.thumbnailImageUrl,
-                    style: .progressList(progress: item.progressText, author: item.author ?? "익명")
+                    style: .progressList(
+                        progress: item.progressText,
+                        author: item.author ?? "익명"
+                    ),
+                    isRecruitmentClosed: item.isRecruitmentClosed
                 ) {
-                    onChallengeSelected(item.id) 
+                    coordinator.navigateToDetail(id: item.id)
                 }
             }
         }
     }
 }
-

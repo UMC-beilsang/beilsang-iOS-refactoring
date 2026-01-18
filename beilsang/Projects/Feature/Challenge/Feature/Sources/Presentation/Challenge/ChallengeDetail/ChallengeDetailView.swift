@@ -2,8 +2,6 @@
 //  ChallengeDetailView.swift
 //  ChallengeFeature
 //
-//  Created by Seyoung Park on 9/2/25.
-//
 
 import SwiftUI
 import UIComponentsShared
@@ -12,32 +10,44 @@ import DesignSystemShared
 import UtilityShared
 import ChallengeDomain
 
-struct ChallengeDetailView: View {
+public struct ChallengeDetailView: View {
     @StateObject private var viewModel: ChallengeDetailViewModel
     @StateObject private var keyboard = KeyboardResponder()
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var toastManager: ToastManager
-    
-    init(id: String, repository: ChallengeRepositoryProtocol = MockChallengeRepository()) {
-        _viewModel = StateObject(
-            wrappedValue: ChallengeDetailViewModel(challengeId: id, repository: repository)
-        )
+    @EnvironmentObject var coordinator: ChallengeCoordinator
+
+    public init(viewModel: ChallengeDetailViewModel) {
+        _viewModel = StateObject(wrappedValue: viewModel)
     }
     
-    var body: some View {
-        Group {
-            if let _ = viewModel.challenge {
+    public var body: some View {
+        ZStack {
+            if viewModel.isLoading {
+                ChallengeDetailSkeletonView()
+                    .transition(.opacity)
+            }
+            
+            if !viewModel.isLoading, let _ = viewModel.challenge {
                 contentView
-            } else {
-                ProgressView("챌린지를 불러오는 중...")
+                    .transition(.opacity)
             }
         }
+        .animation(.easeOut(duration: 0.4), value: viewModel.isLoading)
         .task {
             await viewModel.loadChallengeDetail()
+            await viewModel.loadFeedThumbnails()
             await viewModel.loadRecommendedChallenges()
         }
         .onAppear {
-            showInitialToast()
+            if !viewModel.isLoading {
+                showInitialToast()
+            }
+        }
+        .onChange(of: viewModel.isLoading) { _, newValue in
+            if !newValue {
+                showInitialToast()
+            }
         }
     }
     
@@ -57,19 +67,14 @@ struct ChallengeDetailView: View {
                         participantText: viewModel.participantText
                     )
                     
-                    // Section 1
                     challengeDetailSection1
-                    
                     sectionDivider
-                    
-                    // Section 2
                     challengeDetailSection2
                     
                     if shouldShowSection3Divider {
                         sectionDivider
                     }
                     
-                    // Section 3
                     challengeDetailSection3
                     
                     Spacer()
@@ -91,18 +96,34 @@ struct ChallengeDetailView: View {
         .fullScreenCover(isPresented: $viewModel.showFeeds) {
             if let challenge = viewModel.challenge {
                 ChallengeFeedsView(
-                    challengeId: Int(challenge.id) ?? 0,
-                    repository: viewModel.repository
+                    viewModel: ChallengeFeedsViewModel(
+                        challengeId: challenge.id,
+                        repository: viewModel.repository
+                    )
                 )
             }
         }
         .fullScreenCover(isPresented: $viewModel.showCertification) {
             if let challenge = viewModel.challenge {
                 ChallengeCertView(
-                    challengeId: Int(challenge.id) ?? 0,
-                    repository: viewModel.repository
+                    viewModel: ChallengeCertViewModel(
+                        challengeId: challenge.id,
+                        repository: viewModel.repository
+                    )
                 )
                 .environmentObject(toastManager)
+            }
+        }
+        .fullScreenCover(isPresented: $viewModel.showFeedDetail) {
+            if let feedId = viewModel.selectedFeedId {
+                ChallengeFeedDetailView(
+                    viewModel: ChallengeFeedDetailViewModel(
+                        feedId: feedId,
+                        repository: viewModel.repository
+                    )
+                )
+                .environmentObject(toastManager)
+                .environmentObject(coordinator)
             }
         }
     }
@@ -120,7 +141,7 @@ struct ChallengeDetailView: View {
             ChallengeInfoView(
                 state: viewModel.state,
                 dDayText: viewModel.dDayText,
-                startDateText: DateFormatter.koreanDateWithWeekday.string(from: viewModel.startDate),
+                startDateText: DateFormatter.frontFormatter.string(from: viewModel.startDate),
                 depositText: viewModel.depositText,
                 onProgressTap: { handleProgressTap() }
             )
@@ -128,23 +149,38 @@ struct ChallengeDetailView: View {
         .padding(.horizontal, 24)
     }
     
+    @ViewBuilder
+    private func challengeFeedSection(for state: ChallengeDetailState.EnrolledState) -> some View {
+        switch state {
+        case .beforeStart, .inProgress, .calculating:
+            ChallengeFeedView(
+                thumbnails: viewModel.feedThumbnails,
+                onThumbnailTap: { thumbnail in
+                    viewModel.showFeedDetail(feedId: thumbnail.id)
+                },
+                onSeeAllTap: { viewModel.showFeedGallery() }
+            )
+        case .finished(let success):
+            VStack {
+                ChallengeResultView(success: success, usePoint: 500, earnPoint: 100)
+                ChallengeFeedView(
+                    thumbnails: viewModel.feedThumbnails,
+                    onThumbnailTap: { thumbnail in
+                        viewModel.showFeedDetail(feedId: thumbnail.id)
+                    },
+                    onSeeAllTap: {
+                        viewModel.showFeedGallery()
+                    }
+                )
+            }
+        }
+    }
+
     private var challengeDetailSection2: some View {
         Group {
             switch viewModel.state {
             case .enrolled(let enrolledState):
-                switch enrolledState {
-                case .beforeStart, .inProgress, .calculating:
-                    ChallengeFeedView(onSeeAllTap: {
-                        viewModel.showFeedGallery()
-                    })
-                    
-                case .finished(let success):
-                    ChallengeResultView(success: success, usePoint: 500, earnPoint: 100)
-                    ChallengeFeedView(onSeeAllTap: {
-                        viewModel.showFeedGallery()
-                    })
-                }
-                
+                challengeFeedSection(for: enrolledState)
             case .notEnrolled:
                 VStack(spacing: 0) {
                     ChallengeDescriptionView(description: viewModel.description)
@@ -304,15 +340,5 @@ struct ChallengeDetailView: View {
                 message: "오늘의 챌린지 인증을 완료했어요"
             )
         }
-    }
-}
-
-// MARK: - Preview
-struct ChallengeDetailView_Preview: PreviewProvider {
-    static var previews: some View {
-        FontRegister.registerFonts()
-        
-        return ChallengeDetailView(id: "1", repository: MockChallengeRepository())
-            .environmentObject(ToastManager())
     }
 }

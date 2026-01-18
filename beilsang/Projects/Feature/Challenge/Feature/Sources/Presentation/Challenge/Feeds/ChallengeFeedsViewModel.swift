@@ -8,9 +8,10 @@
 import ChallengeDomain
 import ModelsShared
 import SwiftUI
+import UtilityShared
 
 @MainActor
-class ChallengeFeedsViewModel: ObservableObject {
+public final class ChallengeFeedsViewModel: ObservableObject {
     @Published var thumbnails: [ChallengeFeedThumbnail] = []
     @Published var isLoading = false
     @Published var hasNext = true
@@ -21,20 +22,32 @@ class ChallengeFeedsViewModel: ObservableObject {
     let repository: ChallengeRepositoryProtocol
     private var currentPage = 0
     
-    init(challengeId: Int, repository: ChallengeRepositoryProtocol) {
+    public init(challengeId: Int, repository: ChallengeRepositoryProtocol) {
         self.challengeId = challengeId
         self.repository = repository
     }
     
-    func loadFeeds() async {
+    func loadFeeds(showSkeleton: Bool = false) async {
         guard !isLoading else { return }
         
-        isLoading = true
+        if showSkeleton {
+            isLoading = true
+        }
+        
+        let shouldDelay = showSkeleton && MockConfig.useMockData
+        let delayTask: Task<Void, Never>? = shouldDelay ? Task {
+            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+        } : nil
+        
         do {
             let response = try await repository.fetchChallengeFeedThumbnails(
                 challengeId: challengeId,
                 page: currentPage
             )
+            
+            if let delay = delayTask {
+                await delay.value
+            }
             
             if currentPage == 0 {
                 thumbnails = response.feeds
@@ -46,9 +59,15 @@ class ChallengeFeedsViewModel: ObservableObject {
             currentPage += 1
             
         } catch {
+            if let delay = delayTask {
+                await delay.value
+            }
             print("피드 로딩 실패: \(error)")
         }
-        isLoading = false
+        
+        if showSkeleton {
+            isLoading = false
+        }
     }
     
     func loadMoreFeeds() async {

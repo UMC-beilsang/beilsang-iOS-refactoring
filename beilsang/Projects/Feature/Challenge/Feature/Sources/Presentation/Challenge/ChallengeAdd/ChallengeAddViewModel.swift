@@ -8,27 +8,29 @@
 import Foundation
 import Combine
 import SwiftUI
+import UIKit
 import ModelsShared
 import ChallengeDomain
 import _PhotosUI_SwiftUI
+import UIComponentsShared
 
-enum ChallengeAddStep: Int, CaseIterable {
+public enum ChallengeAddStep: Int, CaseIterable {
     case basic = 0
     case detail
     case confirm
 }
 
-enum NavigationDirection {
+public enum NavigationDirection {
     case forward, backward
 }
 
-enum ImagePickerTarget {
+public enum ImagePickerTarget {
     case representative
     case sample
 }
 
 @MainActor
-final class ChallengeAddViewModel: ObservableObject {
+public final class ChallengeAddViewModel: ObservableObject {
     // MARK: - 기본 데이터
     @Published var title: String = ""
     @Published var description: String = ""
@@ -65,7 +67,7 @@ final class ChallengeAddViewModel: ObservableObject {
     @Published var imagePickerTarget: ImagePickerTarget = .representative
     @Published var selectedPhotos: [PhotosPickerItem] = []
     
-    private let repository: ChallengeRepositoryProtocol
+    private let createChallengeUseCase: CreateChallengeUseCaseProtocol
     private var titleDebounceTask: Task<Void, Never>?
     public let confirmList = [
         "카테고리에 알맞는 챌린지를 만들어 주세요",
@@ -75,8 +77,8 @@ final class ChallengeAddViewModel: ObservableObject {
         "챌린지 등록 시 자동으로 챌린지에 참여해요"
     ]
     
-    init(repository: ChallengeRepositoryProtocol) {
-        self.repository = repository
+    public init(createChallengeUseCase: CreateChallengeUseCaseProtocol) {
+        self.createChallengeUseCase = createChallengeUseCase
     }
     
     deinit { titleDebounceTask?.cancel() }
@@ -281,24 +283,120 @@ final class ChallengeAddViewModel: ObservableObject {
     }
     
     // MARK: - Final Action
+    @Published var isCreating: Bool = false
+    @Published var createError: String?
+    @Published var createdChallengeId: Int?
+    
     func createChallenge() {
         guard validateStep1(), validateStep2(), validateStep3() else { return }
+        guard let category = category, let period = period, let startDate = startDate else { return }
         
-        // PhotoState에서 UIImage만 추출
-        let validRepImages = representativePhotos.compactMap { $0.image }
-        let validSampleImages = samplePhotos.compactMap { $0.image }
+        isCreating = true
+        createError = nil
         
-        let challenge = ChallengeAddInfo(
-            representativeImages: validRepImages,
-            title: title,
-            category: category,
-            description: description,
-            caution: caution,
-            sampleImages: validSampleImages,
-            minPoint: minPoint,
-            checkList: checkList
-        )
+        Task {
+            do {
+                // 날짜 포맷팅
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "yyyy-MM-dd"
+                let startDateString = dateFormatter.string(from: startDate)
+                
+                // 이미지들을 Data로 변환
+                let infoImageData = convertPhotosToData(representativePhotos)
+                let certImageData = convertPhotosToData(samplePhotos)
+                
+                // 챌린지 유의사항을 줄바꿈으로 분리
+                let notes = caution.components(separatedBy: "\n").filter { !$0.isEmpty }
+                
+                let request = ChallengeCreateRequest(
+                    title: title,
+                    startDate: startDateString,
+                    period: mapPeriod(period),
+                    totalGoalDay: practiceCount,
+                    category: category.apiCategory,
+                    details: description,
+                    notes: notes,
+                    joinPoint: minPoint
+                )
+                
+                let response = try await createChallengeUseCase.execute(
+                    request: request,
+                    infoImages: infoImageData,
+                    certImages: certImageData
+                )
+                
+                await MainActor.run {
+                    self.createdChallengeId = response.challengeId
+                    self.isCreating = false
+                    print("✅ 챌린지 생성 완료 - ID: \(response.challengeId)")
+                }
+            } catch {
+                await MainActor.run {
+                    self.isCreating = false
+                    self.createError = error.localizedDescription
+                    print("❌ 챌린지 생성 실패: \(error)")
+                }
+            }
+        }
+    }
+    
+    // MARK: - 이미지 변환
+    private func convertPhotosToData(_ photos: [PhotoState]) -> [Data] {
+        var imageDataList: [Data] = []
         
-        print("✅ 챌린지 생성 완료 with info: \(challenge)")
+        for photo in photos {
+            guard case .loaded(_, let image) = photo else { continue }
+            
+            // 이미지 리사이즈 (최대 512px) 후 강압축 - 서버 용량 제한
+            let resizedImage = resizeImage(image, maxDimension: 512)
+            guard var imageData = resizedImage.jpegData(compressionQuality: 0.4) else {
+                print("⚠️ Failed to convert image to JPEG data")
+                continue
+            }
+            
+            // 100KB 넘으면 더 압축
+            if imageData.count > 100 * 1024 {
+                imageData = resizedImage.jpegData(compressionQuality: 0.2) ?? imageData
+            }
+            
+            // 그래도 200KB 넘으면 더더 압축
+            if imageData.count > 200 * 1024 {
+                let smallerImage = resizeImage(image, maxDimension: 256)
+                imageData = smallerImage.jpegData(compressionQuality: 0.3) ?? imageData
+            }
+            
+            #if DEBUG
+            print("📸 Image size: \(imageData.count / 1024)KB")
+            #endif
+            
+            imageDataList.append(imageData)
+        }
+        
+        return imageDataList
+    }
+    
+    // MARK: - 이미지 리사이즈
+    private func resizeImage(_ image: UIImage, maxDimension: CGFloat) -> UIImage {
+        let size = image.size
+        
+        // 이미 충분히 작으면 그대로 반환
+        guard size.width > maxDimension || size.height > maxDimension else {
+            return image
+        }
+        
+        let ratio = min(maxDimension / size.width, maxDimension / size.height)
+        let newSize = CGSize(width: size.width * ratio, height: size.height * ratio)
+        
+        let renderer = UIGraphicsImageRenderer(size: newSize)
+        return renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: newSize))
+        }
+    }
+    
+    private func mapPeriod(_ period: ChallengePeriod) -> ChallengeCreateRequest.Period {
+        switch period {
+        case .week: return .week
+        case .month: return .month
+        }
     }
 }
