@@ -9,26 +9,18 @@ import Foundation
 
 // MARK: - Request
 public struct AppleLoginRequest: Codable, Sendable {
-    public let idToken: String
-    public let deviceToken: String
+    public let identityToken: String
     
-    public init(idToken: String, deviceToken: String) {
-        self.idToken = idToken
-        self.deviceToken = deviceToken
+    public init(idToken: String) {
+        self.identityToken = idToken
     }
 }
 
 // MARK: - Response
-public struct AppleLoginResponse: Codable, Sendable {
-    public let code: String
-    public let message: String
-    public let data: AppleLoginData
-    public let success: Bool
-}
+public typealias AppleLoginResponse = APIResponse<AppleLoginResult>
 
-public struct AppleLoginData: Codable, Sendable {
+public struct AppleLoginResult: Codable, Sendable {
     public let accessToken: String
     public let refreshToken: String
-    public let clientSecret: String
-    public let existMember: Bool
+    public let isExistMember: Bool
 }

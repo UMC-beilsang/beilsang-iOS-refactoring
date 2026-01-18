@@ -8,27 +8,28 @@
 import Foundation
 
 // MARK: - Request
+/// 카카오 로그인 요청
+/// 서버 스펙: idToken(카카오 ID 토큰) 전달
 public struct KakaoLoginRequest: Codable, Sendable {
-    // TODO: 오타 수정
-    public let accesstoken: String
-    public let deviceToken: String
-
-    public init(accesstoken: String, deviceToken: String) {
-        self.accesstoken = accesstoken
-        self.deviceToken = deviceToken
+    public let idToken: String
+    
+    public init(idToken: String) {
+        self.idToken = idToken
     }
 }
 
 // MARK: - Response
-public struct KakaoLoginResponse: Codable, Sendable {
-    public let code: String
-    public let message: String
-    public let data: KakaoLoginData
-    public let success: Bool
-}
+/// 서버 응답: APIResponse 형태로 래핑됨
+public typealias KakaoLoginResponse = APIResponse<KakaoLoginData>
 
 public struct KakaoLoginData: Codable, Sendable {
     public let accessToken: String
     public let refreshToken: String
-    public let existMember: Bool
+    public let isExistMember: Bool
+    
+    public init(accessToken: String, refreshToken: String, isExistMember: Bool) {
+        self.accessToken = accessToken
+        self.refreshToken = refreshToken
+        self.isExistMember = isExistMember
+    }
 }

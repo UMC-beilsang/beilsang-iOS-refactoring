@@ -14,6 +14,7 @@ public struct NicknameTextField: View {
     var state: NicknameState
     var onCheckTapped: (() -> Void)?
     var onClearTapped: (() -> Void)?
+    @FocusState private var isFocused: Bool
     
     public init(
         text: Binding<String>,
@@ -45,6 +46,7 @@ public struct NicknameTextField: View {
                         TextField("", text: $text)
                             .fontStyle(Fonts.body2Medium)
                             .foregroundStyle(style.text)
+                            .focused($isFocused)
                         
                         if (state == .typing || state == .filled) && !text.isEmpty {
                             Button(action: {
@@ -117,7 +119,12 @@ public struct NicknameTextField: View {
         case .valid, .invalidFormat, .invalidDuplicate:
             return state.style.border
         case .idle, .focused, .typing, .filled, .checking:
-            return (state == .focused || state == .typing) ? ColorSystem.primaryStrong : state.style.border
+            return (state == .focused || state == .typing || isFocused) ? ColorSystem.primaryStrong : state.style.border
         }
+    }
+    
+    /// 외부에서 포커스를 해제할 수 있도록
+    public func dismissFocus() {
+        isFocused = false
     }
 }

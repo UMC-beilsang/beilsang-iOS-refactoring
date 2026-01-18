@@ -67,7 +67,7 @@ public struct DateField: View {
         guard let date = date else {
             return placeholder
         }
-        return DateFormatter.koreanDateWithWeekday.string(from: date)
+        return DateFormatter.frontFormatter.string(from: date)
     }
 }
 

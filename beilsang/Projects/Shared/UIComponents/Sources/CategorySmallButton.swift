@@ -5,17 +5,18 @@
 //  Created by Seyoung Park on 9/9/25.
 //
 
-
 import SwiftUI
 import DesignSystemShared
 import ModelsShared
 
 public struct CategorySmallButton: View {
     private let keyword: Keyword
+    private let isSelected: Bool
     private let action: () -> Void
     
-    public init(keyword: Keyword, action: @escaping () -> Void) {
+    public init(keyword: Keyword, isSelected: Bool = false, action: @escaping () -> Void) {
         self.keyword = keyword
+        self.isSelected = isSelected
         self.action = action
     }
     
@@ -28,30 +29,49 @@ public struct CategorySmallButton: View {
                     .frame(width: 22, height: 22)
                 
                 Text(keyword.title)
-                    .fontStyle(Fonts.body1SemiBold)
-                    .foregroundColor(ColorSystem.labelNormalNormal)
+                    .fontStyle(.body1SemiBold)
+                    .foregroundStyle(textColor)
             }
             .padding(.vertical, 12)
             .padding(.horizontal, 16)
-            .background(
+            .frame(minWidth: 100)
+            .background(backgroundColor)
+            .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(ColorSystem.lineNormal, lineWidth: 1.25)
+                    .stroke(borderColor, lineWidth: 1.25)
             )
+            .cornerRadius(12)
+            .animation(.easeInOut(duration: 0.2), value: isSelected)
         }
     }
 }
 
-struct CategorySmallButton_Previews: PreviewProvider {
-    static var previews: some View {
-        VStack(spacing: 12) {
-            CategorySmallButton(keyword: .plogging) {
-                print("플로깅 눌림")
-            }
-            CategorySmallButton(keyword: .bicycle) {
-                print("자전거 눌림")
-            }
-        }
-        .padding()
-        .previewLayout(.sizeThatFits)
+// MARK: - Style Logic
+private extension CategorySmallButton {
+    var backgroundColor: Color {
+        isSelected ? ColorSystem.primaryAlternative : Color.clear
     }
+    
+    var borderColor: Color {
+        ColorSystem.lineNormal
+    }
+    
+    var textColor: Color {
+        ColorSystem.labelNormalNormal
+    }
+    
+}
+
+#Preview {
+    VStack(spacing: 12) {
+        CategorySmallButton(keyword: .plogging, isSelected: false) {
+            print("플로깅 클릭")
+        }
+        CategorySmallButton(keyword: .bicycle, isSelected: true) {
+            print("자전거 클릭")
+        }
+    }
+    .padding()
+    .background(ColorSystem.labelWhite)
+    .previewLayout(.sizeThatFits)
 }

@@ -59,7 +59,7 @@ public enum ColorSystem {
 
     // MARK: - Background
     public static let backgroundNormalNormal = AtomicColor.common0
-    public static let backgroundNormalAlternative = AtomicColor.coolNeutral5
+    public static let backgroundNormalAlternative = AtomicColor.neutral5
     public static let backgroundElevatedNormal = AtomicColor.common0
     public static let backgroundElevatedAlternative = AtomicColor.coolNeutral5
 }

@@ -16,4 +16,14 @@ public enum GradientSystem {
         startPoint: .top,
         endPoint: .bottom
     )
+    
+    public static let primaryBackground = LinearGradient(
+        gradient: Gradient(colors: [
+            ColorSystem.primaryAlternative,
+            ColorSystem.primaryNeutral,
+            ColorSystem.backgroundNormalNormal
+        ]),
+        startPoint: .top,
+        endPoint: .bottom
+    )
 }
