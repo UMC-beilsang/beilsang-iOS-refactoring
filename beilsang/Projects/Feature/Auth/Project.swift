@@ -9,27 +9,37 @@ import ProjectDescription
 
 let project = Project(
   name: "AuthFeature",
+  settings: .settings(
+    base: [
+      "SWIFT_VERSION": "5.9"
+    ],
+    configurations: [
+      .debug(name: "dev"),
+      .debug(name: "stag"),
+      .release(name: "prod"),
+    ]
+  ),
   targets: [
     .target(
       name: "AuthFeature",
       destinations: .iOS,
       product: .framework,
       bundleId: "com.beilsang.AuthFeature",
+      deploymentTargets: .iOS("18.5"),
       infoPlist: .default,
       sources: ["Feature/Sources/**"],
       dependencies: [
         .project(target: "AuthDomain", path: "../../Domain/AuthDomain"),
         .project(target: "NetworkCore", path: "../../Core/NetworkCore"),
         .project(target: "StorageCore", path: "../../Core/StorageCore"),
+        .project(target: "NavigationShared", path: "../../Shared/Navigation"),
         .project(target: "ModelsShared", path: "../../Shared/Models"),
         .project(target: "UtilityShared", path: "../../Shared/Utility"),
         .project(target: "DesignSystemShared", path: "../../Shared/DesignSystem"),
         .project(target: "UIComponentsShared", path: "../../Shared/UIComponents"),
-        .external(name: "SnapKit"),
         .external(name: "KakaoSDKCommon"),
         .external(name: "KakaoSDKAuth"),
         .external(name: "KakaoSDKUser"),
-        .external(name: "SwiftyJSON"),
         .external(name: "Alamofire")
       ]
     ),
@@ -51,9 +61,9 @@ let project = Project(
       settings: .settings(
         base: ["SWIFT_VERSION": "5.9"],
         configurations: [
-          .debug(name: "dev", xcconfig: "../../App/Config/dev.xcconfig"),
-          .debug(name: "stag", xcconfig: "../../App/Config/stag.xcconfig"),
-          .release(name: "prod", xcconfig: "../../App/Config/prod.xcconfig"),
+          .debug(name: "dev"),
+          .debug(name: "stag"),
+          .release(name: "prod"),
         ]
       )
     )
@@ -62,7 +72,7 @@ let project = Project(
       .scheme(
         name: "AuthFeatureExample",
         buildAction: .buildAction(targets: ["AuthFeatureExample"]),
-        runAction: .runAction(executable: "AuthFeatureExample")
+        runAction: .runAction(configuration: .configuration("dev"), executable: "AuthFeatureExample")
       )
   ]
 )

@@ -12,6 +12,7 @@ import AuthFeature
 import DesignSystemShared
 import UIComponentsShared
 import ModelsShared
+import AuthDomain
 @testable import AuthFeature
 
 @main
@@ -49,11 +50,10 @@ struct ContentView: View {
         SignUpView(
             signUpData: {
                 var data = SignUpData()
-                data.accessToken = "test_id"         
-                data.nickName = ""
+                data.accessToken = "test_id"
                 return data
             }(),
             container: container
-        )        .withToast()
+        )
     }
 }

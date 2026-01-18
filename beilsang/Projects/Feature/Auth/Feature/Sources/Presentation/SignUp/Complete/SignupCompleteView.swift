@@ -11,15 +11,32 @@ import DesignSystemShared
 
 struct SignupCompleteView: View {
     @ObservedObject var viewModel: SignUpViewModel
-    @FocusState private var focusedField: Field?
-    private enum Field { case recommender }
+    let onStart: () -> Void
+    
+    init(viewModel: SignUpViewModel, onStart: @escaping () -> Void = {}) {
+        self.viewModel = viewModel
+        self.onStart = onStart
+    }
     
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                // 캐릭터들 (배경)
-                CompleteCharactersView()
+                // 배경 Linear Gradient
+                GradientSystem.primaryBackground
+                    .ignoresSafeArea()
                 
+                // 캐릭터들 (배경)
+                VStack {
+                    Spacer()
+                    
+                    Image("signUpCompleteImage", bundle: .designSystem)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: geometry.size.width)
+                    
+                    Spacer()
+                    
+                }
                 // 텍스트 (전경)
                 VStack(spacing: 0) {
                     
@@ -53,53 +70,19 @@ struct SignupCompleteView: View {
                     .padding(.horizontal, 40)
                     
                     Spacer()
+                    
+                    // 시작하기 버튼
+                    NextStepButton(
+                        title: "시작하기",
+                        isEnabled: true,
+                        onTap: {
+                        onStart()
+                    }
+                    )
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, UIScreen.main.bounds.height * 0.1)
                 }
             }
-        }
-        .background(Color(UIColor.systemBackground))
-    }
-}
-
-struct CompleteCharactersView: View {
-    @State private var animateRed = false
-    @State private var animateBlue = false
-    @State private var animateGreen = false
-
-    var body: some View {
-        GeometryReader { geometry in
-            let screenWidth = geometry.size.width
-            let screenHeight = geometry.size.height
-            
-            ZStack {
-                Image("characterGreen", bundle: .designSystem)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: screenWidth * 0.28)
-                    .position(x: screenWidth * 0.35, y: screenHeight * 0.43)
-                    .scaleEffect(animateGreen ? 1.04 : 0.96)
-                    .animation(.easeInOut(duration: 1.6).repeatForever(autoreverses: true), value: animateGreen)
-                
-                Image("characterRed", bundle: .designSystem)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: screenWidth * 0.55)
-                    .position(x: screenWidth * 0.75, y: screenHeight * 0.53)
-                    .scaleEffect(animateRed ? 1.03 : 0.97)
-                    .animation(.easeInOut(duration: 1.4).repeatForever(autoreverses: true), value: animateRed)
-
-                Image("characterBlue", bundle: .designSystem)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: screenWidth * 0.6, height: screenWidth * 0.6)
-                    .position(x: screenWidth * 0.22, y: screenHeight * 0.63)
-                    .scaleEffect(animateBlue ? 1.02 : 0.98)
-                    .animation(.easeInOut(duration: 1.8).repeatForever(autoreverses: true), value: animateBlue)
-            }
-        }
-        .onAppear {
-            animateRed = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { animateBlue = true }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { animateGreen = true }
         }
     }
 }

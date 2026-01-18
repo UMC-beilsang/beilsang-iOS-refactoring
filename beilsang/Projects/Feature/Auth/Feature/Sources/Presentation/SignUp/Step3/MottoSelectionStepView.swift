@@ -23,8 +23,8 @@ struct MottoSelectionStepView: View {
                     SelectableItemView(
                         title: motto.title,
                         iconName: motto.iconName,
-                        isSelected: viewModel.selectedMotto == motto,
-                        hasAnySelection: viewModel.selectedMotto != nil,
+                        isSelected: viewModel.signUpData.motto == motto,
+                        hasAnySelection: viewModel.signUpData.motto != nil,
                         onTap: { viewModel.selectMotto(motto) }
                     )
                 }

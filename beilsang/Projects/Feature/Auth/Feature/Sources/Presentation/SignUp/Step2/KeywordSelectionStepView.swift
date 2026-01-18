@@ -34,8 +34,8 @@ struct KeywordSelectionStepView: View {
                         title: keyword.title,
                         defaultIconName: keyword.iconName + "Default",
                         selectedIconName: keyword.iconName,
-                        isSelected: viewModel.selectedKeyword == keyword,
-                        hasAnySelection: viewModel.selectedKeyword != nil,
+                        isSelected: viewModel.signUpData.keyword == keyword,
+                        hasAnySelection: viewModel.signUpData.keyword != nil,
                         onTap: { viewModel.toggleKeyword(keyword) },
                         itemSize: itemWidth
                     )

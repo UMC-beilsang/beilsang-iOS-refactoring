@@ -26,9 +26,10 @@ struct ReferralStepView: View {
                     .foregroundStyle(ColorSystem.labelNormalStrong)
                 
                 DropdownField(
-                    selected: $viewModel.referralInfo.source,
+                    selected: $viewModel.signUpData.referralInfo.source,
                     placeholder: "알게된 경로를 선택해 주세요",
-                    options: ["경로1", "경로2", "경로3"]
+                    options: ["경로1", "경로2", "경로3"],
+                    optionTitle: { $0 }
                 )
             }
             
@@ -39,7 +40,7 @@ struct ReferralStepView: View {
                 
                 CustomTextField(
                     "(선택) 추천인 닉네임을 입력해 주세요",
-                    text: $viewModel.referralInfo.recommender
+                    text: $viewModel.signUpData.referralInfo.recommender
                 )
                 .focused($focusedField, equals: .recommender)
             }

@@ -9,15 +9,26 @@ import SwiftUI
 import Combine
 import DesignSystemShared
 import ModelsShared
+import AuthDomain
 
 public struct LoginView: View {
     @StateObject private var viewModel: LoginViewModel
     @Environment(\.dismiss) private var dismiss
+    @State private var showKakaoWebLogin = false
     
-    public init(container: AuthContainer) {
+    private let baseURL: String
+    private let onLoginSuccess: (Bool) -> Void  // isNewMember
+    
+    public init(
+        container: AuthContainer,
+        baseURL: String,
+        onLoginSuccess: @escaping (Bool) -> Void = { _ in }
+    ) {
         self._viewModel = StateObject(
             wrappedValue: LoginViewModel(container: container)
         )
+        self.baseURL = baseURL
+        self.onLoginSuccess = onLoginSuccess
     }
     
     public var body: some View {
@@ -40,6 +51,37 @@ public struct LoginView: View {
                 Text(errorMessage)
             }
         }
+        .fullScreenCover(isPresented: $showKakaoWebLogin) {
+            KakaoWebLoginView(
+                baseURL: baseURL,
+                onSuccess: { accessToken, refreshToken, isExistMember in
+                    viewModel.handleKakaoWebLoginSuccess(
+                        accessToken: accessToken,
+                        refreshToken: refreshToken,
+                        isExistMember: isExistMember
+                    )
+                },
+                onFailure: { error in
+                    viewModel.handleKakaoError(error)
+                }
+            )
+        }
+        .onChange(of: viewModel.authState) { _, newState in
+            handleAuthStateChange(newState)
+        }
+    }
+    
+    private func handleAuthStateChange(_ state: AuthState) {
+        switch state {
+        case .authenticated:
+            // 기존 회원 로그인 성공
+            onLoginSuccess(false)
+        case .needsSignUp:
+            // 신규 회원 - 회원가입 필요
+            onLoginSuccess(true)
+        default:
+            break
+        }
     }
     
     private var swipeableImageView: some View {
@@ -53,12 +95,9 @@ public struct LoginView: View {
                 SocialLoginButton(
                     type: .kakao,
                     action: {
-                        // TODO: 카카오 SDK 통해 accessToken 가져오기
-                        let kakaoToken = "카카오에서받은액세스토큰"
-                        let deviceToken = "APNS_DEVICE_TOKEN"
-                        let request = KakaoLoginRequest(accesstoken: kakaoToken,
-                                                        deviceToken: deviceToken)
-                        viewModel.loginWithKakao(request: request)
+                        viewModel.startKakaoLogin {
+                            showKakaoWebLogin = true
+                        }
                     }
                 )
                 .disabled(viewModel.isLoading)
@@ -66,12 +105,7 @@ public struct LoginView: View {
                 SocialLoginButton(
                     type: .apple,
                     action: {
-                        // TODO: Apple 로그인 완료 후 identityToken 가져오기
-                        let idToken = "애플에서받은IDToken"
-                        let deviceToken = "APNS_DEVICE_TOKEN"
-                        let request = AppleLoginRequest(idToken: idToken,
-                                                        deviceToken: deviceToken)
-                        viewModel.loginWithApple(request: request)
+                        viewModel.startAppleLogin()
                     }
                 )
                 .disabled(viewModel.isLoading)
@@ -83,12 +117,6 @@ public struct LoginView: View {
             .fontStyle(Fonts.detail1Medium)
             .foregroundColor(ColorSystem.labelNormalBasic)
             .padding(.top, 8)
-            
-            if viewModel.isLoading {
-                ProgressView("로그인 중...")
-                    .progressViewStyle(CircularProgressViewStyle())
-                    .padding(.top, 16)
-            }
         }
         .padding(.horizontal, 24)
         .padding(.bottom, 40)

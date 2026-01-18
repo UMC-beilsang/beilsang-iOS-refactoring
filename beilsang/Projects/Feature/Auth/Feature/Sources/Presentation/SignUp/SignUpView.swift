@@ -12,28 +12,37 @@ import DesignSystemShared
 import UtilityShared
 import AuthDomain
 
-struct SignUpView: View {
+public struct SignUpView: View {
     @StateObject private var viewModel: SignUpViewModel
     @StateObject private var keyboard = KeyboardResponder()
     @EnvironmentObject var toastManager: ToastManager
     @Environment(\.dismiss) private var dismiss
     
-    init(signUpData: SignUpData, container: AuthContainer) {
+    private let onSignUpComplete: () -> Void
+    
+    public init(
+        signUpData: SignUpData = .init(),
+        container: AuthContainer,
+        onSignUpComplete: @escaping () -> Void = {}
+    ) {
         self._viewModel = StateObject(
             wrappedValue: SignUpViewModel(
                 signUpData: signUpData,
                 container: container
             )
         )
+        self.onSignUpComplete = onSignUpComplete
     }
     
-    var body: some View {
+    public var body: some View {
         ZStack(alignment: .bottom) {
-            
             if viewModel.currentStep == .complete {
                 // 회원가입 완료 뷰
-                SignupCompleteView(viewModel: viewModel)
-                    .ignoresSafeArea(edges:.all)
+                SignupCompleteView(
+                    viewModel: viewModel,
+                    onStart: onSignUpComplete
+                )
+                .ignoresSafeArea(edges:.all)
             } else {
                 // 나머지 단계
                 VStack(alignment: .leading, spacing: 0) {
@@ -77,6 +86,7 @@ struct SignUpView: View {
                                     EmptyView()
                                 }
                             }
+                            .animation(.easeInOut, value: viewModel.currentStep)
                             .frame(maxWidth: .infinity)
                             .padding(.top, 20)
                             
@@ -86,43 +96,26 @@ struct SignUpView: View {
                     .padding(.bottom, keyboard.currentHeight)
                     .scrollBounceBehavior(.basedOnSize)
                 }
-            }
-            
-            // 하단 버튼
-            ZStack {
-                BottomOverlayGradient()
-                    .frame(height: UIScreen.main.bounds.height * 0.17)
-                    .allowsHitTesting(false)
                 
-                NextStepButton(
-                    title: {
-                        switch viewModel.currentStep {
-                        case .referral: return "회원가입 완료"
-                        case .complete: return "비일상 시작하기"
-                        default: return "다음으로"
-                        }
-                    }(),
-                    isEnabled: viewModel.isNextEnabled,
-                    onTap: {
-                        if viewModel.currentStep == .complete {
-                            dismiss()
-                        } else {
-                            viewModel.nextStep()
-                        }
-                    },
-                    onDisabledTap: {
-                        if let reason = viewModel.disabledReason {
-                            withAnimation {
-                                toastManager.show(iconName: reason.icon, message: reason.message)
-                            }
-                        }
-                    }
-                )
-                .padding(.horizontal, 24)
-                .padding(.bottom, UIScreen.main.bounds.height * 0.085)
+                // 하단 버튼
+                ZStack {
+                    BottomOverlayGradient()
+                        .frame(height: UIScreen.main.bounds.height * 0.17)
+                        .allowsHitTesting(false)
+                    
+                    NextStepButton(
+                        title: viewModel.currentStep == .referral ? "회원가입 완료" : "다음으로",
+                        isEnabled: viewModel.isNextEnabled,
+                        onTap: { viewModel.nextOrComplete() },
+                        onDisabledTap: { showToastForCurrentStep() }
+                    )
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, UIScreen.main.bounds.height * 0.085)
+                }
             }
         }
         .ignoresSafeArea(edges: .bottom)
+        .toolbar(.hidden, for: .navigationBar)
         .alert(item: $viewModel.alert) { alert in
             Alert(
                 title: Text(alert.title),
@@ -146,6 +139,27 @@ struct SignUpView: View {
                 insertion: .move(edge: .leading).combined(with: .opacity),
                 removal: .move(edge: .trailing).combined(with: .opacity)
             )
+        }
+    }
+    
+    private func showToastForCurrentStep() {
+        switch viewModel.currentStep {
+        case .terms:
+            toastManager.show(iconName: "toastCheckIcon", message: "필수 약관에 모두 동의해 주세요")
+        case .keywords:
+            toastManager.show(iconName: "toastCheckIcon", message: "키워드를 선택해 주세요")
+        case .motto:
+            toastManager.show(iconName: "toastCheckIcon", message: "다짐을 한 가지 선택해 주세요")
+        case .info:
+            if viewModel.nicknameState != .valid {
+                toastManager.show(iconName: "toastWarningIcon", message: "닉네임 중복 확인이 필요합니다")
+            } else {
+                toastManager.show(iconName: "toastCheckIcon", message: "정보를 모두 입력해 주세요")
+            }
+        case .referral:
+            toastManager.show(iconName: "toastCheckIcon", message: "알게된 경로를 선택해 주세요")
+        case .complete:
+            break
         }
     }
 }

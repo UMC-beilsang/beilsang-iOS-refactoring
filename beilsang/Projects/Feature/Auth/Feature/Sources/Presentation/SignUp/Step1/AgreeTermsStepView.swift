@@ -28,24 +28,24 @@ struct AgreeTermsStepView: View {
                     title: "이용약관 동의",
                     isRequired: true,
                     isChecked: viewModel.terms.service,
-                    onTap: { viewModel.toggleServiceAgree() },
-                    onShowTerms: { viewModel.showServiceTerms() }
+                    onTap: { viewModel.toggleTerms(.service) },
+                    onShowTerms: { viewModel.showTerms(.service) }
                 )
                 
                 SignupAgreeButton(
                     title: "개인정보 수집 및 이용 동의",
                     isRequired: true,
                     isChecked: viewModel.terms.privacy,
-                    onTap: { viewModel.togglePrivacyAgree() },
-                    onShowTerms: { viewModel.showPrivacyTerms() }
+                    onTap: { viewModel.toggleTerms(.privacy) },
+                    onShowTerms: { viewModel.showTerms(.privacy) }
                 )
                 
                 SignupAgreeButton(
                     title: "선택 약관",
                     isRequired: false,
                     isChecked: viewModel.terms.marketing,
-                    onTap: { viewModel.toggleMarketingAgree() },
-                    onShowTerms: { viewModel.showMarketingTerms() }
+                    onTap: { viewModel.toggleTerms(.marketing) },
+                    onShowTerms: { viewModel.showTerms(.marketing) }
                 )
             }
             
@@ -58,7 +58,7 @@ struct AgreeTermsStepView: View {
     }
     
     private var allAgreeButton: some View {
-        Button(action : { viewModel.toggleAllAgree() }) {
+        Button(action: { viewModel.toggleAllTerms() }) {
             HStack {
                 Image(viewModel.terms.allAgreed ? "agreeCheckIconSelected" : "agreeCheckIcon", bundle: .designSystem)
                     .resizable()
@@ -80,4 +80,3 @@ struct AgreeTermsStepView: View {
         }
     }
 }
-

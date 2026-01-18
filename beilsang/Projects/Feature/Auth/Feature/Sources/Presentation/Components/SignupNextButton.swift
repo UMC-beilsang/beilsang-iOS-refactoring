@@ -8,13 +8,20 @@
 import SwiftUI
 import DesignSystemShared
 
-struct SignupNextButton: View {
-    let title: String
-    let isEnabled: Bool
-    let onTap: () -> Void
-    let onDisabledTap: (() -> Void)?
+public struct SignupNextButton: View {
+    public let title: String
+    public let isEnabled: Bool
+    public let onTap: () -> Void
+    public let onDisabledTap: (() -> Void)?
     
-    var body: some View {
+    public init(title: String, isEnabled: Bool, onTap: @escaping () -> Void, onDisabledTap: (() -> Void)? = nil) {
+        self.title = title
+        self.isEnabled = isEnabled
+        self.onTap = onTap
+        self.onDisabledTap = onDisabledTap
+    }
+    
+    public var body: some View {
         Button(action: {
             if isEnabled {
                 onTap()

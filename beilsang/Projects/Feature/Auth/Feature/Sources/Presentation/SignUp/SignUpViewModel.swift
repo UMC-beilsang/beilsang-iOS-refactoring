@@ -10,6 +10,7 @@ import Combine
 import ModelsShared
 import SwiftUI
 import AuthDomain
+import UIComponentsShared
 
 struct Terms {
     var service: Bool = false
@@ -18,11 +19,21 @@ struct Terms {
     
     var requiredAgreed: Bool { service && privacy }
     var allAgreed: Bool { service && privacy && marketing }
-}
 
-struct DisabledReason {
-    let message: String
-    let icon: String
+    mutating func toggle(_ type: TermsType) {
+        switch type {
+        case .service: service.toggle()
+        case .privacy: privacy.toggle()
+        case .marketing: marketing.toggle()
+        }
+    }
+
+    mutating func toggleAll() {
+        let newValue = !requiredAgreed
+        service = newValue
+        privacy = newValue
+        marketing = newValue
+    }
 }
 
 public enum TermsType: Identifiable {
@@ -41,7 +52,6 @@ public enum TermsType: Identifiable {
     
     public var url: String {
         switch self {
-        // TODO: URL 끼워넣깅
         case .service: return "https://example.com/terms"
         case .privacy: return "https://example.com/privacy"
         case .marketing: return "https://example.com/marketing"
@@ -62,118 +72,112 @@ enum NavigationDirection {
     case forward, backward
 }
 
+// MARK: - ViewModel
 
 @MainActor
 final class SignUpViewModel: ObservableObject {
-    // MARK: - Published
+    // MARK: - Published Properties
     @Published var currentStep: SignUpStep = .terms
-    @Published var name: String = ""
-    @Published var selectedKeyword: Keyword? = nil
-    @Published var selectedMotto: Motto? = nil
     @Published var isLoading: Bool = false
     @Published var alert: AlertState?
     @Published var terms = Terms()
     @Published var showTermsSheet: TermsType?
     @Published var navigationDirection: NavigationDirection = .forward
-    @Published var userInfo = UserInfo() {
+
+    @Published var signUpData: SignUpData = .init() {
         didSet {
-            if oldValue.nickname != userInfo.nickname {
-                if userInfo.nickname.isEmpty {
-                    nicknameState = .idle
-                } else if nicknameState != .checking && nicknameState != .valid && nicknameState != .invalidDuplicate && nicknameState != .invalidFormat {
+            let newNickname = signUpData.userInfo.nickname
+            let oldNickname = oldValue.userInfo.nickname
+            if oldNickname != newNickname {
+                if newNickname.isEmpty {
+                    if nicknameState == .focused {
+                        nicknameState = .focused
+                    } else {
+                        nicknameState = .idle
+                    }
+                } else if nicknameState == .focused || nicknameState == .typing {
                     nicknameState = .typing
+                } else if nicknameState != .checking && nicknameState != .valid {
+                    nicknameState = .filled
                 }
             }
         }
     }
-    @Published var referralInfo = ReferralInfo()
+
     @Published var nicknameState: NicknameState = .idle
     @Published var showGenderSheet: Bool = false
     @Published var showBirthDatePicker: Bool = false
     @Published var showAddressSearch: Bool = false
-    
+
     // MARK: - Constants
     let availableKeywords = Keyword.allCases
     let availableMottos = Motto.allCases
-    
-    // MARK: - Init
+
+    // MARK: - Dependencies
     private let signUpUseCase: SignUpUseCaseProtocol
-    private var signUpData: SignUpData
     private var cancellables = Set<AnyCancellable>()
-    
-    init(signUpData: SignUpData, container: AuthContainer) {
+
+    // MARK: - Init
+    init(signUpData: SignUpData = .init(), container: AuthContainer) {
         self.signUpData = signUpData
         self.signUpUseCase = container.signUpUseCase
-        self.name = signUpData.nickName
     }
-    
+
     // MARK: - Step Navigation
     func nextStep() {
-        guard let index = SignUpStep.allCases.firstIndex(of: currentStep),
-              index + 1 < SignUpStep.allCases.count else { return }
+        guard let next = SignUpStep(rawValue: currentStep.rawValue + 1) else { return }
         withAnimation(.easeInOut) {
             navigationDirection = .forward
-            currentStep = SignUpStep.allCases[index + 1]
+            currentStep = next
         }
     }
-    
+
     func previousStep() {
-        guard let index = SignUpStep.allCases.firstIndex(of: currentStep),
-              index - 1 >= 0 else { return }
+        guard let prev = SignUpStep(rawValue: currentStep.rawValue - 1) else { return }
         withAnimation(.easeInOut) {
             navigationDirection = .backward
-            currentStep = SignUpStep.allCases[index - 1]
+            currentStep = prev
         }
     }
     
+    func nextOrComplete() {
+        if currentStep == .referral {
+            completeSignUp()
+        } else {
+            nextStep()
+        }
+    }
+
     // MARK: - User Actions
     func toggleKeyword(_ keyword: Keyword) {
-        selectedKeyword = (selectedKeyword == keyword) ? nil : keyword
+        signUpData.keyword = (signUpData.keyword == keyword) ? nil : keyword
     }
-    
+
     func selectMotto(_ motto: Motto) {
-        selectedMotto = (selectedMotto == motto) ? nil : motto
+        signUpData.motto = (signUpData.motto == motto) ? nil : motto
     }
-    
-    func toggleAllAgree() {
-        let newValue = !(terms.service && terms.privacy)
-        terms.service = newValue
-        terms.privacy = newValue
-        terms.marketing = newValue
+
+    func toggleTerms(_ type: TermsType) {
+        terms.toggle(type)
     }
-    
-    func toggleServiceAgree() { terms.service.toggle() }
-    func togglePrivacyAgree() { terms.privacy.toggle() }
-    func toggleMarketingAgree() { terms.marketing.toggle() }
-    
-    func showServiceTerms() { showTermsSheet = .service }
-    func showPrivacyTerms() { showTermsSheet = .privacy }
-    func showMarketingTerms() { showTermsSheet = .marketing }
-    func hideTermsSheet() { showTermsSheet = nil }
-    
+
+    func toggleAllTerms() {
+        terms.toggleAll()
+    }
+
+    func showTerms(_ type: TermsType) {
+        showTermsSheet = type
+    }
+
+    func hideTermsSheet() {
+        showTermsSheet = nil
+    }
+
+    // MARK: - Sign Up
     func completeSignUp() {
         guard canCompleteSignUp else { return }
-        
-        // SignUpData 업데이트
-        signUpData.nickName = userInfo.nickname
-        signUpData.gender = userInfo.gender ?? "기타"
-        
-        if let birth = userInfo.birthDate {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "yyyy-MM-dd"
-            signUpData.birth = formatter.string(from: birth)
-        }
-        
-        signUpData.address = userInfo.address
-        signUpData.keyword = selectedKeyword
-        signUpData.resolution = selectedMotto?.rawValue ?? ""
-        signUpData.discoveredPath = referralInfo.source
-        signUpData.recommendNickname = referralInfo.recommender
-        
-        // 서버 Request 변환
-        let request = signUpData.toRequest()
-        
-        signUpUseCase.signUp(request: request)
+
+        signUpUseCase.signUp(data: signUpData)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] state in
                 self?.handleSignUpState(state)
@@ -181,134 +185,95 @@ final class SignUpViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 
+    // MARK: - Nickname Check
     func checkNickname() {
-        let nickname = userInfo.nickname.trimmingCharacters(in: .whitespaces)
-        
+        let nickname = signUpData.userInfo.nickname.trimmingCharacters(in: .whitespaces)
+
         guard !nickname.isEmpty else {
             nicknameState = .invalidFormat
             return
         }
-        
+
         guard (2...15).contains(nickname.count) else {
             nicknameState = .invalidFormat
             return
         }
-        
+
         let regex = "^[가-힣a-zA-Z0-9]+$"
         if nickname.range(of: regex, options: .regularExpression) == nil {
             nicknameState = .invalidFormat
             return
         }
-        
+
         nicknameState = .checking
-        
-        // TODO: API 연결
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            if nickname.lowercased() == "taken" || nickname.lowercased() == "admin" {
-                self.nicknameState = .invalidDuplicate
-            } else {
-                self.nicknameState = .valid
-            }
-        }
+
+        // API로 닉네임 중복 확인
+        signUpUseCase.checkNickname(nickname)
+            .receive(on: DispatchQueue.main)
+            .sink(
+                receiveCompletion: { [weak self] (completion: Subscribers.Completion<AuthError>) in
+                    guard let self = self else { return }
+                    if case .failure(let error) = completion {
+                        #if DEBUG
+                        print("❌ Nickname check error: \(error)")
+                        #endif
+                        // 에러 발생 시 형식 오류로 처리
+                        self.nicknameState = .invalidFormat
+                    }
+                },
+                receiveValue: { [weak self] (isAvailable: Bool) in
+                    guard let self = self else { return }
+                    if isAvailable {
+                        self.nicknameState = .valid
+                    } else {
+                        self.nicknameState = .invalidDuplicate
+                    }
+                }
+            )
+            .store(in: &cancellables)
     }
-    
+
     func clearError() { alert = nil }
-    
-    // MARK: - Focus State Management
-    func nicknameFocusChanged(isFocused: Bool) {
-        switch nicknameState {
-        case .idle:
-            if isFocused {
-                nicknameState = .focused
-            }
-        case .focused:
-            if !isFocused {
-                nicknameState = .idle
-            }
-        case .typing:
-            if !isFocused {
-                nicknameState = .filled
-            }
-        case .filled:
-            if isFocused {
-                nicknameState = .typing
-            }
-        case .checking:
-            break
-        case .valid, .invalidFormat, .invalidDuplicate:
-            if isFocused {
-                // validation된 상태에서 다시 포커스되면 typing 상태로 변경
-                nicknameState = userInfo.nickname.isEmpty ? .focused : .typing
-            }
-        }
-    }
-    
-    // MARK: - 버튼 상태
+
+    // MARK: - Step Validation
     var isNextEnabled: Bool {
         switch currentStep {
         case .terms:
             return terms.requiredAgreed
         case .keywords:
-            return selectedKeyword != nil
+            return signUpData.keyword != nil
         case .motto:
-            return selectedMotto != nil
+            return signUpData.motto != nil
         case .info:
-            return userInfo.isFilled && nicknameState == .valid
+            return signUpData.userInfo.isFilled && nicknameState == .valid
         case .referral:
-            return referralInfo.source != ""
+            return signUpData.referralInfo.source != nil
         case .complete:
-            return canCompleteSignUp
+            return terms.requiredAgreed &&
+                   signUpData.keyword != nil &&
+                   signUpData.motto != nil &&
+                   signUpData.userInfo.isFilled &&
+                   nicknameState == .valid
         }
     }
-    
-    var disabledReason: DisabledReason? {
-        switch currentStep {
-        case .terms:
-            return terms.requiredAgreed ? nil :
-                DisabledReason(message: "필수 약관에 모두 동의해 주세요", icon: "toastCheckIcon")
-            
-        case .keywords:
-            return selectedKeyword != nil ? nil :
-                DisabledReason(message: "키워드를 선택해 주세요", icon: "toastCheckIcon")
-            
-        case .motto:
-            return selectedMotto != nil ? nil :
-                DisabledReason(message: "다짐을 한 가지 선택해 주세요", icon: "toastCheckIcon")
-            
-        case .info:
-            guard nicknameState == .valid else {
-                return DisabledReason(message: "닉네임 중복 확인이 필요합니다", icon: "warningIcon")
-            }
-            return userInfo.isFilled ? nil :
-                DisabledReason(message: "정보를 모두 입력해 주세요", icon: "toastCheckIcon")
-            
-        case .referral:
-            return referralInfo.source != "" ? nil :
-                DisabledReason(message: "알게된 경로를 선택해 주세요", icon: "toastCheckIcon")
-            
-        case .complete:
-            return canCompleteSignUp ? nil :
-                DisabledReason(message: "회원가입 조건을 확인해 주세요", icon: "toastCheckIcon")
-        }
-    }
-    
+
     var canCompleteSignUp: Bool {
         terms.requiredAgreed &&
-        selectedKeyword != nil &&
-        selectedMotto != nil &&
-        userInfo.isFilled &&
+        signUpData.keyword != nil &&
+        signUpData.motto != nil &&
+        signUpData.userInfo.isFilled &&
         nicknameState == .valid
     }
-    
+
     // MARK: - Private
     private func handleSignUpState(_ state: AuthState) {
         switch state {
-        case .authenticating:
+        case .loading:
             isLoading = true
             alert = nil
         case .authenticated:
             isLoading = false
-            // TODO: Navigate to main app
+            nextStep() 
         case .error(let error):
             isLoading = false
             alert = AlertState(title: "회원가입 실패", message: error.localizedDescription)
