@@ -8,10 +8,10 @@
 import ProjectDescription
 
 let config = Config(
-  compatibleXcodeVersions: ["16.4"],
-  swiftVersion: "5.9",
-  generationOptions: .options(
-    automaticSchemesOptions: .enabled(),
-    disableSynthesizedResourceAccessors: false
-  )
+    compatibleXcodeVersions: [.upToNextMajor("26.0")],
+    swiftVersion: "5.9",
+    generationOptions: .options(
+        disableSandbox: false,
+        includeGenerateScheme: true
+    )
 )

@@ -11,9 +11,24 @@ let workspace = Workspace(
     name: "beilsang",
     projects: [
         "Projects/App",
-        "Projects/Feature/**",
-        "Projects/Core/**",
-        "Projects/Shared/**",
-        "Projects/Domain/**"
+        // Shared
+        "Projects/Shared/Navigation",
+        "Projects/Shared/UIComponents",
+        "Projects/Shared/DesignSystem",
+        "Projects/Shared/Models",
+        "Projects/Shared/Utility",
+        // Feature
+        "Projects/Feature/Auth",
+        "Projects/Feature/Challenge",
+        "Projects/Feature/Discover",
+        "Projects/Feature/LearnMore",
+        "Projects/Feature/MyPage",
+        "Projects/Feature/Notification",
+        // Domain
+        "Projects/Domain/AuthDomain",
+        "Projects/Domain/ChallengeDomain",
+        // Core
+        "Projects/Core/NetworkCore",
+        "Projects/Core/StorageCore"
     ]
 )
