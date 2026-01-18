@@ -11,20 +11,11 @@ import ModelsShared
 
 // MARK: - Repository
 public protocol AuthRepositoryProtocol {
-    func loginWithKakao(request: KakaoLoginRequest) -> AnyPublisher<KeychainToken, AuthError>
-    func loginWithApple(request: AppleLoginRequest) -> AnyPublisher<KeychainToken, AuthError>
+    func checkNickname(_ nickname: String) -> AnyPublisher<Bool, AuthError>
+    func loginWithKakao(request: KakaoLoginRequest) -> AnyPublisher<(KeychainToken, Bool), AuthError>
+    func loginWithApple(request: AppleLoginRequest) -> AnyPublisher<(KeychainToken, Bool), AuthError>
     func signUp(request: SignUpRequest) -> AnyPublisher<KeychainToken, AuthError>
-    func refreshToken() -> AnyPublisher<KeychainToken, AuthError>
-    func revokeKakao() -> AnyPublisher<Void, AuthError>
-    func revokeApple() -> AnyPublisher<Void, AuthError>
-}
-
-// MARK: - Network Service
-public protocol AuthNetworkServiceProtocol {
-    func loginWithKakao(request: KakaoLoginRequest) -> AnyPublisher<KeychainToken, AuthError>
-    func loginWithApple(request: AppleLoginRequest) -> AnyPublisher<KeychainToken, AuthError>
-    func signUp(request: SignUpRequest) -> AnyPublisher<KeychainToken, AuthError>
-    func refreshToken(_ token: String) -> AnyPublisher<KeychainToken, AuthError>
+    func logoutKakao() -> AnyPublisher<Void, AuthError>
     func revokeKakao() -> AnyPublisher<Void, AuthError>
     func revokeApple() -> AnyPublisher<Void, AuthError>
 }
