@@ -13,6 +13,7 @@ public enum HeaderType {
     case primaryTitle(title: String, onNotification: () -> Void, onSearch: () -> Void)
     case secondary(title: String, onBack: () -> Void)
     case secondaryWithSave(title: String, onBack: () -> Void, onSave: () -> Void, canSave: Bool)
+    case tertiaryAdd(title: String, onBack: () -> Void, onAdd: () -> Void, onSearch:() -> Void)
     case tertiaryReport(title: String, onBack: () -> Void, onOption: () -> Void)
     case tertiaryMenu(title: String, onBack: () -> Void, menuTitle: String, onMenuAction: () -> Void)
 }
@@ -39,6 +40,8 @@ public struct Header: View {
                     secondaryHeader(title: title, onBack: onBack)
                 case .secondaryWithSave(let title, let onBack, let onSave, let canSave):
                     secondaryWithSaveHeader(title: title, onBack: onBack, onSave: onSave, canSave: canSave)
+                case .tertiaryAdd(let title, let onBack, let onAdd, let onSearch):
+                    tertiaryAddHeader(title: title, onBack: onBack, onAdd: onAdd, onSearch: onSearch)
                 case .tertiaryReport(let title, let onBack, let onOption):
                     tertiaryReportHeader(title: title, onBack: onBack, onOption: onOption)
                 case .tertiaryMenu(let title, let onBack, let menuTitle, let onMenuAction):
@@ -169,6 +172,43 @@ extension Header {
             .fontStyle(.body1SemiBold)
             .foregroundColor(canSave ? ColorSystem.primaryStrong : ColorSystem.labelNormalBasic)
             .disabled(!canSave)
+        }
+    }
+    
+    private func tertiaryAddHeader(title: String, onBack: @escaping () -> Void, onAdd: @escaping () -> Void, onSearch: @escaping () -> Void) -> some View {
+        HStack {
+            Button(action: onBack) {
+                Image("backIcon", bundle: .designSystem)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 28, height: 28)
+            }
+            
+            Spacer()
+            
+            Text(title)
+                .fontStyle(Fonts.heading1Bold)
+                .foregroundColor(ColorSystem.labelNormalStrong)
+            
+            Spacer()
+            
+            HStack(spacing: 16) {
+                Button(action: onAdd) {
+                    Image("plusBlackIcon", bundle: .designSystem)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 28, height: 28)
+                }
+                .buttonStyle(.plain)
+                
+                Button(action: onSearch) {
+                    Image("searchIcon", bundle: .designSystem)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 28, height: 28)
+                }
+                .buttonStyle(.plain)
+            }
         }
     }
     
