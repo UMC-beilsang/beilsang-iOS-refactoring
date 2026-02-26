@@ -42,11 +42,13 @@
 일상에서 실천하는 작은 환경보호(텀블러 사용, 플로깅, 분리수거)를 혼자가 아닌 **함께** 이어갈 수 있도록 돕는 커뮤니티 기반 챌린지 앱입니다.
 
 <div align="center">
-  <img src="https://github.com/user-attachments/assets/1a13b69b-f49c-486b-a741-c896e343bedb" width="180"/>
-  <img src="https://github.com/user-attachments/assets/d36dbab8-21a2-46d4-83bb-b9f2df6784cf" width="180"/>
-  <img src="https://github.com/user-attachments/assets/495eacb0-45bd-488c-a866-8aefb98600e8" width="180"/>
-  <img src="https://github.com/user-attachments/assets/926cd5bd-c435-4b75-8dba-5cbce99e36b1" width="180"/>
-  <img src="https://github.com/user-attachments/assets/7d9e8710-773c-4167-a7d7-9479e40ad241" width="180"/>
+  <img src="https://github.com/user-attachments/assets/1a13b69b-f49c-486b-a741-c896e343bedb" width="250"/>
+  <img src="https://github.com/user-attachments/assets/d36dbab8-21a2-46d4-83bb-b9f2df6784cf" width="250"/>
+  <img src="https://github.com/user-attachments/assets/495eacb0-45bd-488c-a866-8aefb98600e8" width="250"/>
+</div>
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/926cd5bd-c435-4b75-8dba-5cbce99e36b1" width="250"/>
+  <img src="https://github.com/user-attachments/assets/7d9e8710-773c-4167-a7d7-9479e40ad241" width="250"/>
 </div>
 
 <br>
