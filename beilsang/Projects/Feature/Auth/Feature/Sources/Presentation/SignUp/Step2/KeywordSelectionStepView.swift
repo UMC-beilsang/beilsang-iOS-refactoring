@@ -9,6 +9,8 @@ import SwiftUI
 import UIComponentsShared
 import DesignSystemShared
 
+// 추후 복구 시 사용 예정
+
 struct KeywordSelectionStepView: View {
     @ObservedObject var viewModel: SignUpViewModel
     
@@ -17,30 +19,33 @@ struct KeywordSelectionStepView: View {
     private let columns = 3
     
     var body: some View {
-        let totalSpacing = spacing * CGFloat(columns - 1)
-        let totalPadding = horizontalPadding * 2
-        let itemWidth = (UIScreen.main.bounds.width - totalPadding - totalSpacing) / CGFloat(columns)
+        // let totalSpacing = spacing * CGFloat(columns - 1)
+        // let totalPadding = horizontalPadding * 2
+        // let itemWidth = (UIScreen.main.bounds.width - totalPadding - totalSpacing) / CGFloat(columns)
         
-        let filteredKeywords = viewModel.availableKeywords.filter { $0 != .all }
+        // let filteredKeywords = viewModel.availableKeywords.filter { $0 != .all }
         
         VStack(alignment: .leading, spacing: 20) {
             StepTitleView(title: "친환경 키워드를\n한 가지 선택해 주세요!")
             
             Spacer()
             
-            LazyVGrid(columns: Array(repeating: GridItem(.fixed(itemWidth), spacing: spacing), count: columns), spacing: spacing) {
-                ForEach(filteredKeywords, id: \.self) { keyword in
-                    KeywordItemView(
-                        title: keyword.title,
-                        defaultIconName: keyword.iconName + "Default",
-                        selectedIconName: keyword.iconName,
-                        isSelected: viewModel.signUpData.keyword == keyword,
-                        hasAnySelection: viewModel.signUpData.keyword != nil,
-                        onTap: { viewModel.toggleKeyword(keyword) },
-                        itemSize: itemWidth
-                    )
-                }
-            }
+            Text("현재 사용하지 않는 화면입니다")
+                .foregroundColor(.gray)
+            
+            // LazyVGrid(columns: Array(repeating: GridItem(.fixed(itemWidth), spacing: spacing), count: columns), spacing: spacing) {
+            //     ForEach(filteredKeywords, id: \.self) { keyword in
+            //         KeywordItemView(
+            //             title: keyword.title,
+            //             defaultIconName: keyword.iconName + "Default",
+            //             selectedIconName: keyword.iconName,
+            //             isSelected: viewModel.signUpData.keyword == keyword,
+            //             hasAnySelection: viewModel.signUpData.keyword != nil,
+            //             onTap: { viewModel.toggleKeyword(keyword) },
+            //             itemSize: itemWidth
+            //         )
+            //     }
+            // }
             
             Spacer()
         }

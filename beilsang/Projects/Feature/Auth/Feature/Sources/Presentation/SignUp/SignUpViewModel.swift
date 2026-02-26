@@ -61,10 +61,6 @@ public enum TermsType: Identifiable {
 
 enum SignUpStep: Int, CaseIterable {
     case terms = 0
-    case keywords
-    case motto
-    case info
-    case referral
     case complete
 }
 
@@ -84,42 +80,12 @@ final class SignUpViewModel: ObservableObject {
     @Published var showTermsSheet: TermsType?
     @Published var navigationDirection: NavigationDirection = .forward
 
-    @Published var signUpData: SignUpData = .init() {
-        didSet {
-            let newNickname = signUpData.userInfo.nickname
-            let oldNickname = oldValue.userInfo.nickname
-            if oldNickname != newNickname {
-                if newNickname.isEmpty {
-                    if nicknameState == .focused {
-                        nicknameState = .focused
-                    } else {
-                        nicknameState = .idle
-                    }
-                } else if nicknameState == .focused || nicknameState == .typing {
-                    nicknameState = .typing
-                } else if nicknameState != .checking && nicknameState != .valid {
-                    nicknameState = .filled
-                }
-            }
-        }
-    }
-
-    @Published var nicknameState: NicknameState = .idle
-    @Published var showGenderSheet: Bool = false
-    @Published var showBirthDatePicker: Bool = false
-    @Published var showAddressSearch: Bool = false
-
-    // MARK: - Constants
-    let availableKeywords = Keyword.allCases
-    let availableMottos = Motto.allCases
-
     // MARK: - Dependencies
     private let signUpUseCase: SignUpUseCaseProtocol
     private var cancellables = Set<AnyCancellable>()
 
     // MARK: - Init
-    init(signUpData: SignUpData = .init(), container: AuthContainer) {
-        self.signUpData = signUpData
+    init(container: AuthContainer) {
         self.signUpUseCase = container.signUpUseCase
     }
 
@@ -141,22 +107,11 @@ final class SignUpViewModel: ObservableObject {
     }
     
     func nextOrComplete() {
-        if currentStep == .referral {
-            completeSignUp()
-        } else {
-            nextStep()
-        }
+        // 약관 동의 후 바로 회원가입 완료
+        completeSignUpSimplified()
     }
 
     // MARK: - User Actions
-    func toggleKeyword(_ keyword: Keyword) {
-        signUpData.keyword = (signUpData.keyword == keyword) ? nil : keyword
-    }
-
-    func selectMotto(_ motto: Motto) {
-        signUpData.motto = (signUpData.motto == motto) ? nil : motto
-    }
-
     func toggleTerms(_ type: TermsType) {
         terms.toggle(type)
     }
@@ -174,10 +129,10 @@ final class SignUpViewModel: ObservableObject {
     }
 
     // MARK: - Sign Up
-    func completeSignUp() {
-        guard canCompleteSignUp else { return }
-
-        signUpUseCase.signUp(data: signUpData)
+    func completeSignUpSimplified() {
+        guard terms.requiredAgreed else { return }
+        
+        signUpUseCase.signUpSimplified(marketingAgreed: terms.marketing)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] state in
                 self?.handleSignUpState(state)
@@ -185,84 +140,11 @@ final class SignUpViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 
-    // MARK: - Nickname Check
-    func checkNickname() {
-        let nickname = signUpData.userInfo.nickname.trimmingCharacters(in: .whitespaces)
-
-        guard !nickname.isEmpty else {
-            nicknameState = .invalidFormat
-            return
-        }
-
-        guard (2...15).contains(nickname.count) else {
-            nicknameState = .invalidFormat
-            return
-        }
-
-        let regex = "^[가-힣a-zA-Z0-9]+$"
-        if nickname.range(of: regex, options: .regularExpression) == nil {
-            nicknameState = .invalidFormat
-            return
-        }
-
-        nicknameState = .checking
-
-        // API로 닉네임 중복 확인
-        signUpUseCase.checkNickname(nickname)
-            .receive(on: DispatchQueue.main)
-            .sink(
-                receiveCompletion: { [weak self] (completion: Subscribers.Completion<AuthError>) in
-                    guard let self = self else { return }
-                    if case .failure(let error) = completion {
-                        #if DEBUG
-                        print("❌ Nickname check error: \(error)")
-                        #endif
-                        // 에러 발생 시 형식 오류로 처리
-                        self.nicknameState = .invalidFormat
-                    }
-                },
-                receiveValue: { [weak self] (isAvailable: Bool) in
-                    guard let self = self else { return }
-                    if isAvailable {
-                        self.nicknameState = .valid
-                    } else {
-                        self.nicknameState = .invalidDuplicate
-                    }
-                }
-            )
-            .store(in: &cancellables)
-    }
-
     func clearError() { alert = nil }
 
     // MARK: - Step Validation
     var isNextEnabled: Bool {
-        switch currentStep {
-        case .terms:
-            return terms.requiredAgreed
-        case .keywords:
-            return signUpData.keyword != nil
-        case .motto:
-            return signUpData.motto != nil
-        case .info:
-            return signUpData.userInfo.isFilled && nicknameState == .valid
-        case .referral:
-            return signUpData.referralInfo.source != nil
-        case .complete:
-            return terms.requiredAgreed &&
-                   signUpData.keyword != nil &&
-                   signUpData.motto != nil &&
-                   signUpData.userInfo.isFilled &&
-                   nicknameState == .valid
-        }
-    }
-
-    var canCompleteSignUp: Bool {
-        terms.requiredAgreed &&
-        signUpData.keyword != nil &&
-        signUpData.motto != nil &&
-        signUpData.userInfo.isFilled &&
-        nicknameState == .valid
+        return terms.requiredAgreed
     }
 
     // MARK: - Private

@@ -15,7 +15,7 @@ struct AgreeTermsStepView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            StepTitleView(title: "비일상을 시작하기 위해\n약관을 동의해 주세요")
+            StepTitleView(title: "환영합니다!\n아래 약관에 동의해 주세요")
             
             Spacer()
             

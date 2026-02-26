@@ -9,6 +9,8 @@ import SwiftUI
 import UIComponentsShared
 import DesignSystemShared
 
+// 추후 복구 시 사용 예정
+
 struct MottoSelectionStepView: View {
     @ObservedObject var viewModel: SignUpViewModel
     
@@ -18,17 +20,20 @@ struct MottoSelectionStepView: View {
             
             Spacer()
             
-            VStack(spacing: 12) {
-                ForEach(viewModel.availableMottos) { motto in
-                    SelectableItemView(
-                        title: motto.title,
-                        iconName: motto.iconName,
-                        isSelected: viewModel.signUpData.motto == motto,
-                        hasAnySelection: viewModel.signUpData.motto != nil,
-                        onTap: { viewModel.selectMotto(motto) }
-                    )
-                }
-            }
+            Text("현재 사용하지 않는 화면입니다")
+                .foregroundColor(.gray)
+            
+            // VStack(spacing: 12) {
+            //     ForEach(viewModel.availableMottos) { motto in
+            //         SelectableItemView(
+            //             title: motto.title,
+            //             iconName: motto.iconName,
+            //             isSelected: viewModel.signUpData.motto == motto,
+            //             hasAnySelection: viewModel.signUpData.motto != nil,
+            //             onTap: { viewModel.selectMotto(motto) }
+            //         )
+            //     }
+            // }
             
             Spacer()
         }
