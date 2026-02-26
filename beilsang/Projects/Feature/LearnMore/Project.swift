@@ -9,12 +9,23 @@ import ProjectDescription
 
 let project = Project(
   name: "LearnMoreFeature",
+  settings: .settings(
+    base: [
+      "SWIFT_VERSION": "5.9"
+    ],
+    configurations: [
+      .debug(name: "dev"),
+      .debug(name: "stag"),
+      .release(name: "prod"),
+    ]
+  ),
   targets: [
     .target(
       name: "LearnMoreFeature",
       destinations: .iOS,
       product: .framework,
       bundleId: "com.beilsang.LearnMoreFeature",
+      deploymentTargets: .iOS("18.5"),
       infoPlist: .default,
       sources: ["Feature/Sources/**"],
       dependencies: [
@@ -23,7 +34,6 @@ let project = Project(
         .project(target: "UtilityShared", path: "../../Shared/Utility"),
         .project(target: "DesignSystemShared", path: "../../Shared/DesignSystem"),
         .project(target: "UIComponentsShared", path: "../../Shared/UIComponents"),
-        .external(name: "SnapKit")
       ]
     )
   ]
