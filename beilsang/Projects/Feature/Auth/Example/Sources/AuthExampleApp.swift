@@ -13,7 +13,7 @@ import DesignSystemShared
 import UIComponentsShared
 import ModelsShared
 import AuthDomain
-@testable import AuthFeature
+import AuthFeature
 
 @main
 struct AuthExampleApp: App {
@@ -41,19 +41,23 @@ struct AuthExampleApp: App {
 
 struct ContentView: View {
     private let container: AuthContainer
+    @State private var isSignUpComplete = false
 
     init(container: AuthContainer) {
         self.container = container
     }
 
     var body: some View {
-        SignUpView(
-            signUpData: {
-                var data = SignUpData()
-                data.accessToken = "test_id"
-                return data
-            }(),
-            container: container
-        )
+        if isSignUpComplete {
+            Text("🎉 회원가입 완료!")
+                .font(.largeTitle)
+        } else {
+            SignUpView(
+                container: container,
+                onSignUpComplete: {
+                    isSignUpComplete = true
+                }
+            )
+        }
     }
 }
