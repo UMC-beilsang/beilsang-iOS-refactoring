@@ -28,7 +28,9 @@ public struct DiscoverView: View {
         ZStack(alignment: .bottom) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    Header(type: .primaryTitle(title: "발견", onNotification: {}, onSearch: {
+                    Header(type: .primaryTitle(title: "발견", onNotification: {
+                        challengePresentationCoordinator?.presentNotification()
+                    }, onSearch: {
                         challengePresentationCoordinator?.presentSearch()
                     }))
                     
