@@ -28,6 +28,7 @@ public protocol ChallengePresentationCoordinator: AnyObject {
     func presentFeed(id: Int)
     func presentChallenge(id: Int)
     func presentSearch()
+    func presentNotification()
 }
 
 // EnvironmentKey for ChallengePresentationCoordinator
