@@ -12,57 +12,50 @@ struct SwipeableImageCarousel: View {
     @State private var currentIndex = 0
     
     private let images = [
-        "photo.on.rectangle.angled",
-        "camera.fill",
-        "heart.fill",
-        "star.fill"
+        "onboardingImage1",
+        "onboardingImage2",
+        "onboardingImage3"
     ]
     
     private let titles = [
-        "새로운 시작",
-        "함께하는 여정",
-        "성장하는 습관",
-        "특별한 경험"
-    ]
-    
-    private let descriptions = [
-        "당신의 새로운 시작을\n응원합니다",
-        "함께 성장하는\n특별한 여정",
-        "작은 습관이 만드는\n큰 변화",
-        "매일이 특별해지는\n경험을 시작하세요"
+        "다양한 챌린지에 참여할 수 있어요!",
+        "챌린지를 직접 만들 수 있어요!",
+        "활동 배지를 모아 보아요!"
     ]
     
     var body: some View {
+        let imageHeight = UIScreen.main.bounds.height * 0.56
+        
         VStack(spacing: 0) {
-            // 이미지 캐러셀
+            // 이미지 캐러셀 - 상단부터 꽉 채움
             TabView(selection: $currentIndex) {
                 ForEach(0..<images.count, id: \.self) { index in
-                    VStack(spacing: 24) {
-                        Image(systemName: images[index])
-                            .font(.system(size: 120, weight: .light))
-                            .foregroundColor(.blue)
-                        
-                        VStack(spacing: 12) {
-                            Text(titles[index])
-                                .font(.title2)
-                                .fontWeight(.bold)
-                                .foregroundColor(.primary)
-                            
-                            Text(descriptions[index])
-                                .font(.body)
-                                .foregroundColor(.secondary)
-                                .multilineTextAlignment(.center)
-                                .lineLimit(nil)
-                        }
-                        .padding(.horizontal, 40)
-                    }
-                    .tag(index)
+                    Image(images[index], bundle: .designSystem)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(height: imageHeight, alignment: .top)
+                        .clipped()
+                        .background(Color.cyan)
+                        .tag(index)
+                        .ignoresSafeArea(edges: .top)
                 }
             }
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+            .frame(height: imageHeight)
             .onAppear {
                 startAutoSlide()
             }
+            
+            Spacer()
+            
+            // 타이틀
+            Text(titles[currentIndex])
+                .fontStyle(.heading2Bold)
+                .foregroundColor(ColorSystem.labelNormalNormal)
+                .multilineTextAlignment(.center)
+                .animation(.easeInOut(duration: 0.3), value: currentIndex)
+            
+            Spacer()
             
             // 페이지 인디케이터
             HStack(spacing: 8) {
@@ -76,7 +69,7 @@ struct SwipeableImageCarousel: View {
                         .animation(.easeInOut(duration: 0.3), value: currentIndex)
                 }
             }
-            .padding(.top, 20)
+            .padding(.bottom, 24)
         }
     }
     
