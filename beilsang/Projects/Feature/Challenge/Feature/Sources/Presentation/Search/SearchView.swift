@@ -50,6 +50,16 @@ public struct SearchView<ChallengeDetailView: View, FeedDetailView: View>: View 
             .background(ColorSystem.backgroundNormalNormal)
             .toolbar(.hidden, for: .navigationBar)
             .dismissKeyboardOnTap(focusedField: $isSearchFocused)
+            .sheet(isPresented: $viewModel.showFilterSheet) {
+                FilterBottomSheet(
+                    selectedFilter: viewModel.selectedFilter,
+                    onFilterSelected: { filter in
+                        viewModel.applyFilter(filter)
+                    }
+                )
+                .presentationDetents([.height(300)])
+                .presentationDragIndicator(.visible)
+            }
             .navigationDestination(for: Int.self) { id in
                 if viewModel.selectedTab == .challenge {
                     challengeDetailViewBuilder(id)
@@ -224,6 +234,11 @@ public struct SearchView<ChallengeDetailView: View, FeedDetailView: View>: View 
             // 탭 바
             tabBar
             
+            // 챌린지 탭일 때만 필터 & 체크박스 표시
+            if viewModel.selectedTab == .challenge {
+                filterAndCheckboxSection
+            }
+            
             // 선택된 필터 태그
             if !viewModel.selectedFilters.isEmpty {
                 filterTagsSection
@@ -238,9 +253,10 @@ public struct SearchView<ChallengeDetailView: View, FeedDetailView: View>: View 
                 }
                 
                 if !viewModel.isLoading {
-                    if viewModel.showEmptyState {
+                    if viewModel.currentTabIsEmpty {
                         ScrollView {
-                            emptyStateView
+                            EmptySearchResultView(searchText: viewModel.searchText)
+                                .padding(.horizontal, 24)
                         }
                         .transition(.opacity)
                     } else {
@@ -263,6 +279,51 @@ public struct SearchView<ChallengeDetailView: View, FeedDetailView: View>: View 
             }
             .animation(.easeOut(duration: 0.4), value: viewModel.isLoading)
         }
+    }
+    
+    // MARK: - Filter & Checkbox Section
+    private var filterAndCheckboxSection: some View {
+        HStack {
+            // 좌측: 필터 버튼
+            Button(action: {
+                viewModel.showFilterSheet = true
+            }) {
+                HStack(spacing: 4) {
+                    Image("filterIcon", bundle: .designSystem)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 16, height: 16)
+                        
+                    Text(viewModel.selectedFilter.rawValue)
+                        .fontStyle(.body2Medium)
+                        .foregroundStyle(ColorSystem.labelNormalNormal)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(ColorSystem.labelNormalDisable)
+                .clipShape(RoundedRectangle(cornerRadius: 999))
+            }
+            
+            Spacer()
+            
+            // 우측: 모집마감 체크박스
+            Button(action: {
+                viewModel.toggleClosedChallenges()
+            }) {
+                HStack(spacing: 6) {
+                    Image(viewModel.hideClosedChallenges ? "checkIcon" : "noCheckIcon", bundle: .designSystem)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 16, height: 16)
+                    
+                    Text("모집 마감")
+                        .fontStyle(.detail1Medium)
+                        .foregroundStyle(ColorSystem.labelNormalBasic)
+                }
+            }
+        }
+        .padding(.horizontal, 24)
+        .padding(.top, 16)
     }
     
     // MARK: - Filter Tags
@@ -377,90 +438,6 @@ public struct SearchView<ChallengeDetailView: View, FeedDetailView: View>: View 
                 )
             }
         }
-    }
-    
-    // MARK: - Empty State
-    private var emptyStateView: some View {
-        VStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(alignment: .center, spacing: 4) {
-                    Text("'\(viewModel.searchText)'")
-                        .fontStyle(.heading3Bold)
-                        .foregroundStyle(ColorSystem.primaryStrong)
-                    
-                    Text("검색 결과가 없습니다")
-                        .fontStyle(.heading3Bold)
-                        .foregroundStyle(ColorSystem.labelNormalNormal)
-                    
-                    Spacer()
-                }
-                
-                
-                Text("다른 키워드로 검색해 볼까요?")
-                    .fontStyle(.body2Medium)
-                    .foregroundStyle(ColorSystem.labelNormalBasic)
-            }
-            
-            .padding(.horizontal, 24)
-            
-            Spacer()
-                .frame(height: 50)
-            
-            VStack(spacing: 2) {
-                Image("searchResultImage", bundle: .designSystem)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 200, height: 200)
-                
-                VStack(alignment: .leading) {
-                    Text("• 더 간결한 단어를 사용해 보세요")
-                        .fontStyle(.body2Medium)
-                        .foregroundStyle(ColorSystem.labelNormalBasic)
-                    
-                    Text("• 단어마다 띄어쓰기를 사용해 보세요")
-                        .fontStyle(.body2Medium)
-                        .foregroundStyle(ColorSystem.labelNormalBasic)
-                    
-                    Text("• 검색어 맞춤법을 확인해 보세요")
-                        .fontStyle(.body2Medium)
-                        .foregroundStyle(ColorSystem.labelNormalBasic)
-                }
-            }
-            .padding(.horizontal, 24)
-            
-            Spacer()
-                .frame(height: 100)
-            
-            Rectangle()
-                .fill(ColorSystem.labelNormalDisable)
-                .frame(height: 8)
-            
-            
-            // 추천 챌린지
-            if !viewModel.recommendedChallenges.isEmpty {
-                VStack(alignment: .leading, spacing: 16) {
-                    Text("이런 챌린지는 어때요?")
-                        .fontStyle(.heading3Bold)
-                        .foregroundStyle(ColorSystem.labelNormalStrong)
-                    
-                    VStack(spacing: 8) {
-                        ForEach(viewModel.recommendedChallenges.prefix(2), id: \.id) { challenge in
-                            Button {
-                                navigationPath.append(challenge.id)
-                            } label: {
-                                ChallengeRecommendItemView(challenge: challenge)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                }
-                .padding(.horizontal, 24)
-                .padding(.top, 32)
-            }
-            
-            Spacer()
-        }
-        .padding(.top, 24)
     }
 }
 

@@ -20,8 +20,25 @@ public final class SearchViewModel: ObservableObject {
     @Published public var isLoading: Bool = false
     @Published public var hasSearched: Bool = false
     @Published public var showEmptyState: Bool = false
+    
+    // 탭별 빈 상태 체크
+    public var currentTabIsEmpty: Bool {
+        switch selectedTab {
+        case .challenge:
+            return challengeResults.isEmpty
+        case .feed:
+            return feedResults.isEmpty
+        }
+    }
     @Published public var selectedFilters: Set<Keyword> = []
     @Published public var recommendedChallenges: [Challenge] = []
+    
+    // 필터 관련
+    @Published public var selectedFilter: ChallengeFilter = .recent
+    @Published public var showFilterSheet: Bool = false
+    @Published public var hideClosedChallenges: Bool = false
+    
+    private var allChallengeResults: [Challenge] = []
     
     private let repository: ChallengeRepositoryProtocol
     private let fetchRecommendedChallengesUseCase: FetchRecommendedChallengesUseCaseProtocol
@@ -142,9 +159,10 @@ public final class SearchViewModel: ObservableObject {
             }
             
             await MainActor.run {
-                challengeResults = challenges
+                allChallengeResults = challenges
                 feedResults = feeds
-                showEmptyState = challenges.isEmpty && feeds.isEmpty
+                applyAllFilters()
+                showEmptyState = challengeResults.isEmpty && feeds.isEmpty
             }
             
             #if DEBUG
@@ -155,11 +173,43 @@ public final class SearchViewModel: ObservableObject {
             print("❌ Search error: \(error)")
             #endif
             await MainActor.run {
+                allChallengeResults = []
                 challengeResults = []
                 feedResults = []
                 showEmptyState = true
             }
         }
+    }
+    
+    // MARK: - Sort & Filter
+    public func applyFilter(_ filter: ChallengeFilter) {
+        selectedFilter = filter
+        showFilterSheet = false
+        applyAllFilters()
+    }
+    
+    public func toggleClosedChallenges() {
+        hideClosedChallenges.toggle()
+        applyAllFilters()
+    }
+    
+    private func applyAllFilters() {
+        var filtered = allChallengeResults
+        
+        // 1. 모집마감 필터
+        if hideClosedChallenges {
+            filtered = filtered.filter { !$0.isRecruitmentClosed }
+        }
+        
+        // 2. 정렬
+        switch selectedFilter {
+        case .recent:
+            filtered = filtered.sorted { $0.startDate < $1.startDate }
+        case .latest:
+            filtered = filtered.sorted { $0.createdAt > $1.createdAt }
+        }
+        
+        challengeResults = filtered
     }
     
     // MARK: - Filters
