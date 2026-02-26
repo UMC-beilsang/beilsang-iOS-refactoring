@@ -1,0 +1,44 @@
+# Tuist generated
+/.build
+/Tuist/Cache
+/Tuist/Dependencies
+/Tuist/Generated
+/Tuist/repositories
+/Tuist/.build
+/tuist-derived
+
+# Don't track generated Xcode projects or workspaces
+*.xcodeproj
+*.xcworkspace
+
+# Xcode config files (if needed, comment this out)
+*.xcconfig
+*.entitlements
+
+# Derived data
+DerivedData/
+Derived/
+
+# Build folders
+build/
+
+# Xcode user data
+*.xcuserstate
+*.xcuserdatad
+*.xcscmblueprint
+xcuserdata/
+*.xccheckout
+
+# SwiftPM
+Package.resolved
+
+# Logs
+*.log
+
+# macOS
+.DS_Store
+.apdisk
+*.icloud
+
+# Firebase / Google files (local secrets)
+GoogleService-Info.plist
