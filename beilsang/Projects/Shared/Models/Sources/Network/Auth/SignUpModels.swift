@@ -42,6 +42,17 @@ public struct SignUpRequest: Codable, Sendable {
     }
 }
 
+// 단순화된 회원가입용 Request (약관 동의만)
+public struct SignUpSimplifiedRequest: Codable, Sendable {
+    public let accessToken: String
+    public let marketingAgreed: Bool
+    
+    public init(accessToken: String, marketingAgreed: Bool) {
+        self.accessToken = accessToken
+        self.marketingAgreed = marketingAgreed
+    }
+}
+
 // MARK: - Response
 public struct SignUpResponse: Codable, Sendable {
     public let code: String
