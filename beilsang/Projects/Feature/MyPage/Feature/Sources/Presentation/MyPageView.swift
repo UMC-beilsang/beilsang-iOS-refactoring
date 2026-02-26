@@ -27,7 +27,9 @@ public struct MyPageView: View {
                 // 헤더
                 Header(type: .primaryTitle(
                     title: "마이페이지",
-                    onNotification: {},
+                    onNotification: {
+                        challengePresentationCoordinator?.presentNotification()
+                    },
                     onSearch: {
                         challengePresentationCoordinator?.presentSearch()
                     }
