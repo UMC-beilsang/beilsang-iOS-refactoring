@@ -21,9 +21,10 @@ final class LoginViewModel: ObservableObject {
     @Published var authState: AuthState = .unauthenticated
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
+    @Published var showKakaoWebLogin: Bool = false
 
     // MARK: - Dependencies
-    private let container: AuthContainer
+    let container: AuthContainer
     private var cancellables = Set<AnyCancellable>()
     private var appleCoordinator: AppleSignInCoordinator?
 
@@ -33,7 +34,7 @@ final class LoginViewModel: ObservableObject {
     }
 
     // MARK: - Kakao Login
-    func startKakaoLogin(showWebLogin: @escaping () -> Void) {
+    func startKakaoLogin() {
         isLoading = true
         
         if UserApi.isKakaoTalkLoginAvailable() {

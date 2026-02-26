@@ -14,34 +14,26 @@ import AuthDomain
 public struct LoginView: View {
     @StateObject private var viewModel: LoginViewModel
     @Environment(\.dismiss) private var dismiss
-    @State private var showKakaoWebLogin = false
     
-    private let baseURL: String
-    private let onLoginSuccess: (Bool) -> Void  // isNewMember
+    private let onLoginSuccess: (Bool) -> Void
     
     public init(
         container: AuthContainer,
-        baseURL: String,
         onLoginSuccess: @escaping (Bool) -> Void = { _ in }
     ) {
         self._viewModel = StateObject(
             wrappedValue: LoginViewModel(container: container)
         )
-        self.baseURL = baseURL
         self.onLoginSuccess = onLoginSuccess
     }
     
     public var body: some View {
-        ZStack {
-            Color(.systemBackground)
-                .ignoresSafeArea(.all)
-            
-            VStack(spacing: 0) {
-                swipeableImageView
-                Spacer()
-                bottomButtonSection
-            }
+        VStack {
+            swipeableImageView
+            Spacer()
+            bottomButtonSection
         }
+        .ignoresSafeArea(.all)
         .alert("로그인 오류", isPresented: .constant(viewModel.errorMessage != nil)) {
             Button("확인") {
                 viewModel.clearError()
@@ -51,20 +43,22 @@ public struct LoginView: View {
                 Text(errorMessage)
             }
         }
-        .fullScreenCover(isPresented: $showKakaoWebLogin) {
-            KakaoWebLoginView(
-                baseURL: baseURL,
-                onSuccess: { accessToken, refreshToken, isExistMember in
-                    viewModel.handleKakaoWebLoginSuccess(
-                        accessToken: accessToken,
-                        refreshToken: refreshToken,
-                        isExistMember: isExistMember
-                    )
-                },
-                onFailure: { error in
-                    viewModel.handleKakaoError(error)
-                }
-            )
+        .fullScreenCover(isPresented: $viewModel.showKakaoWebLogin) {
+            if let baseURL = viewModel.container.baseURL.isEmpty ? nil : viewModel.container.baseURL {
+                KakaoWebLoginView(
+                    baseURL: baseURL,
+                    onSuccess: { accessToken, refreshToken, isExistMember in
+                        viewModel.handleKakaoWebLoginSuccess(
+                            accessToken: accessToken,
+                            refreshToken: refreshToken,
+                            isExistMember: isExistMember
+                        )
+                    },
+                    onFailure: { error in
+                        viewModel.handleKakaoError(error)
+                    }
+                )
+            }
         }
         .onChange(of: viewModel.authState) { _, newState in
             handleAuthStateChange(newState)
@@ -86,7 +80,7 @@ public struct LoginView: View {
     
     private var swipeableImageView: some View {
         SwipeableImageCarousel()
-            .frame(height: UIScreen.main.bounds.height * 0.6)
+            .ignoresSafeArea(edges: .top)
     }
     
     private var bottomButtonSection: some View {
@@ -95,9 +89,7 @@ public struct LoginView: View {
                 SocialLoginButton(
                     type: .kakao,
                     action: {
-                        viewModel.startKakaoLogin {
-                            showKakaoWebLogin = true
-                        }
+                        viewModel.startKakaoLogin()
                     }
                 )
                 .disabled(viewModel.isLoading)
@@ -119,6 +111,6 @@ public struct LoginView: View {
             .padding(.top, 8)
         }
         .padding(.horizontal, 24)
-        .padding(.bottom, 40)
+        .padding(.bottom, 60)
     }
 }
