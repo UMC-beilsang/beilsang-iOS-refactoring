@@ -15,6 +15,7 @@ public protocol AuthRepositoryProtocol {
     func loginWithKakao(request: KakaoLoginRequest) -> AnyPublisher<(KeychainToken, Bool), AuthError>
     func loginWithApple(request: AppleLoginRequest) -> AnyPublisher<(KeychainToken, Bool), AuthError>
     func signUp(request: SignUpRequest) -> AnyPublisher<KeychainToken, AuthError>
+    func signUpSimplified(request: SignUpSimplifiedRequest) -> AnyPublisher<KeychainToken, AuthError>
     func logoutKakao() -> AnyPublisher<Void, AuthError>
     func revokeKakao() -> AnyPublisher<Void, AuthError>
     func revokeApple() -> AnyPublisher<Void, AuthError>

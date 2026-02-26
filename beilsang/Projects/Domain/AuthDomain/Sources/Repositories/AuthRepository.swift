@@ -234,6 +234,25 @@ public final class AuthRepository: AuthRepositoryProtocol {
             .eraseToAnyPublisher()
     }
     
+    // MARK: - Sign Up Simplified (약관 동의만) - Mock Only
+    public func signUpSimplified(request: SignUpSimplifiedRequest) -> AnyPublisher<KeychainToken, AuthError> {
+        // Mock 데이터로만 동작 (API 연결 없음)
+        #if DEBUG
+        print("📝 Mock simplified sign up (marketing: \(request.marketingAgreed))")
+        #endif
+        
+        let token = KeychainToken(
+            accessToken: "mock_signup_simplified_access_token_\(UUID().uuidString)",
+            refreshToken: "mock_signup_simplified_refresh_token_\(UUID().uuidString)",
+            expiresIn: 3600
+        )
+        
+        return Just(token)
+            .delay(for: .milliseconds(800), scheduler: DispatchQueue.main)
+            .setFailureType(to: AuthError.self)
+            .eraseToAnyPublisher()
+    }
+    
     // MARK: - Logout Kakao
     public func logoutKakao() -> AnyPublisher<Void, AuthError> {
         if MockConfig.useMockData {
