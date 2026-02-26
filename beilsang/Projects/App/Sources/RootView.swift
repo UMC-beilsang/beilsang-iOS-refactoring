@@ -197,7 +197,6 @@ struct RootView: View {
         case .login:
             LoginView(
                 container: authContainer,
-                baseURL: authContainer.baseURL,
                 onLoginSuccess: { isNewMember in
                     if isNewMember {
                         #if DEBUG
