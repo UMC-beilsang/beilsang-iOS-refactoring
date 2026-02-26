@@ -16,6 +16,8 @@ public struct ChallengeItemViewModel: Identifiable {
     public let progressText: String
     public let author: String?
     public let isRecruitmentClosed: Bool
+    public let createdAt: Date
+    public let startDate: Date
     
     public init(challenge: Challenge) {
         self.id = challenge.id
@@ -24,5 +26,7 @@ public struct ChallengeItemViewModel: Identifiable {
         self.progressText = String(format: "%.0f%%", challenge.progress)
         self.author = challenge.author
         self.isRecruitmentClosed = challenge.isRecruitmentClosed
+        self.createdAt = challenge.createdAt
+        self.startDate = challenge.startDate
     }
 }

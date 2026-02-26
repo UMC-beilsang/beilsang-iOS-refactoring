@@ -25,11 +25,55 @@ public struct ChallengeListView: View {
     
     public var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Header(type: .tertiaryReport(
+            Header(type: .tertiaryAdd(
                 title: category.title,
                 onBack: { dismiss() },
-                onOption: {}
+                onAdd: { coordinator.navigateToCreate() },
+                onSearch: { coordinator.presentSearch() }
             ))
+            
+            // 필터 버튼 & 모집마감 체크박스
+            HStack {
+                // 좌측: 필터 버튼
+                Button(action: {
+                    viewModel.showFilterSheet = true
+                }) {
+                    HStack(spacing: 4) {
+                        Image("filterIcon", bundle: .designSystem)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 16, height: 16)
+                            
+                        Text(viewModel.selectedFilter.rawValue)
+                            .fontStyle(.body2Medium)
+                            .foregroundStyle(ColorSystem.labelNormalNormal)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(ColorSystem.labelNormalDisable)
+                    .clipShape(RoundedRectangle(cornerRadius: 999))
+                }
+                
+                Spacer()
+                
+                // 우측: 모집마감 체크박스
+                Button(action: {
+                    viewModel.toggleClosedChallenges()
+                }) {
+                    HStack(spacing: 6) {
+                        Image(viewModel.hideClosedChallenges ? "checkIcon" : "noCheckIcon", bundle: .designSystem)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 16, height: 16)
+                        
+                        Text("모집 마감")
+                            .fontStyle(.detail1Medium)
+                            .foregroundStyle(ColorSystem.labelNormalBasic)
+                    }
+                }
+            }
+            .padding(.horizontal, 24)
+            .padding(.top, 16)
             
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 0) {
@@ -61,14 +105,22 @@ public struct ChallengeListView: View {
             }
         }
         .toolbar(.hidden, for: .navigationBar)
+        .sheet(isPresented: $viewModel.showFilterSheet) {
+            FilterBottomSheet(
+                selectedFilter: viewModel.selectedFilter,
+                onFilterSelected: { filter in
+                    viewModel.applyFilter(filter)
+                }
+            )
+            .presentationDetents([.height(300)])
+            .presentationDragIndicator(.visible)
+        }
         .onAppear {
-            // 이미 데이터가 있으면 로딩 상태 즉시 해제 (깜빡임 방지)
             if !viewModel.items.isEmpty {
                 viewModel.isLoading = false
             }
         }
         .task {
-            // 초기 로딩 (데이터가 비어있을 때만)
             if viewModel.items.isEmpty {
                 await viewModel.fetchChallenges(for: category, showSkeleton: true)
             }

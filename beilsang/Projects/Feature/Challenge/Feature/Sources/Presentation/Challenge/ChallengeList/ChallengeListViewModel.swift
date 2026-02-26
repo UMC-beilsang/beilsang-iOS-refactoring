@@ -12,12 +12,50 @@ import UtilityShared
 @MainActor
 public final class ChallengeListViewModel: ObservableObject {
     @Published public var items: [ChallengeItemViewModel] = []
-    @Published public var isLoading: Bool = true // 초기 로딩 상태
+    @Published public var isLoading: Bool = true
+    @Published public var selectedFilter: ChallengeFilter = .recent
+    @Published public var showFilterSheet: Bool = false
+    @Published public var hideClosedChallenges: Bool = false
+    
+    private var allItems: [ChallengeItemViewModel] = []
     
     private let fetchChallengeListUseCase: FetchChallengeListUseCaseProtocol
     
     public init(fetchChallengeListUseCase: FetchChallengeListUseCaseProtocol) {
         self.fetchChallengeListUseCase = fetchChallengeListUseCase
+    }
+    
+    // 필터 적용
+    public func applyFilter(_ filter: ChallengeFilter) {
+        selectedFilter = filter
+        showFilterSheet = false
+        applyAllFilters()
+    }
+    
+    // 모집마감 체크박스 토글
+    public func toggleClosedChallenges() {
+        hideClosedChallenges.toggle()
+        applyAllFilters()
+    }
+    
+    // 모든 필터 적용 (정렬 + 모집마감)
+    private func applyAllFilters() {
+        var filtered = allItems
+        
+        // 1. 모집마감 필터
+        if hideClosedChallenges {
+            filtered = filtered.filter { !$0.isRecruitmentClosed }
+        }
+        
+        // 2. 정렬
+        switch selectedFilter {
+        case .recent:
+            filtered = filtered.sorted { $0.startDate < $1.startDate }
+        case .latest:
+            filtered = filtered.sorted { $0.createdAt > $1.createdAt }
+        }
+        
+        items = filtered
     }
     
     public func fetchChallenges(for category: Keyword, showSkeleton: Bool = false) async {
@@ -59,14 +97,16 @@ public final class ChallengeListViewModel: ObservableObject {
         do {
             let items = try await fetchTask.value
             if let delay = delayTask {
-                await delay.value // 목업일 때만 최소 0.5초 대기
+                await delay.value
             }
             
-            self.items = items
+            self.allItems = items
+            applyAllFilters()
         } catch {
             if let delay = delayTask {
-                await delay.value // 에러 발생 시에도 목업일 때만 최소 0.5초 대기
+                await delay.value
             }
+            self.allItems = []
             self.items = []
         }
         
