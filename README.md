@@ -11,6 +11,10 @@
   환경 실천을 함께하는 에코 챌린지 플랫폼
 </h4>
 
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/69993785-fce1-4bcf-97ac-b531868f346a" width="500"/>
+</div>
+
 <h5 align="center">
   UIKit → SwiftUI 전면 리팩토링 | Clean Architecture 모듈화
 </h5>
