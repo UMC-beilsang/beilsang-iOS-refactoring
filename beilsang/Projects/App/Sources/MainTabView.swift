@@ -182,15 +182,6 @@ struct MainTabView: View {
         }
     }
     
-    // MARK: - LearnMore Tab
-    private var learnMoreTab: some View {
-        NavigationStack {
-            // TODO: LearnMoreView 연결
-            Text("더 알아보기")
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-        }
-    }
-    
     // MARK: - MyPage Tab
     private var myPageTab: some View {
         NavigationStack(path: $myPageCoordinator.path) {
