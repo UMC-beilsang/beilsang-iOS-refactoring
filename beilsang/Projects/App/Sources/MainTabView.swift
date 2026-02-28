@@ -68,8 +68,8 @@ struct MainTabView: View {
                 discoverTab
                     .tag(1)
                 
-                // 📖 더 알아보기 탭
-                learnMoreTab
+                // ✏️ 챌린지 만들기 탭
+                Color.clear
                     .tag(2)
                 
                 // 👤 마이페이지 탭
@@ -84,6 +84,12 @@ struct MainTabView: View {
             }
         }
         .ignoresSafeArea(edges: .bottom)
+        .onChange(of: appRouter.selectedTab) { oldValue, newValue in
+            if newValue == 2 {
+                challengeCoordinator.presentChallengeAdd()
+                appRouter.selectedTab = oldValue
+            }
+        }
         // Challenge Coordinator의 FullScreenCover 관리
         .fullScreenCover(item: $challengeCoordinator.presentedFeed) { feed in
             challengeCoordinator.makeFeedDetailView(feedId: feed.id)
@@ -173,15 +179,6 @@ struct MainTabView: View {
                 coordinator: discoverCoordinator
             )
             .environment(\.challengePresentationCoordinator, challengeCoordinator)
-        }
-    }
-    
-    // MARK: - LearnMore Tab
-    private var learnMoreTab: some View {
-        NavigationStack {
-            // TODO: LearnMoreView 연결
-            Text("더 알아보기")
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
     

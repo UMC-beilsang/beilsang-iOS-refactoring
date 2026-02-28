@@ -36,9 +36,9 @@ public struct CustomTabBar: View {
             }
             
             TabBarItem(
-                icon: "learnMoreIcon",
-                selectedIcon: "learnMoreIconSelected",
-                title: "더 알아보기",
+                icon: "addChallengeIcon",
+                selectedIcon: "addChallengeIconSelected",
+                title: "챌린지 만들기",
                 isSelected: selectedTab == 2
             ) {
                 selectedTab = 2

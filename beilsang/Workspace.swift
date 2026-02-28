@@ -21,7 +21,6 @@ let workspace = Workspace(
         "Projects/Feature/Auth",
         "Projects/Feature/Challenge",
         "Projects/Feature/Discover",
-        "Projects/Feature/LearnMore",
         "Projects/Feature/MyPage",
         "Projects/Feature/Notification",
         // Domain
