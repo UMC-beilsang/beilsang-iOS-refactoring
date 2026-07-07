@@ -7,22 +7,8 @@
 
 import Foundation
 
-// MARK: - Response
-public struct PointResponse: Codable, Sendable {
-    public let statusCode: Int
-    public let code: String
-    public let message: String
-    public let data: PointData
-    
-    public init(statusCode: Int, code: String, message: String, data: PointData) {
-        self.statusCode = statusCode
-        self.code = code
-        self.message = message
-        self.data = data
-    }
-}
-
-public struct PointData: Codable, Sendable {
+// MARK: - API Response Models (GET /api/point)
+public struct PointAPIResponseData: Codable, Sendable {
     public let total: Int
     public let points: [PointItem]
     
@@ -32,16 +18,26 @@ public struct PointData: Codable, Sendable {
     }
 }
 
-// MARK: - Point Item
+// MARK: - Domain Models
+public struct PointData: Codable, Sendable {
+    public let total: Int
+    public let point: [PointItem]
+    
+    public init(total: Int, point: [PointItem]) {
+        self.total = total
+        self.point = point
+    }
+}
+
 public struct PointItem: Codable, Identifiable, Sendable {
     public let id: Int
-    public let name: String
+    public let name: String?
     public let status: PointStatus
     public let value: Int
     public let date: String
-    public let period: Int
+    public let period: Int?
     
-    public init(id: Int, name: String, status: PointStatus, value: Int, date: String, period: Int) {
+    public init(id: Int, name: String?, status: PointStatus, value: Int, date: String, period: Int?) {
         self.id = id
         self.name = name
         self.status = status
@@ -51,7 +47,6 @@ public struct PointItem: Codable, Identifiable, Sendable {
     }
 }
 
-// MARK: - Point Status
 public enum PointStatus: String, Codable, Sendable {
     case earn = "EARN"
     case use = "USE"
@@ -65,6 +60,7 @@ public enum PointStatus: String, Codable, Sendable {
         }
     }
 }
+
 
 
 

@@ -28,8 +28,25 @@ public struct UserProfileData: Codable, Sendable {
     // Computed properties for backward compatibility
     public var nickname: String { nickName ?? "" }
     public var totalPoint: Int { points }
+    public var profileUrl: String? { profileImage }
     public var participatingChallengeCount: Int { challenges }
     public var completedChallengeCount: Int { successChallenge }
+    
+    enum CodingKeys: String, CodingKey {
+        case resolution
+        case points
+        case nickName
+        case profileImage
+        case address
+        case gender
+        case birth
+        case feedDTOs
+        case countFeed
+        case challenges
+        case failedChallenges
+        case successChallenge
+        case likes
+    }
     
     public init(
         resolution: String? = nil,
@@ -120,6 +137,63 @@ public struct ProfileImageRequest: Codable, Sendable {
 }
 
 public typealias ProfileImageResponse = APIResponse<String>
+
+// MARK: - Profile Image Fetch
+public struct ProfileImageData: Codable, Sendable {
+    public let profileUrl: String?
+    
+    public init(profileUrl: String?) {
+        self.profileUrl = profileUrl
+    }
+}
+
+// MARK: - Nickname
+public struct NicknameData: Codable, Sendable {
+    public let nickName: String
+    
+    public init(nickName: String) {
+        self.nickName = nickName
+    }
+}
+
+public struct NicknameUpdateRequest: Codable, Sendable {
+    public let nickName: String
+    
+    public init(nickName: String) {
+        self.nickName = nickName
+    }
+}
+
+// MARK: - Challenge Count
+public struct ChallengeCountData: Codable, Sendable {
+    public let challenges: Int
+    public let successChallenge: Int
+    public let failedChallenges: Int
+    
+    public init(challenges: Int, successChallenge: Int, failedChallenges: Int) {
+        self.challenges = challenges
+        self.successChallenge = successChallenge
+        self.failedChallenges = failedChallenges
+    }
+}
+
+// MARK: - Feed Count
+public struct FeedCountData: Codable, Sendable {
+    public let countFeed: Int
+    
+    public init(countFeed: Int) {
+        self.countFeed = countFeed
+    }
+}
+
+// MARK: - Like Count
+public struct LikeCountData: Codable, Sendable {
+    public let likes: Int
+    
+    public init(likes: Int) {
+        self.likes = likes
+    }
+}
 
 // MARK: - Empty Response (빈 body 처리용)
 public struct EmptyResponse: Codable, Sendable {

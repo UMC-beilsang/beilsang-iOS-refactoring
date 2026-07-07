@@ -10,7 +10,7 @@ import Foundation
 // MARK: - Response
 public typealias ChallengeEnrollmentResponse = APIResponse<ChallengeEnrollmentData>
 
-public struct ChallengeEnrollmentData: Decodable, Sendable {
+public struct ChallengeEnrollmentData: Codable, Sendable {
     public let isEnrolled: Bool
     public let enrolledChallengeIds: [Int]
     

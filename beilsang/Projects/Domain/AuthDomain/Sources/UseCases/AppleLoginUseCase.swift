@@ -6,12 +6,11 @@
 //
 
 import Foundation
-import Combine
 import ModelsShared
 import StorageCore
 
 public protocol AppleLoginUseCaseProtocol {
-    func login(request: AppleLoginRequest) -> AnyPublisher<AuthState, Never>
+    func login(request: AppleLoginRequest) async -> AuthState
 }
 
 public final class AppleLoginUseCase: AppleLoginUseCaseProtocol {
@@ -23,29 +22,31 @@ public final class AppleLoginUseCase: AppleLoginUseCaseProtocol {
         self.tokenStorage = tokenStorage
     }
 
-    public func login(request: AppleLoginRequest) -> AnyPublisher<AuthState, Never> {
-        return repository.loginWithApple(request: request)
-            .flatMap { [tokenStorage] token, isExistMember -> AnyPublisher<AuthState, AuthError> in
-                // 애플 로그인 provider 정보 추가
-                let tokenWithProvider = KeychainToken(
-                    accessToken: token.accessToken,
-                    refreshToken: token.refreshToken,
-                    tokenType: token.tokenType,
-                    expiresIn: token.expiresIn,
-                    createdAt: token.createdAt,
-                    provider: .apple
-                )
-                return tokenStorage.saveToken(tokenWithProvider)
-                    .map { _ in
-                        // isExistMember가 false면 신규 회원 (회원가입 필요)
-                        // isExistMember가 true면 기존 회원 (인증 완료)
-                        isExistMember ? AuthState.authenticated : AuthState.needsSignUp
-                    }
-                    .mapError { AuthError.fromKeychainError($0) }
-                    .eraseToAnyPublisher()
+    public func login(request: AppleLoginRequest) async -> AuthState {
+        do {
+            let (token, isTermsAgreed) = try await repository.loginWithApple(request: request)
+            
+            let tokenWithProvider = KeychainToken(
+                accessToken: token.accessToken,
+                refreshToken: token.refreshToken,
+                tokenType: token.tokenType,
+                expiresIn: token.expiresIn,
+                createdAt: token.createdAt,
+                provider: .apple
+            )
+            
+            do {
+                try await tokenStorage.saveToken(tokenWithProvider)
+                return isTermsAgreed ? .authenticated : .needsSignUp
+            } catch let keychainError as KeychainError {
+                return .error(AuthError.fromKeychainError(keychainError))
+            } catch {
+                return .error(.unknownError(error.localizedDescription))
             }
-            .catch { error in Just(AuthState.error(error)) }
-            .prepend(.loading)
-            .eraseToAnyPublisher()
+        } catch let authError as AuthError {
+            return .error(authError)
+        } catch {
+            return .error(.unknownError(error.localizedDescription))
+        }
     }
 }

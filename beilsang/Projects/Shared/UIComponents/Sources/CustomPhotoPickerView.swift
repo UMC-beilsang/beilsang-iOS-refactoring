@@ -46,6 +46,7 @@ public struct CustomPhotoPickerView: View {
                 }
                 .padding(.horizontal, 24)
             }
+            .frame(height: 120)
             .padding(.horizontal, -24)
         }
     }
