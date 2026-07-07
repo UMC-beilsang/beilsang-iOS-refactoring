@@ -15,11 +15,15 @@ struct ChallengeImageView: View {
     
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
-            Image(imageURL, bundle: .designSystem)
-                .resizable()
-                .scaledToFill()
-                .frame(height: UIScreen.main.bounds.height * 0.32)
-                .clipped()
+            CachedAsyncImage(url: imageURL) { image in
+                image
+                    .resizable()
+                    .scaledToFill()
+            } placeholder: {
+                Color(ColorSystem.backgroundNormalNormal)
+            }
+            .frame(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height * 0.32)
+            .clipped()
             
             ChallengeParticipantsView(participantText: participantText)
                 .padding(.trailing, 16)
@@ -38,7 +42,7 @@ private struct ChallengeParticipantsView: View {
                 .scaledToFit()
                 .frame(width: 20, height:20)
             
-            Text("\(participantText) 참여중")
+            Text("\(participantText) 참여 중")
                 .fontStyle(.body2Medium)
                 .foregroundStyle(ColorSystem.labelWhite)
         }

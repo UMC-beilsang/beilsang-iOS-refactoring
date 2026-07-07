@@ -6,29 +6,30 @@
 //
 
 import SwiftUI
+import UIComponentsShared
 import DesignSystemShared
 import ModelsShared
 
 public struct HonorsChallengeCard: View {
-    private let challenge: Challenge
+    private let challenge: HallOfFameChallenge
     private let rank: Int?
     private let action: (() -> Void)?
 
-    public init(challenge: Challenge, rank: Int? = nil, action: (() -> Void)? = nil) {
+    public init(challenge: HallOfFameChallenge, rank: Int? = nil, action: (() -> Void)? = nil) {
         self.challenge = challenge
         self.rank = rank
         self.action = action
     }
 
     public var body: some View {
-        Button(action: { action?() }) {
+        Button {
+            action?()
+        } label: {
             ZStack(alignment: .topLeading) {
-                // Thumbnail
                 Group {
                     if let urlString = challenge.thumbnailImageUrl,
-                       urlString.hasPrefix("http"),
-                       let url = URL(string: urlString) {
-                        AsyncImage(url: url) { image in
+                       urlString.hasPrefix("http") {
+                        CachedAsyncImage(url: urlString) { image in
                             image
                                 .resizable()
                                 .scaledToFill()
@@ -49,7 +50,6 @@ public struct HonorsChallengeCard: View {
                 .clipped()
                 .cornerRadius(16)
 
-                // Rank Badge
                 if let rank = rank {
                     Text("\(rank)위")
                         .fontStyle(.detail1Medium)

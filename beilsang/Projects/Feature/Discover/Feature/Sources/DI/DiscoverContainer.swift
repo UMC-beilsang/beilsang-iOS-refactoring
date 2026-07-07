@@ -17,16 +17,12 @@ public final class DiscoverContainer {
     public let coordinator: DiscoverCoordinator
     
     public init(baseURL: String, tokenStorage: KeychainTokenStorageProtocol = KeychainTokenStorage()) {
-        // AuthInterceptor로 토큰 자동 추가
         let interceptor = AuthInterceptor(tokenStorage: tokenStorage, baseURL: baseURL)
         let session = Session(interceptor: interceptor)
         let apiClient = APIClient(baseURL: baseURL, session: session)
-        let repository = ChallengeRepository(apiClient: apiClient)
+        let discoverRepo = DiscoverRepository(apiClient: apiClient)
         
-        // ViewModel 생성
-        self.discoverViewModel = DiscoverViewModel(repository: repository)
-        
-        // Coordinator 생성
+        self.discoverViewModel = DiscoverViewModel(repository: discoverRepo)
         self.coordinator = DiscoverCoordinator()
     }
     

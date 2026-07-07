@@ -13,6 +13,7 @@ import NavigationShared
 
 public struct MyChallengeListView<ChallengeDetailView: View>: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.challengePresentationCoordinator) private var challengePresentationCoordinator
     @StateObject private var viewModel: MyChallengeListViewModel
     
     // 네비게이션 경로
@@ -40,77 +41,13 @@ public struct MyChallengeListView<ChallengeDetailView: View>: View {
     
     public var body: some View {
         NavigationStack(path: $navigationPath) {
-            VStack(alignment: .leading, spacing: 0) {
-                // 헤더
-                Header(type: .secondary(
-                    title: "나의 챌린지",
-                    onBack: { dismiss() }
-                ))
-                
-                // 탭 바
-                tabBar
-                
-                // 카테고리 필터
-                categoryFilter
-                
-                // Divider
-                Rectangle()
-                    .fill(ColorSystem.labelNormalDisable)
-                    .frame(height: 8)
-                
-                // 콘텐츠
-                ScrollView {
-                    ZStack {
-                        if viewModel.isInitialLoading {
-                            MyChallengeListSkeletonView()
-                                .transition(.opacity)
-                        } else {
-                            VStack(alignment: .leading, spacing: 16) {
-                                Text(sectionTitle)
-                                    .fontStyle(.heading2Bold)
-                                    .foregroundStyle(ColorSystem.labelNormalStrong)
-                                    .padding(.horizontal, 24)
-                                    .padding(.top, 32)
-                                
-                                if viewModel.challenges.isEmpty {
-                                    emptyStateView
-                                } else {
-                                    LazyVStack(spacing: 16) {
-                                        ForEach(viewModel.challenges) { challenge in
-                                            ChallengeItemView(
-                                                title: challenge.title,
-                                                imageUrl: challenge.thumbnailImageUrl ?? "",
-                                                style: .progressList(
-                                                    progress: "\(Int(challenge.progress))%",
-                                                    author: challenge.author.isEmpty ? "익명" : challenge.author
-                                                ),
-                                                isRecruitmentClosed: challenge.isRecruitmentClosed,
-                                                onTapped: {
-                                                    // NavigationStack으로 상세 화면 표시
-                                                    navigationPath.append(challenge.id)
-                                                }
-                                            )
-                                        }
-                                    }
-                                    .padding(.horizontal, 24)
-                                }
-                                
-                                Spacer().frame(height: 100)
-                            }
-                            .transition(.opacity)
-                        }
-                    }
-                    .animation(.easeOut(duration: 0.4), value: viewModel.isInitialLoading)
+            contentView
+                .toolbar(.hidden, for: .navigationBar)
+                .navigationDestination(for: Int.self) { challengeId in
+                    challengeDetailViewBuilder(challengeId)
                 }
-            }
-            .background(ColorSystem.backgroundNormalNormal)
-            .toolbar(.hidden, for: .navigationBar)
-            .navigationDestination(for: Int.self) { challengeId in
-                challengeDetailViewBuilder(challengeId)
-            }
         }
         .onAppear {
-            // 이미 데이터가 있으면 로딩 상태 즉시 해제 (깜빡임 방지)
             if !viewModel.challenges.isEmpty {
                 viewModel.isInitialLoading = false
             }
@@ -150,8 +87,79 @@ public struct MyChallengeListView<ChallengeDetailView: View>: View {
                 tabIndex: selectedTab,
                 category: selectedCategory,
                 reset: true,
-                showSkeleton: true
+                showSkeleton: false
             )
+        }
+    }
+    
+    // MARK: - Content View
+    private var contentView: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Header(type: .secondary(
+                title: "나의 챌린지",
+                onBack: { dismiss() }
+            ))
+            
+            tabBar
+            categoryFilter
+            
+            Rectangle()
+                .fill(ColorSystem.labelNormalDisable)
+                .frame(height: 8)
+            
+            challengeListContent
+        }
+        .background(ColorSystem.backgroundNormalNormal)
+    }
+    
+    // MARK: - Challenge List Content
+    private var challengeListContent: some View {
+        ScrollView {
+            ZStack {
+                if viewModel.isInitialLoading {
+                    MyChallengeListSkeletonView()
+                        .transition(.opacity)
+                } else {
+                    challengeListSection
+                        .transition(.opacity)
+                }
+            }
+            .animation(.easeOut(duration: 0.2), value: viewModel.isInitialLoading)
+        }
+    }
+    
+    // MARK: - Challenge List Section
+    private var challengeListSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text(sectionTitle)
+                .fontStyle(.heading2Bold)
+                .foregroundStyle(ColorSystem.labelNormalStrong)
+                .padding(.horizontal, 24)
+                .padding(.top, 32)
+            
+            if viewModel.challenges.isEmpty {
+                emptyStateView
+            } else {
+                LazyVStack(spacing: 16) {
+                    ForEach(viewModel.challenges) { challenge in
+                        ChallengeItemView(
+                            title: challenge.title,
+                            imageUrl: challenge.thumbnailImageUrl ?? "",
+                            style: .progressList(
+                                progress: "0.0%",
+                                author: "30명 참여"
+                            ),
+                            isRecruitmentClosed: challenge.isRecruitmentClosed,
+                            onTapped: {
+                                navigationPath.append(challenge.id)
+                            }
+                        )
+                    }
+                }
+                .padding(.horizontal, 24)
+            }
+            
+            Spacer().frame(height: 100)
         }
     }
     
@@ -227,7 +235,8 @@ public struct MyChallengeListView<ChallengeDetailView: View>: View {
                 .padding(.top, 36)
             
             ActiveButton(title: "챌린지 둘러보기") {
-                // TODO: 챌린지 목록으로 이동
+                dismiss()
+                challengePresentationCoordinator?.browseChallenges()
             }
         }
         .frame(maxWidth: .infinity, alignment: .center)

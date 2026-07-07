@@ -19,14 +19,29 @@ public struct ChallengeItemViewModel: Identifiable {
     public let createdAt: Date
     public let startDate: Date
     
-    public init(challenge: Challenge) {
-        self.id = challenge.id
-        self.title = challenge.title
-        self.thumbnailImageUrl = challenge.thumbnailImageUrl ?? ""
-        self.progressText = String(format: "%.0f%%", challenge.progress)
-        self.author = challenge.author
-        self.isRecruitmentClosed = challenge.isRecruitmentClosed
-        self.createdAt = challenge.createdAt
-        self.startDate = challenge.startDate
+    public init(challengeListItem: ChallengeListItem, isClosed: Bool) {
+        self.id = challengeListItem.challengeId
+        self.title = challengeListItem.title
+        self.thumbnailImageUrl = ""
+        self.progressText = "0%"
+        self.author = ""
+        self.isRecruitmentClosed = isClosed
+        self.createdAt = Date()
+        self.startDate = ISO8601DateFormatter().date(from: challengeListItem.startDate) ?? Date()
+    }
+
+    public init(challengeItem: ChallengeItem, isClosed: Bool) {
+        self.id = challengeItem.id
+        self.title = challengeItem.title
+        self.thumbnailImageUrl = challengeItem.imageUrl ?? ""
+        
+        let progress = challengeItem.progress ?? 0.0
+        self.progressText = String(format: "%.0f%%", progress * 100)
+        
+        self.author = ""
+        self.isRecruitmentClosed = isClosed
+        
+        self.createdAt = Date()
+        self.startDate = Date()
     }
 }

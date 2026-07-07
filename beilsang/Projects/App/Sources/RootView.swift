@@ -6,34 +6,24 @@ import MyPageFeature
 import NavigationShared
 import UIComponentsShared
 import StorageCore
+import NetworkCore
 import Combine
-
-private enum AppScreen {
-    case splash      // 초기 로딩 (토큰 확인 중)
-    case main
-    case login
-    case signup
-}
 
 struct RootView: View {
     @EnvironmentObject var appRouter: AppRouter
     @StateObject private var toastManager = ToastManager()
     
     let authContainer = AuthContainer()
-    let challengeContainer = ChallengeContainer()
-    let discoverContainer = DiscoverContainer()
-    let myPageContainer = MyPageContainer()
     
-    @State private var currentScreen: AppScreen = .splash
     @State private var cancellables = Set<AnyCancellable>()
-
+    
     var body: some View {
         ZStack {
             contentView
-                .animation(.easeInOut(duration: 0.3), value: currentScreen)
+                .animation(.easeInOut(duration: 0.3), value: appRouter.currentScreen)
                 .environmentObject(toastManager)
             
-            // Toast overlay - 모든 화면 위에 표시 (하단)
+            // Toast overlay
             VStack {
                 Spacer()
                 if toastManager.isVisible, let toast = toastManager.toast {
@@ -47,149 +37,132 @@ struct RootView: View {
             }
             .animation(.spring(response: 0.4, dampingFraction: 0.8), value: toastManager.isVisible)
             .ignoresSafeArea(edges: .bottom)
-        }
-        .onAppear {
-            checkAuthStatus()
-        }
-        .onChange(of: appRouter.shouldLogout) { _, shouldLogout in
-            if shouldLogout {
-                performLogout()
+            
+            // 글로벌 로딩 오버레이
+            if appRouter.isGlobalLoading {
+                Color.black.opacity(0.5)
+                    .ignoresSafeArea()
+                    .overlay {
+                        DotsLoadingView(style: .overlay(message: "로딩 중..."))
+                    }
+                    .transition(.opacity)
+                    .zIndex(2)
             }
         }
-        .onChange(of: appRouter.shouldRevoke) { _, shouldRevoke in
-            if shouldRevoke {
-                performRevoke()
-            }
+        .onReceive(appRouter.logoutEvent) { _ in
+            performLogout()
+        }
+        .onReceive(appRouter.revokeEvent) { _ in
+            performRevoke()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .authSessionExpired)) { _ in
+            handleSessionExpired()
         }
     }
     
     // MARK: - Logout
     private func performLogout() {
-        authContainer.logoutUseCase.logout()
-            .receive(on: DispatchQueue.main)
-            .sink(
-                receiveCompletion: { completion in
-                    if case .failure(let error) = completion {
-                        #if DEBUG
-                        print("❌ 로그아웃 실패: \(error)")
-                        #endif
-                        // 로그아웃 실패해도 로그인 화면으로 이동 (토큰은 UseCase에서 삭제됨)
-                    }
-                    // 성공/실패와 관계없이 로그인 화면으로 이동
-                    currentScreen = .login
-                    appRouter.shouldLogout = false
-                    appRouter.selectedTab = 0
-                    
-                    // 화면 전환 후 토스트 표시
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                        toastManager.show(
-                            iconName: "toastCheckIcon",
-                            message: "로그아웃했어요"
-                        )
-                    }
-                },
-                receiveValue: { _ in
-                    #if DEBUG
-                    print("🚪 로그아웃 완료 - 로그인 화면으로")
-                    #endif
-                    currentScreen = .login
-                    appRouter.shouldLogout = false
-                    appRouter.selectedTab = 0
-                    
-                    // 화면 전환 후 토스트 표시
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                        toastManager.show(
-                            iconName: "toastCheckIcon",
-                            message: "로그아웃했어요"
-                        )
-                    }
-                }
-            )
-            .store(in: &cancellables)
+        appRouter.isGlobalLoading = true
+        
+        Task {
+            // 1. 서버 API 호출 (실패하더라도 에러 로그만 찍고 넘어감)
+            do {
+                try await authContainer.logoutUseCase.logout()
+#if DEBUG
+                print("🚪 로그아웃 API 성공")
+#endif
+            } catch {
+#if DEBUG
+                print("❌ 로그아웃 API 실패 (로컬 처리는 계속 진행): \(error)")
+#endif
+            }
+            
+            // 2. 성공/실패 여부와 상관없이 무조건 실행되는 공통 UI 처리
+            await MainActor.run {
+                appRouter.isGlobalLoading = false
+                appRouter.currentScreen = .login
+                appRouter.selectedTab = 0
+            }
+            
+            // 3. 화면 전환 애니메이션을 위한 약간의 딜레이 후 토스트 띄우기
+            try? await Task.sleep(nanoseconds: 300_000_000)
+            
+            await MainActor.run {
+                toastManager.show(
+                    iconName: "toastCheckIcon",
+                    message: "로그아웃했어요"
+                )
+            }
+        }
     }
     
     // MARK: - Revoke (탈퇴)
     private func performRevoke() {
-        authContainer.revokeUseCase.revoke()
-            .receive(on: DispatchQueue.main)
-            .sink(
-                receiveCompletion: { completion in
-                    if case .failure(let error) = completion {
-                        #if DEBUG
-                        print("❌ 탈퇴 실패: \(error)")
-                        #endif
-                        toastManager.show(
-                            iconName: "toastWarningIcon",
-                            message: "탈퇴 처리 중 오류가 발생했습니다"
-                        )
-                        appRouter.shouldRevoke = false
-                    }
-                },
-                receiveValue: { _ in
-                    #if DEBUG
-                    print("✅ 탈퇴 완료 - 로그인 화면으로")
-                    #endif
-                    // 탈퇴 성공 (토큰은 UseCase에서 삭제됨)
-                    currentScreen = .login
-                    appRouter.shouldRevoke = false
+        appRouter.isGlobalLoading = true
+        
+        Task {
+            do {
+                try await authContainer.revokeUseCase.revoke()
+#if DEBUG
+                print("✅ 탈퇴 완료 - 로그인 화면으로")
+#endif
+                
+                await MainActor.run {
+                    appRouter.isGlobalLoading = false
+                    appRouter.currentScreen = .login
                     appRouter.selectedTab = 0
-                    
-                    // 화면 전환 후 토스트 표시
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                        toastManager.show(
-                            iconName: "toastCheckIcon",
-                            message: "탈퇴가 완료되었어요"
-                        )
-                    }
                 }
-            )
-            .store(in: &cancellables)
+                
+                try? await Task.sleep(nanoseconds: 300_000_000)
+                
+                await MainActor.run {
+                    toastManager.show(
+                        iconName: "toastCheckIcon",
+                        message: "탈퇴가 완료되었어요"
+                    )
+                }
+            } catch {
+#if DEBUG
+                print("❌ 탈퇴 실패: \(error)")
+#endif
+                
+                await MainActor.run {
+                    appRouter.isGlobalLoading = false
+                    toastManager.show(
+                        iconName: "toastWarningIcon",
+                        message: "탈퇴 처리 중 오류가 발생했습니다"
+                    )
+                }
+            }
+        }
     }
     
-    // MARK: - Auth Check
-    private func checkAuthStatus() {
-        authContainer.tokenStorage.getToken()
-            .receive(on: DispatchQueue.main)
-            .sink(
-                receiveCompletion: { completion in
-                    if case .failure = completion {
-                        // Keychain 에러 → 로그인 화면으로
-                        currentScreen = .login
-                    }
-                },
-                receiveValue: { token in
-                    if let token = token, !token.accessToken.isEmpty {
-                        #if DEBUG
-                        print("✅ 저장된 토큰 발견 - 메인 화면으로")
-                        #endif
-                        currentScreen = .main
-                    } else {
-                        #if DEBUG
-                        print("❌ 토큰 없음 - 로그인 화면으로")
-                        #endif
-                        currentScreen = .login
-                    }
-                }
-            )
-            .store(in: &cancellables)
+    // MARK: - Session Expired
+    private func handleSessionExpired() {
+        guard appRouter.currentScreen == .main else { return }
+        
+        appRouter.currentScreen = .login
+        appRouter.selectedTab = 0
+        
+        Task {
+            try? await Task.sleep(nanoseconds: 300_000_000)
+            await MainActor.run {
+                toastManager.show(
+                    iconName: "toastWarningIcon",
+                    message: "로그인이 만료되었어요. 다시 로그인해주세요"
+                )
+            }
+        }
     }
     
     @ViewBuilder
     private var contentView: some View {
-        switch currentScreen {
-        case .splash:
-            ZStack {
-                Color(.systemBackground)
-                    .ignoresSafeArea()
-                ProgressView()
-            }
-            .transition(.opacity)
-            
+        switch appRouter.currentScreen {
         case .main:
             MainTabView(
-                challengeContainer: challengeContainer,
-                discoverContainer: discoverContainer,
-                myPageContainer: myPageContainer,
+                challengeContainer: ChallengeContainer(),
+                discoverContainer: DiscoverContainer(),
+                myPageContainer: MyPageContainer(),
                 toastManager: toastManager
             )
             .transition(.opacity)
@@ -199,15 +172,17 @@ struct RootView: View {
                 container: authContainer,
                 onLoginSuccess: { isNewMember in
                     if isNewMember {
-                        #if DEBUG
-                        print("🆕 신규 회원 - 회원가입 화면으로")
-                        #endif
-                        currentScreen = .signup
+#if DEBUG
+                        print("🆕 신규 회원 - dev 빌드는 회원가입 생략 후 메인으로")
+                        appRouter.currentScreen = .main
+#else
+                        appRouter.currentScreen = .signup
+#endif
                     } else {
-                        #if DEBUG
+#if DEBUG
                         print("✅ 기존 회원 - 메인 화면으로")
-                        #endif
-                        currentScreen = .main
+#endif
+                        appRouter.currentScreen = .main
                     }
                 }
             )
@@ -217,10 +192,10 @@ struct RootView: View {
             SignUpView(
                 container: authContainer,
                 onSignUpComplete: {
-                    #if DEBUG
+#if DEBUG
                     print("✅ 회원가입 완료 - 메인 화면으로")
-                    #endif
-                    currentScreen = .main
+#endif
+                    appRouter.currentScreen = .main
                 }
             )
             .transition(.move(edge: .trailing))

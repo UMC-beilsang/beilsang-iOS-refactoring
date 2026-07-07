@@ -58,7 +58,7 @@ public struct ChallengeListView: View {
                 
                 // 우측: 모집마감 체크박스
                 Button(action: {
-                    viewModel.toggleClosedChallenges()
+                    viewModel.toggleClosedChallenges(category: category)
                 }) {
                     HStack(spacing: 6) {
                         Image(viewModel.hideClosedChallenges ? "checkIcon" : "noCheckIcon", bundle: .designSystem)
@@ -94,28 +94,38 @@ public struct ChallengeListView: View {
                             .transition(.opacity)
                         }
                     }
-                    .animation(.easeOut(duration: 0.4), value: viewModel.isLoading)
+                    .animation(.easeOut(duration: 0.2), value: viewModel.isLoading)
                 }
                 .padding(.horizontal, 24)
                 .padding(.bottom, 40)
             }
             .scrollBounceBehavior(.basedOnSize)
-            .refreshable {
-                await viewModel.fetchChallenges(for: category, showSkeleton: true)
+            .overlay(alignment: .top) {
+                LinearGradient(
+                    colors: [Color(.systemBackground), Color(.systemBackground).opacity(0)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 20)
+                .allowsHitTesting(false)
             }
         }
         .toolbar(.hidden, for: .navigationBar)
+        .ignoresSafeArea(.keyboard, edges: .bottom)
         .sheet(isPresented: $viewModel.showFilterSheet) {
             FilterBottomSheet(
                 selectedFilter: viewModel.selectedFilter,
                 onFilterSelected: { filter in
-                    viewModel.applyFilter(filter)
+                    Task {
+                        await viewModel.applyFilter(filter, category: category)
+                    }
                 }
             )
             .presentationDetents([.height(300)])
             .presentationDragIndicator(.visible)
         }
         .onAppear {
+            dismissKeyboard()
             if !viewModel.items.isEmpty {
                 viewModel.isLoading = false
             }

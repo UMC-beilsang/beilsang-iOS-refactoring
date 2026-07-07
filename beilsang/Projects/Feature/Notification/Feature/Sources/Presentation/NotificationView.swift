@@ -51,7 +51,7 @@ public struct NotificationView: View {
     private var loadingView: some View {
         VStack {
             Spacer()
-            ProgressView()
+            DotsLoadingView()
             Spacer()
         }
     }
@@ -120,7 +120,7 @@ public struct NotificationView: View {
             if viewModel.isLoadingMore {
                 HStack {
                     Spacer()
-                    ProgressView()
+                    DotsLoadingView()
                     Spacer()
                 }
                 .listRowInsets(EdgeInsets())
