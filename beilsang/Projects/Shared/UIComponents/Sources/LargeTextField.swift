@@ -60,6 +60,13 @@ public struct LargeTextField: View {
             TextField("", text: $text, axis: .vertical)
                 .fontStyle(.body2Medium)
                 .focused($isFocused)
+                .onAppear {
+                    let valid = isCurrentlyValid(text: text)
+                    onValidationChange?(valid)
+                    if !text.isEmpty {
+                        state = valid ? .valid : .filled
+                    }
+                }
                 .onChange(of: isFocused) { _, focused in
                     handleFocusChange(focused: focused)
                 }

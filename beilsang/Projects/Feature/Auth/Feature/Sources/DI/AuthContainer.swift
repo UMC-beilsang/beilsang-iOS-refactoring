@@ -24,7 +24,7 @@ public final class AuthContainer: ObservableObject {
 
     // MARK: - Use Cases
     public lazy var signUpUseCase: SignUpUseCaseProtocol = {
-        SignUpUseCase(repository: authRepository, tokenStorage: tokenStorage)
+        SignUpUseCase(repository: authRepository)
     }()
 
     public lazy var kakaoLoginUseCase: KakaoLoginUseCaseProtocol = {

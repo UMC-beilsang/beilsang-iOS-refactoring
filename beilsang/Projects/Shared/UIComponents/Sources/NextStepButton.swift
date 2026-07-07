@@ -27,13 +27,13 @@ public struct NextStepButton: View {
     }
     
     public var body: some View {
-        Button(action: {
+        Button {
             if isEnabled {
                 onTap()
             } else {
                 onDisabledTap?()
             }
-        }) {
+        } label: {
             Text(title)
                 .fontStyle(Fonts.heading2Bold)
                 .foregroundStyle(isEnabled ? ColorSystem.labelWhite : ColorSystem.labelNormalBasic)

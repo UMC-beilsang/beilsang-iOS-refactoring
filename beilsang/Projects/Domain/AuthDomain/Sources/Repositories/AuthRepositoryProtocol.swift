@@ -6,17 +6,15 @@
 //
 
 import Foundation
-import Combine
 import ModelsShared
 
 // MARK: - Repository
 public protocol AuthRepositoryProtocol {
-    func checkNickname(_ nickname: String) -> AnyPublisher<Bool, AuthError>
-    func loginWithKakao(request: KakaoLoginRequest) -> AnyPublisher<(KeychainToken, Bool), AuthError>
-    func loginWithApple(request: AppleLoginRequest) -> AnyPublisher<(KeychainToken, Bool), AuthError>
-    func signUp(request: SignUpRequest) -> AnyPublisher<KeychainToken, AuthError>
-    func signUpSimplified(request: SignUpSimplifiedRequest) -> AnyPublisher<KeychainToken, AuthError>
-    func logoutKakao() -> AnyPublisher<Void, AuthError>
-    func revokeKakao() -> AnyPublisher<Void, AuthError>
-    func revokeApple() -> AnyPublisher<Void, AuthError>
+    func checkNickname(_ nickname: String) async throws -> Bool
+    func loginWithKakao(request: KakaoLoginRequest) async throws -> (KeychainToken, Bool)
+    func loginWithApple(request: AppleLoginRequest) async throws -> (KeychainToken, Bool)
+    func signUpSimplified(agreed: Bool) async throws
+    func logoutKakao() async throws
+    func revokeKakao() async throws
+    func revokeApple() async throws
 }

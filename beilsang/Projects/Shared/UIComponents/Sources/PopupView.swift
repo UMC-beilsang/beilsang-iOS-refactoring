@@ -218,7 +218,7 @@ private struct ButtonRow: View {
                 Button(action: secondary.handler) {
                     Text(secondary.title)
                         .fontStyle(.heading3Bold)
-                        .foregroundStyle(ColorSystem.labelNormalBasic)
+                        .foregroundStyle(ColorSystem.labelNormalStrong)
                         .frame(maxWidth: .infinity)
                 }
                 .background(

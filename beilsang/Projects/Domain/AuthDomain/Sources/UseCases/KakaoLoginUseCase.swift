@@ -6,12 +6,11 @@
 //
 
 import Foundation
-import Combine
 import ModelsShared
 import StorageCore
 
 public protocol KakaoLoginUseCaseProtocol {
-    func login(request: KakaoLoginRequest) -> AnyPublisher<AuthState, Never>
+    func login(request: KakaoLoginRequest) async -> AuthState
 }
 
 public final class KakaoLoginUseCase: KakaoLoginUseCaseProtocol {
@@ -23,29 +22,46 @@ public final class KakaoLoginUseCase: KakaoLoginUseCaseProtocol {
         self.tokenStorage = tokenStorage
     }
 
-    public func login(request: KakaoLoginRequest) -> AnyPublisher<AuthState, Never> {
-        return repository.loginWithKakao(request: request)
-            .flatMap { [tokenStorage] token, isExistMember -> AnyPublisher<AuthState, AuthError> in
-                // 카카오 로그인 provider 정보 추가
-                let tokenWithProvider = KeychainToken(
-                    accessToken: token.accessToken,
-                    refreshToken: token.refreshToken,
-                    tokenType: token.tokenType,
-                    expiresIn: token.expiresIn,
-                    createdAt: token.createdAt,
-                    provider: .kakao
-                )
-                return tokenStorage.saveToken(tokenWithProvider)
-                    .map { _ in
-                        // isExistMember가 false면 신규 회원 (회원가입 필요)
-                        // isExistMember가 true면 기존 회원 (인증 완료)
-                        isExistMember ? AuthState.authenticated : AuthState.needsSignUp
-                    }
-                    .mapError { AuthError.fromKeychainError($0) }
-                    .eraseToAnyPublisher()
+    public func login(request: KakaoLoginRequest) async -> AuthState {
+        do {
+            #if DEBUG
+            print("🔄 KakaoLoginUseCase: Calling repository.loginWithKakao...")
+            #endif
+            
+            let (token, isTermsAgreed) = try await repository.loginWithKakao(request: request)
+            
+            #if DEBUG
+            print("✅ KakaoLoginUseCase: Repository returned - isTermsAgreed: \(isTermsAgreed)")
+            #endif
+            
+            let tokenWithProvider = KeychainToken(
+                accessToken: token.accessToken,
+                refreshToken: token.refreshToken,
+                tokenType: token.tokenType,
+                expiresIn: token.expiresIn,
+                createdAt: token.createdAt,
+                provider: .kakao
+            )
+            
+            do {
+                try await tokenStorage.saveToken(tokenWithProvider)
+                
+                #if DEBUG
+                print("✅ KakaoLoginUseCase: Token saved - returning \(isTermsAgreed ? "authenticated" : "needsSignUp")")
+                #endif
+                
+                // isTermsAgreed가 true면 기존 회원 (약관 동의 완료) → authenticated
+                // isTermsAgreed가 false면 신규 회원 (약관 동의 필요) → needsSignUp
+                return isTermsAgreed ? .authenticated : .needsSignUp
+            } catch let keychainError as KeychainError {
+                return .error(AuthError.fromKeychainError(keychainError))
+            } catch {
+                return .error(.unknownError(error.localizedDescription))
             }
-            .catch { error in Just(AuthState.error(error)) }
-            .prepend(.loading)
-            .eraseToAnyPublisher()
+        } catch let authError as AuthError {
+            return .error(authError)
+        } catch {
+            return .error(.unknownError(error.localizedDescription))
+        }
     }
 }
