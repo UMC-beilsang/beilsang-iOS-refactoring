@@ -6,10 +6,8 @@
 //
 
 import Foundation
-import Combine
 import ModelsShared
 import NetworkCore
-import UtilityShared
 import Alamofire
 
 public final class UserRepository: UserRepositoryProtocol {
@@ -23,167 +21,46 @@ public final class UserRepository: UserRepositoryProtocol {
         self.apiClient = apiClient
     }
     
-    // MARK: - Mock 데이터
-    private let mockUserProfile = UserProfileData(
-        resolution: "환경보호에 앞장서는 나",
-        points: 916,
-        nickName: "비밀상님",
-        profileImage: nil,
-        address: "서울시 마포구",
-        gender: "MAN",
-        birth: "2000-01-01",
-        feedDTOs: [
-            MyPageFeedDTO(feedId: 1, feedUrl: "challengeThumbnail1", day: 1),
-            MyPageFeedDTO(feedId: 2, feedUrl: "challengeThumbnail2", day: 2)
-        ],
-        countFeed: 20,
-        challenges: 6,
-        failedChallenges: 2,
-        successChallenge: 12,
-        likes: 24
-    )
-    
-    // MARK: - 사용자 프로필 조회
+    // MARK: - 사용자 프로필 조회 (여러 엔드포인트 병렬 조합)
     public func fetchUserProfile() async throws -> UserProfileData {
-        // Mock 데이터 사용 시
-        if MockConfig.useMockData {
-            #if DEBUG
-            print("👤 Using mock user profile")
-            #endif
-            return mockUserProfile
-        }
-        
-        // 실제 API 호출
-        let path = "api/mypage"
-        
+        async let nicknameFetch = fetchNickname()
+        async let profileImageFetch = fetchProfileImage()
+        async let challengeCountFetch = fetchChallengeCount()
+        async let feedCountFetch = fetchFeedCount()
+        async let likeCountFetch = fetchLikeCount()
+        async let pointsFetch = fetchPoints()
+
+        let nickName = (try? await nicknameFetch) ?? ""
+        let profileImage: String? = (try? await profileImageFetch) ?? nil
+        let challengeCount = (try? await challengeCountFetch) ?? ChallengeCountData(challenges: 0, successChallenge: 0, failedChallenges: 0)
+        let feedCount = (try? await feedCountFetch) ?? 0
+        let likeCount = (try? await likeCountFetch) ?? 0
+        let points = (try? await pointsFetch) ?? PointData(total: 0, point: [])
+
         #if DEBUG
-        print("👤 Fetching user profile from API: GET /\(path)")
+        print("📊 fetchUserProfile done — nick:\(nickName), likes:\(likeCount), challenges:\(challengeCount.challenges), feed:\(feedCount), point:\(points.total)")
         #endif
-        
-        let publisher: AnyPublisher<UserProfileResponse, APIClientError> = apiClient.request(
-            path: path,
-            method: .get,
-            headers: APIClient.defaultHeaders,
-            interceptor: nil
+
+        // 취소된 경우 try?가 삼킨 CancellationError를 재전파 - 유효한 프로필을 빈 데이터로 덮어쓰는 것을 방지
+        try Task.checkCancellation()
+
+        return UserProfileData(
+            points: points.total,
+            nickName: nickName,
+            profileImage: profileImage?.isEmpty == false ? profileImage : nil,
+            countFeed: feedCount,
+            challenges: challengeCount.challenges,
+            failedChallenges: challengeCount.failedChallenges,
+            successChallenge: challengeCount.successChallenge,
+            likes: likeCount
         )
-        
-        return try await withCheckedThrowingContinuation { continuation in
-            var cancellable: AnyCancellable?
-            cancellable = publisher
-                .sink(
-                    receiveCompletion: { completion in
-                        if case .failure(let error) = completion {
-                            #if DEBUG
-                            print("👤 User profile error: \(error)")
-                            #endif
-                            continuation.resume(throwing: UserRepository.mapAPIError(error))
-                        }
-                        cancellable?.cancel()
-                    },
-                    receiveValue: { response in
-                        guard response.isSuccess, let data = response.data else {
-                            #if DEBUG
-                            print("👤 User profile failed: \(response.message)")
-                            #endif
-                            continuation.resume(throwing: UserError.serverError(response.message))
-                            cancellable?.cancel()
-                            return
-                        }
-                        
-                        #if DEBUG
-                        print("👤 User profile loaded - nickname: \(data.nickname)")
-                        #endif
-                        continuation.resume(returning: data)
-                        cancellable?.cancel()
-                    }
-                )
-        }
     }
     
     // MARK: - 프로필 수정
     public func updateProfile(request: ProfileUpdateRequest) async throws -> ProfileUpdateResponse {
-        // Mock 데이터 사용 시
-        if MockConfig.useMockData {
-            #if DEBUG
-            print("👤 Using mock profile update")
-            #endif
-            return ProfileUpdateResponse(
-                nickName: request.nickName,
-                birth: request.birth,
-                gender: request.gender,
-                address: request.address,
-                resolution: request.resolution
-            )
-        }
-        
-        let path = "api/profile"
-        
-        #if DEBUG
-        print("👤 Updating profile: PATCH /\(path)")
-        #endif
-        
-        let publisher: AnyPublisher<ProfileUpdateAPIResponse, APIClientError> = apiClient.request(
-            path: path,
-            method: .patch,
-            body: request,
-            encoder: JSONParameterEncoder.default,
-            headers: APIClient.jsonHeaders,
-            interceptor: nil
-        )
-        
-        return try await withCheckedThrowingContinuation { continuation in
-            var cancellable: AnyCancellable?
-            cancellable = publisher
-                .sink(
-                    receiveCompletion: { completion in
-                        if case .failure(let error) = completion {
-                            #if DEBUG
-                            print("👤 Profile update error: \(error)")
-                            #endif
-                            continuation.resume(throwing: UserRepository.mapAPIError(error))
-                        }
-                        cancellable?.cancel()
-                    },
-                    receiveValue: { response in
-                        guard response.isSuccess, let data = response.data else {
-                            #if DEBUG
-                            print("👤 Profile update failed: \(response.message)")
-                            #endif
-                            continuation.resume(throwing: UserError.serverError(response.message))
-                            cancellable?.cancel()
-                            return
-                        }
-                        
-                        #if DEBUG
-                        print("👤 Profile updated successfully")
-                        #endif
-                        continuation.resume(returning: data)
-                        cancellable?.cancel()
-                    }
-                )
-        }
-    }
-    
-    // MARK: - 프로필 이미지 수정
-    public func updateProfileImage(imageBase64: String) async throws -> String {
-        // Mock 데이터 사용 시
-        if MockConfig.useMockData {
-            #if DEBUG
-            print("👤 Using mock profile image update")
-            #endif
-            return "https://example.com/profile/updated.jpg"
-        }
-        
-        let path = "api/profile/image"
-        let body = ProfileImageRequest(profileImage: imageBase64)
-        
-        #if DEBUG
-        print("👤 Updating profile image: PATCH /\(path)")
-        #endif
-        
-        // 서버가 200 + 빈 body 반환하므로 ModelsShared.EmptyResponse 사용
-        let publisher: AnyPublisher<ModelsShared.EmptyResponse, APIClientError> = apiClient.request(
-            path: path,
+        let body = NicknameUpdateRequest(nickName: request.nickName)
+        let response: APIResponse<NicknameData> = try await apiClient.request(
+            path: "api/nickname",
             method: .patch,
             body: body,
             encoder: JSONParameterEncoder.default,
@@ -191,305 +68,211 @@ public final class UserRepository: UserRepositoryProtocol {
             interceptor: nil
         )
         
-        return try await withCheckedThrowingContinuation { continuation in
-            var cancellable: AnyCancellable?
-            cancellable = publisher
-                .sink(
-                    receiveCompletion: { completion in
-                        switch completion {
-                        case .failure(let error):
-                            // 디코딩 실패는 빈 응답일 수 있음 - 성공으로 처리
-                            if case .decoding = error {
-                                #if DEBUG
-                                print("👤 Profile image updated (empty response)")
-                                #endif
-                                continuation.resume(returning: "")
-                            } else {
-                                #if DEBUG
-                                print("👤 Profile image update error: \(error)")
-                                #endif
-                                continuation.resume(throwing: UserRepository.mapAPIError(error))
-                            }
-                        case .finished:
-                            break
-                        }
-                        cancellable?.cancel()
-                    },
-                    receiveValue: { _ in
-                        #if DEBUG
-                        print("👤 Profile image updated successfully")
-                        #endif
-                        continuation.resume(returning: "")
-                        cancellable?.cancel()
-                    }
-                )
+        guard response.isSuccess, let data = response.data else {
+            throw UserError.serverError(response.message)
         }
+        
+        return ProfileUpdateResponse(
+            nickName: data.nickName,
+            birth: request.birth,
+            gender: request.gender,
+            address: request.address,
+            resolution: request.resolution
+        )
+    }
+    
+    // MARK: - 닉네임 조회
+    public func fetchNickname() async throws -> String {
+        let response: APIResponse<NicknameData> = try await apiClient.request(
+            path: "api/nickname",
+            method: .get,
+            headers: APIClient.defaultHeaders,
+            interceptor: nil
+        )
+        
+        guard response.isSuccess, let data = response.data else {
+            throw UserError.serverError(response.message)
+        }
+        
+        return data.nickName
+    }
+    
+    // MARK: - 닉네임 수정
+    public func updateNickname(_ nickName: String) async throws -> String {
+        let body = NicknameUpdateRequest(nickName: nickName)
+        let response: APIResponse<NicknameData> = try await apiClient.request(
+            path: "api/nickname",
+            method: .patch,
+            body: body,
+            encoder: JSONParameterEncoder.default,
+            headers: APIClient.jsonHeaders,
+            interceptor: nil
+        )
+        
+        guard response.isSuccess, let data = response.data else {
+            throw UserError.serverError(response.message)
+        }
+        
+        return data.nickName
+    }
+    
+    // MARK: - 닉네임 중복 체크
+    public func checkNickname(_ nickname: String) async throws -> Bool {
+        guard !nickname.isEmpty else {
+            throw UserError.serverError("닉네임이 올바르지 않습니다.")
+        }
+        
+        guard let encoded = nickname.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+            throw UserError.serverError("닉네임 인코딩 실패")
+        }
+        
+        let response: APIResponse<String> = try await apiClient.request(
+            path: "api/oauth/nickname?nickname=\(encoded)",
+            method: .get,
+            headers: APIClient.defaultHeaders,
+            interceptor: nil
+        )
+        
+        switch response.statusCode {
+        case 200: return true
+        case 400: return false
+        default: throw UserError.serverError(response.message)
+        }
+    }
+    
+    // MARK: - 프로필 이미지 조회
+    public func fetchProfileImage() async throws -> String? {
+        let response: APIResponse<ProfileImageData> = try await apiClient.request(
+            path: "api/profile-image",
+            method: .get,
+            headers: APIClient.defaultHeaders,
+            interceptor: nil
+        )
+        
+        guard response.isSuccess, let data = response.data else {
+            throw UserError.serverError(response.message)
+        }
+        
+        return data.profileUrl
+    }
+    
+    // MARK: - 프로필 이미지 수정 (multipart/form-data)
+    public func updateProfileImage(imageData: Data) async throws -> String {
+        let response: APIResponse<String> = try await apiClient.upload(
+            path: "api/profile-image",
+            method: .patch,
+            formData: { formData in
+                formData.append(
+                    imageData,
+                    withName: "profileImage",
+                    fileName: "profile_\(Date().timeIntervalSince1970).jpg",
+                    mimeType: "image/jpeg"
+                )
+            },
+            headers: APIClient.defaultHeaders,
+            interceptor: nil
+        )
+        
+        guard response.isSuccess else {
+            throw UserError.serverError(response.message)
+        }
+        
+        return response.data ?? ""
+    }
+    
+    // MARK: - 챌린지 개수 조회
+    public func fetchChallengeCount() async throws -> ChallengeCountData {
+        let response: APIResponse<ChallengeCountData> = try await apiClient.request(
+            path: "api/challenge/count",
+            method: .get,
+            headers: APIClient.defaultHeaders,
+            interceptor: nil
+        )
+        
+        guard response.isSuccess, let data = response.data else {
+            throw UserError.serverError(response.message)
+        }
+        
+        return data
+    }
+    
+    // MARK: - 피드 개수 조회
+    public func fetchFeedCount() async throws -> Int {
+        let response: APIResponse<FeedCountData> = try await apiClient.request(
+            path: "api/feed/count",
+            method: .get,
+            headers: APIClient.defaultHeaders,
+            interceptor: nil
+        )
+        
+        guard response.isSuccess, let data = response.data else {
+            throw UserError.serverError(response.message)
+        }
+        
+        return data.countFeed
+    }
+    
+    // MARK: - 찜 개수 조회
+    public func fetchLikeCount() async throws -> Int {
+        let response: APIResponse<LikeCountData> = try await apiClient.request(
+            path: "api/like/count",
+            method: .get,
+            headers: APIClient.defaultHeaders,
+            interceptor: nil
+        )
+        
+        guard response.isSuccess, let data = response.data else {
+            #if DEBUG
+            print("❌ fetchLikeCount failed: \(response.message), data: \(String(describing: response.data))")
+            #endif
+            throw UserError.serverError(response.message)
+        }
+        
+        #if DEBUG
+        print("💙 fetchLikeCount: \(data.likes)")
+        #endif
+        
+        return data.likes
     }
     
     // MARK: - 내 피드 목록 조회
     public func fetchMyFeeds(page: Int, size: Int) async throws -> FeedListResponse {
-        // Mock 데이터 사용 시
-        if MockConfig.useMockData {
-            #if DEBUG
-            print("📷 Using mock my feeds")
-            #endif
-            return FeedListResponse(
-                content: [
-                    FeedListItem(feedId: 1, feedUrl: "https://example.com/feed1.jpg", day: 1),
-                    FeedListItem(feedId: 2, feedUrl: "https://example.com/feed2.jpg", day: 2),
-                    FeedListItem(feedId: 3, feedUrl: "https://example.com/feed3.jpg", day: 3),
-                    FeedListItem(feedId: 4, feedUrl: "https://example.com/feed4.jpg", day: 4)
-                ],
-                number: page,
-                size: size,
-                numberOfElements: 4,
-                hasNext: false
-            )
-        }
-        
-        // 실제 API 호출
-        let path = "feed/my?page=\(page)&size=\(size)"
-        
-        #if DEBUG
-        print("📷 Fetching my feeds from API: GET /\(path)")
-        #endif
-        
-        typealias MyFeedsAPIResponse = APIResponse<FeedListResponse>
-        let publisher: AnyPublisher<MyFeedsAPIResponse, APIClientError> = apiClient.request(
-            path: path,
+        let response: APIResponse<FeedListResponse> = try await apiClient.request(
+            path: "feed/my?page=\(page)&size=\(size)",
             method: .get,
             headers: APIClient.defaultHeaders,
             interceptor: nil
         )
         
-        return try await withCheckedThrowingContinuation { continuation in
-            var cancellable: AnyCancellable?
-            cancellable = publisher
-                .sink(
-                    receiveCompletion: { completion in
-                        if case .failure(let error) = completion {
-                            #if DEBUG
-                            print("📷 My feeds error: \(error)")
-                            #endif
-                            continuation.resume(throwing: UserRepository.mapAPIError(error))
-                        }
-                        cancellable?.cancel()
-                    },
-                    receiveValue: { apiResponse in
-                        guard apiResponse.isSuccess, let feedListResponse = apiResponse.data else {
-                            #if DEBUG
-                            print("📷 My feeds failed: \(apiResponse.message)")
-                            #endif
-                            continuation.resume(throwing: UserRepository.mapAPIError(APIClientError.http(statusCode: apiResponse.statusCode, data: nil)))
-                            cancellable?.cancel()
-                            return
-                        }
-                        
-                        #if DEBUG
-                        print("📷 My feeds loaded - count: \(feedListResponse.content.count)")
-                        #endif
-                        continuation.resume(returning: feedListResponse)
-                        cancellable?.cancel()
-                    }
-                )
+        guard response.isSuccess, let data = response.data else {
+            throw UserRepository.mapAPIError(APIClientError.http(statusCode: response.statusCode, data: nil))
         }
+        
+        return data
     }
     
     // MARK: - 포인트 내역 조회
     public func fetchPoints() async throws -> PointData {
-        // Mock 데이터 사용 시
-        if MockConfig.useMockData {
-            #if DEBUG
-            print("💰 Using mock points")
-            #endif
-            // 목업 데이터: 다양한 포인트 내역 생성
-            let calendar = Calendar.current
-            let today = Date()
-            
-            var mockPoints: [PointItem] = []
-            
-            // 적립 내역 (최근 30일)
-            mockPoints.append(PointItem(
-                id: 1,
-                name: "챌린지 인증 완료",
-                status: .earn,
-                value: 120,
-                date: formatDate(calendar.date(byAdding: .day, value: -2, to: today)!),
-                period: 30
-            ))
-            mockPoints.append(PointItem(
-                id: 2,
-                name: "챌린지 인증 완료",
-                status: .earn,
-                value: 120,
-                date: formatDate(calendar.date(byAdding: .day, value: -5, to: today)!),
-                period: 30
-            ))
-            mockPoints.append(PointItem(
-                id: 3,
-                name: "챌린지 인증 완료",
-                status: .earn,
-                value: 120,
-                date: formatDate(calendar.date(byAdding: .day, value: -10, to: today)!),
-                period: 30
-            ))
-            mockPoints.append(PointItem(
-                id: 4,
-                name: "챌린지 인증 완료",
-                status: .earn,
-                value: 120,
-                date: formatDate(calendar.date(byAdding: .day, value: -15, to: today)!),
-                period: 30
-            ))
-            mockPoints.append(PointItem(
-                id: 5,
-                name: "챌린지 달성 보너스",
-                status: .earn,
-                value: 500,
-                date: formatDate(calendar.date(byAdding: .day, value: -20, to: today)!),
-                period: 30
-            ))
-            mockPoints.append(PointItem(
-                id: 6,
-                name: "챌린지 인증 완료",
-                status: .earn,
-                value: 120,
-                date: formatDate(calendar.date(byAdding: .day, value: -25, to: today)!),
-                period: 30
-            ))
-            
-            // 사용 내역
-            mockPoints.append(PointItem(
-                id: 7,
-                name: "챌린지 참여",
-                status: .use,
-                value: 1000,
-                date: formatDate(calendar.date(byAdding: .day, value: -3, to: today)!),
-                period: 0
-            ))
-            mockPoints.append(PointItem(
-                id: 8,
-                name: "챌린지 참여",
-                status: .use,
-                value: 1000,
-                date: formatDate(calendar.date(byAdding: .day, value: -12, to: today)!),
-                period: 0
-            ))
-            mockPoints.append(PointItem(
-                id: 9,
-                name: "챌린지 참여",
-                status: .use,
-                value: 1000,
-                date: formatDate(calendar.date(byAdding: .day, value: -18, to: today)!),
-                period: 0
-            ))
-            
-            // 소멸 내역
-            mockPoints.append(PointItem(
-                id: 10,
-                name: "소멸",
-                status: .expire,
-                value: 120,
-                date: formatDate(calendar.date(byAdding: .day, value: -7, to: today)!),
-                period: 0
-            ))
-            mockPoints.append(PointItem(
-                id: 11,
-                name: "소멸",
-                status: .expire,
-                value: 120,
-                date: formatDate(calendar.date(byAdding: .day, value: -14, to: today)!),
-                period: 0
-            ))
-            mockPoints.append(PointItem(
-                id: 12,
-                name: "소멸",
-                status: .expire,
-                value: 120,
-                date: formatDate(calendar.date(byAdding: .day, value: -22, to: today)!),
-                period: 0
-            ))
-            
-            // 총 포인트 계산 (적립 - 사용 - 소멸)
-            let totalEarned = mockPoints.filter { $0.status == .earn }.reduce(0) { $0 + $1.value }
-            let totalUsed = mockPoints.filter { $0.status == .use }.reduce(0) { $0 + $1.value }
-            let totalExpired = mockPoints.filter { $0.status == .expire }.reduce(0) { $0 + $1.value }
-            let total = totalEarned - totalUsed - totalExpired
-            
-            return PointData(
-                total: max(0, total),
-                points: mockPoints.sorted { item1, item2 in
-                    // 날짜 내림차순 정렬 (최신순)
-                    item1.date > item2.date
-                }
-            )
-        }
-        
-        // 실제 API 호출
-        let path = "api/mypage/point"
-        
-        #if DEBUG
-        print("💰 Fetching points from API: GET /\(path)")
-        #endif
-        
-        let publisher: AnyPublisher<PointResponse, APIClientError> = apiClient.request(
-            path: path,
+        let response: APIResponse<PointAPIResponseData> = try await apiClient.request(
+            path: "api/point",
             method: .get,
             headers: APIClient.defaultHeaders,
             interceptor: nil
         )
         
-        return try await withCheckedThrowingContinuation { continuation in
-            var cancellable: AnyCancellable?
-            cancellable = publisher
-                .sink(
-                    receiveCompletion: { completion in
-                        if case .failure(let error) = completion {
-                            #if DEBUG
-                            print("💰 Points error: \(error)")
-                            #endif
-                            continuation.resume(throwing: UserRepository.mapAPIError(error))
-                        }
-                        cancellable?.cancel()
-                    },
-                    receiveValue: { response in
-                        guard response.statusCode == 200 else {
-                            #if DEBUG
-                            print("💰 Points failed: \(response.message)")
-                            #endif
-                            continuation.resume(throwing: UserError.serverError(response.message))
-                            cancellable?.cancel()
-                            return
-                        }
-                        
-                        #if DEBUG
-                        print("💰 Points loaded - total: \(response.data.total), count: \(response.data.points.count)")
-                        #endif
-                        continuation.resume(returning: response.data)
-                        cancellable?.cancel()
-                    }
-                )
+        guard response.isSuccess, let data = response.data else {
+            throw UserError.serverError(response.message)
         }
+        
+        return PointData(total: data.total, point: data.points)
     }
     
-    // MARK: - Helper
-    private func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter.string(from: date)
-    }
-    
-    // MARK: - Error Mapping
     private static func mapAPIError(_ error: APIClientError) -> UserError {
         switch error {
-        case .http(let statusCode, _):
-            return .http(statusCode: statusCode)
-        case .network:
-            return .networkError
-        case .decoding:
-            return .decodingError
-        case .invalidURL:
-            return .invalidURL
+        case .http(let statusCode, _): return .http(statusCode: statusCode)
+        case .network: return .networkError
+        case .decoding: return .decodingError
+        case .invalidURL: return .invalidURL
         }
     }
 }
@@ -502,4 +285,3 @@ public enum UserError: Error {
     case invalidURL
     case serverError(String)
 }
-
