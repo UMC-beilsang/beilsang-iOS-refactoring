@@ -13,13 +13,15 @@ public protocol FetchChallengeFeedThumbnailsUseCaseProtocol {
 }
 
 public final class FetchChallengeFeedThumbnailsUseCase: FetchChallengeFeedThumbnailsUseCaseProtocol {
-    private let repository: ChallengeRepositoryProtocol
+    private let repository: ChallengeQueryRepositoryProtocol
     
-    public init(repository: ChallengeRepositoryProtocol) {
+    public init(repository: ChallengeQueryRepositoryProtocol) {
         self.repository = repository
     }
     
     public func execute(challengeId: Int, page: Int? = nil) async throws -> ChallengeFeedThumbnailResponse {
+        // TODO: API 미구현 - challengeId로 피드 조회하는 엔드포인트 없음
+        // 백엔드 API 추가되면 구현
         try await repository.fetchChallengeFeedThumbnails(challengeId: challengeId, page: page)
     }
 }

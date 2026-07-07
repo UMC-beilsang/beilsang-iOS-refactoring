@@ -66,9 +66,8 @@ public struct ChallengeItemView: View {
                 ZStack(alignment: .bottomLeading) {
                     // 이미지 처리 (URL 또는 bundle 이미지)
                     Group {
-                        if imageUrl.hasPrefix("http"),
-                           let url = URL(string: imageUrl) {
-                            AsyncImage(url: url) { image in
+                        if imageUrl.hasPrefix("http") {
+                            CachedAsyncImage(url: imageUrl) { image in
                                 image
                                     .resizable()
                                     .aspectRatio(contentMode: .fill)

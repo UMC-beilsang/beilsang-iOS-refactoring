@@ -253,31 +253,45 @@ public struct SearchView<ChallengeDetailView: View, FeedDetailView: View>: View 
                 }
                 
                 if !viewModel.isLoading {
-                    if viewModel.currentTabIsEmpty {
-                        ScrollView {
-                            EmptySearchResultView(searchText: viewModel.searchText)
-                                .padding(.horizontal, 24)
-                        }
-                        .transition(.opacity)
-                    } else {
-                        ScrollView {
-                            VStack(alignment: .leading, spacing: 0) {
-                                // 결과 리스트
-                                if viewModel.selectedTab == .challenge {
-                                    challengeResultsSection
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 24) {
+                            // 결과 영역
+                            Group {
+                                if viewModel.currentTabIsEmpty {
+                                    EmptySearchResultView(searchText: viewModel.searchText)
                                 } else {
-                                    feedResultsSection
+                                    if viewModel.selectedTab == .challenge {
+                                        challengeResultsSection
+                                    } else {
+                                        feedResultsSection
+                                    }
                                 }
                             }
                             .padding(.horizontal, 24)
-                            .padding(.top, 20)
-                            .padding(.bottom, 40)
+                            
+                            Spacer()
+                            .frame(minHeight: 100)
+
+                            // 검색 결과 하단 추천 챌린지 섹션 
+                            if viewModel.selectedTab == .challenge {
+                                Rectangle()
+                                    .fill(ColorSystem.labelNormalDisable)
+                                    .frame(height: 8)
+                                    .padding(.top, 24)
+                                
+                                ChallengeRecommendView(
+                                    recommendChallenges: Array(viewModel.recommendedChallenges.prefix(2))
+                                )
+                                .padding(.horizontal, 24)
+                            }
                         }
-                        .transition(.opacity)
+                        .padding(.top, 20)
+                        .padding(.bottom, 40)
                     }
+                    .transition(.opacity)
                 }
             }
-            .animation(.easeOut(duration: 0.4), value: viewModel.isLoading)
+            .animation(.easeOut(duration: 0.2), value: viewModel.isLoading)
         }
     }
     
@@ -405,10 +419,10 @@ public struct SearchView<ChallengeDetailView: View, FeedDetailView: View>: View 
             ForEach(viewModel.challengeResults) { challenge in
                 ChallengeItemView(
                     title: challenge.title,
-                    imageUrl: challenge.thumbnailImageUrl ?? "",
+                    imageUrl: challenge.imageUrl,
                     style: .progressList(
-                        progress: "\(Int(challenge.progress))%",
-                        author: challenge.author.isEmpty ? "익명" : challenge.author
+                        progress: "0%",
+                        author: "익명"
                     ),
                     isRecruitmentClosed: challenge.isRecruitmentClosed,
                     onTapped: {
@@ -433,7 +447,7 @@ public struct SearchView<ChallengeDetailView: View, FeedDetailView: View>: View 
                     imageUrl: feed.feedUrl,
                     isMyFeed: feed.isMyFeed,
                     onTap: {
-                        navigationPath.append(feed.id)
+                        navigationPath.append(feed.feedId)
                     }
                 )
             }

@@ -12,51 +12,46 @@ import UtilityShared
 
 @MainActor
 public final class ChallengeFeedDetailViewModel: ObservableObject {
-    @Published var feedDetail: ChallengeFeedDetail?
+    @Published var feedDetail: FeedDetailData?
     @Published var isLoading = true
-    @Published var recommendedChallenges: [Challenge] = []
+    @Published var recommendedChallenges: [ChallengeItem] = []
     @Published var showingPopup = false
     @Published var currentPopupType: ChallengePopupType?
+    @Published var showReportSheet = false
 
     public let feedId: Int
-    public let repository: ChallengeRepositoryProtocol
+    private let feedRepo: FeedRepositoryProtocol
+    private let queryRepo: ChallengeQueryRepositoryProtocol
+    private let commandRepo: ChallengeCommandRepositoryProtocol
 
-    public init(feedId: Int, repository: ChallengeRepositoryProtocol) {
+    public init(
+        feedId: Int,
+        feedRepo: FeedRepositoryProtocol,
+        queryRepo: ChallengeQueryRepositoryProtocol,
+        commandRepo: ChallengeCommandRepositoryProtocol
+    ) {
         self.feedId = feedId
-        self.repository = repository
+        self.feedRepo = feedRepo
+        self.queryRepo = queryRepo
+        self.commandRepo = commandRepo
     }
 
-    // MARK: - Load
     func loadFeedDetail() async {
         isLoading = true
-        
-        let shouldDelay = MockConfig.useMockData
-        let delayTask: Task<Void, Never>? = shouldDelay ? Task {
-            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
-        } : nil
-
         do {
-            feedDetail = try await repository.fetchChallengeFeedDetail(feedId: feedId)
-            recommendedChallenges = try await repository.fetchRecommendedChallenges()
-            
-            if let delay = delayTask {
-                await delay.value
-            }
+            async let detail = feedRepo.fetchFeedDetailData(feedId: feedId)
+            async let items = queryRepo.fetchRecommended(request: RecommendedChallengeRequest(size: 10))
+            let (d, i) = try await (detail, items)
+            feedDetail = d
+            recommendedChallenges = i
         } catch {
-            if let delay = delayTask {
-                await delay.value
-            }
             print("❌ 피드 상세 로딩 실패:", error.localizedDescription)
         }
-        
         isLoading = false
     }
 
-    // MARK: - 좋아요 토글
     func toggleLike() async {
         guard var detail = feedDetail else { return }
-        
-        // UI 먼저 업데이트 (낙관적 업데이트)
         let originalIsLiked = detail.isLiked
         let originalLikeCount = detail.likeCount
         
@@ -64,37 +59,20 @@ public final class ChallengeFeedDetailViewModel: ObservableObject {
         detail.likeCount += detail.isLiked ? 1 : -1
         feedDetail = detail
 
-        // 서버 반영 (원래 상태를 전달)
         do {
-            let result = try await repository.toggleFeedLike(
-                feedId: feedId,
-                currentlyLiked: originalIsLiked
-            )
-            
-            // 서버 응답으로 정확한 값 업데이트
+            let result = try await feedRepo.toggleFeedLike(feedId: feedId, currentlyLiked: originalIsLiked)
             detail.isLiked = result.isLiked
             detail.likeCount = result.likeCount
             feedDetail = detail
-            
-            #if DEBUG
-            print("✅ 좋아요 토글 완료 - feedId: \(feedId), isLiked: \(result.isLiked)")
-            #endif
         } catch {
-            // 실패 시 롤백
             detail.isLiked = originalIsLiked
             detail.likeCount = originalLikeCount
             feedDetail = detail
-            
-            #if DEBUG
-            print("❌ 좋아요 토글 실패: \(error.localizedDescription)")
-            #endif
         }
     }
 
-    // MARK: - 신고 관련
     func showReportPopup() {
-        currentPopupType = .report
-        showingPopup = true
+        showReportSheet = true
     }
 
     func dismissPopup() {
@@ -102,13 +80,16 @@ public final class ChallengeFeedDetailViewModel: ObservableObject {
         currentPopupType = nil
     }
 
-    func handleReport() async -> Bool {
+    func reportFeedFromSheet(reason: FeedReportReason, otherText: String?) async -> ChallengeActionResult {
+        showReportSheet = false
         do {
-            try await repository.reportChallenge(challengeId: feedId)
-            return true
+            let detail = reason.isOther ? otherText : nil
+            try await feedRepo.reportFeed(feedId: feedId, reason: reason.apiKey, detail: detail)
+            return .success(message: "신고가 접수되었어요")
+        } catch ChallengeError.serverError(let message) {
+            return .error(message: message)
         } catch {
-            print("❌ 신고 실패:", error.localizedDescription)
-            return false
+            return .error(message: "신고 처리 중 오류가 발생했습니다")
         }
     }
 }

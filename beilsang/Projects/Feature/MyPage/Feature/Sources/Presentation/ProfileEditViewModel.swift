@@ -12,6 +12,7 @@ import UIKit
 import PhotosUI
 import UserDomain
 import ModelsShared
+import UIComponentsShared
 
 @MainActor
 public final class ProfileEditViewModel: ObservableObject {
@@ -19,6 +20,7 @@ public final class ProfileEditViewModel: ObservableObject {
     @Published public var profileImageURL: String? = nil
     @Published public var selectedImage: UIImage? = nil
     @Published public var selectedPhotoItem: PhotosPickerItem? = nil
+    @Published public var selectedDefaultImageName: String? = nil
     @Published public var nickname: String = "" {
         didSet {
             // 닉네임 변경 시 상태 자동 업데이트
@@ -32,16 +34,9 @@ public final class ProfileEditViewModel: ObservableObject {
         }
     }
     @Published public var nicknameState: NicknameState = .idle
-    @Published public var birthDate: Date? = nil
-    @Published public var selectedGender: String? = nil
-    @Published public var address: String = ""
-    @Published public var addressDetail: String = ""
-    @Published public var selectedMotto: Motto?
     
     @Published public var isLoading: Bool = false
     @Published public var errorMessage: String?
-    @Published public var showBirthDatePicker: Bool = false
-    @Published public var showAddressSearch: Bool = false
     @Published public var isLoadingProfile: Bool = true
     @Published public var isLoadingImage: Bool = false
     
@@ -49,20 +44,20 @@ public final class ProfileEditViewModel: ObservableObject {
     private let fetchUserProfileUseCase: FetchUserProfileUseCaseProtocol
     private let updateProfileUseCase: UpdateProfileUseCaseProtocol
     private let updateProfileImageUseCase: UpdateProfileImageUseCaseProtocol
+    private let checkNicknameUseCase: CheckNicknameUseCaseProtocol
     private var originalProfile: UserProfileData?
-    
-    // MARK: - Constants
-    public let availableMottos = Motto.allCases
     
     // MARK: - Init
     public init(
         fetchUserProfileUseCase: FetchUserProfileUseCaseProtocol,
         updateProfileUseCase: UpdateProfileUseCaseProtocol,
-        updateProfileImageUseCase: UpdateProfileImageUseCaseProtocol
+        updateProfileImageUseCase: UpdateProfileImageUseCaseProtocol,
+        checkNicknameUseCase: CheckNicknameUseCaseProtocol
     ) {
         self.fetchUserProfileUseCase = fetchUserProfileUseCase
         self.updateProfileUseCase = updateProfileUseCase
         self.updateProfileImageUseCase = updateProfileImageUseCase
+        self.checkNicknameUseCase = checkNicknameUseCase
     }
     
     // MARK: - Load Profile
@@ -74,37 +69,10 @@ public final class ProfileEditViewModel: ObservableObject {
             originalProfile = profile
             
             // 프로필 데이터로 초기화
-            profileImageURL = profile.profileImage
+            profileImageURL = profile.profileUrl
             // nickname 설정 (didSet이 트리거되지 않도록 직접 상태 설정)
             nickname = profile.nickname
             nicknameState = profile.nickname.isEmpty ? .idle : .filled
-            
-            if let birthString = profile.birth {
-                let formatter = DateFormatter()
-                formatter.dateFormat = "yyyy-MM-dd"
-                birthDate = formatter.date(from: birthString)
-            }
-            
-            if let gender = profile.gender, !gender.isEmpty {
-                switch gender {
-                case "MAN":
-                    selectedGender = "남자"
-                case "WOMAN":
-                    selectedGender = "여자"
-                case "OTHER":
-                    selectedGender = "기타"
-                default:
-                    // 알 수 없는 값이면 nil 유지 (placeholder 표시)
-                    selectedGender = nil
-                }
-            }
-            
-            address = profile.address ?? ""
-            
-            // resolution을 Motto로 변환
-            if let resolution = profile.resolution {
-                selectedMotto = Motto.allCases.first { $0.title == resolution }
-            }
             
             isLoadingProfile = false
         } catch {
@@ -118,13 +86,23 @@ public final class ProfileEditViewModel: ObservableObject {
     
     // MARK: - Computed Properties
     public var canSave: Bool {
-        !nickname.isEmpty
+        guard !nickname.isEmpty else { return false }
+        
+        // 변경사항이 있어야만 저장 가능
+        guard let originalProfile = originalProfile else { return false }
+        
+        // 닉네임이 변경되었는지 확인
+        let nicknameChanged = nickname != originalProfile.nickname
+        
+        // 프로필 이미지가 변경되었는지 확인
+        let imageChanged = selectedImage != nil
+        
+        return nicknameChanged || imageChanged
     }
     
     public var hasChanges: Bool {
         guard let originalProfile = originalProfile else { return false }
-        return nickname != originalProfile.nickname
-        // TODO: 다른 필드들도 비교
+        return nickname != originalProfile.nickname || selectedImage != nil
     }
     
     public var originalMotto: String? {
@@ -133,31 +111,45 @@ public final class ProfileEditViewModel: ObservableObject {
     
     // MARK: - Public Methods
     public func checkNickname() {
-        // TODO: 실제 닉네임 중복 확인 API 호출
         Task {
             nicknameState = .checking
-            try? await Task.sleep(nanoseconds: 500_000_000)
             
-            // 임시 검증 로직
-            if nickname.count < 2 || nickname.count > 15 {
+            do {
+                // 닉네임 형식 검증 (2-10자)
+                guard nickname.count >= 2 && nickname.count <= 10 else {
+                    nicknameState = .invalidFormat
+                    return
+                }
+                
+                // 원래 닉네임과 같으면 유효
+                if nickname == originalProfile?.nickname {
+                    nicknameState = .valid
+                    return
+                }
+                
+                // API 호출하여 중복 체크
+                let isAvailable = try await checkNicknameUseCase.execute(nickname)
+                
+                if isAvailable {
+                    nicknameState = .valid
+                } else {
+                    nicknameState = .invalidDuplicate
+                }
+            } catch {
+                #if DEBUG
+                print("❌ Nickname check failed: \(error)")
+                #endif
                 nicknameState = .invalidFormat
-            } else if nickname == originalProfile?.nickname {
-                nicknameState = .valid
-            } else {
-                // TODO: API로 실제 중복 체크
-                nicknameState = .valid
             }
         }
     }
     
-    public func selectMotto(_ motto: Motto) {
-        if selectedMotto == motto {
-            selectedMotto = nil
-        } else {
-            selectedMotto = motto
-        }
+    public func selectDefaultImage(named name: String, image: UIImage) {
+        selectedImage = image
+        selectedDefaultImageName = name
+        selectedPhotoItem = nil
     }
-    
+
     public func loadSelectedImage() async {
         guard let photoItem = selectedPhotoItem else { return }
         
@@ -167,6 +159,7 @@ public final class ProfileEditViewModel: ObservableObject {
         // 방법 1: Image 타입으로 직접 로드
         if let loadedImage = try? await photoItem.loadTransferable(type: ImageTransferable.self) {
             selectedImage = loadedImage.image
+            selectedDefaultImageName = nil
             isLoadingImage = false
             return
         }
@@ -175,6 +168,7 @@ public final class ProfileEditViewModel: ObservableObject {
         if let data = try? await photoItem.loadTransferable(type: Data.self),
            let image = UIImage(data: data) {
             selectedImage = image
+            selectedDefaultImageName = nil
             isLoadingImage = false
             return
         }
@@ -213,48 +207,29 @@ public final class ProfileEditViewModel: ObservableObject {
                 print("📸 Profile image size: \(imageData.count / 1024)KB")
                 #endif
                 
-                // 순수 base64로 전송
-                let base64String = imageData.base64EncodedString()
-                
-                #if DEBUG
-                print("📸 Base64 string length: \(base64String.count) chars")
-                #endif
-                
-                _ = try await updateProfileImageUseCase.execute(imageBase64: base64String)
+                // multipart/form-data 바이너리로 전송
+                let newImageURL = try await updateProfileImageUseCase.execute(imageData: imageData)
                 #if DEBUG
                 print("✅ Profile image updated")
                 #endif
+
+                // 캐시 갱신: 서버가 동일 URL을 재사용하면 stale 캐시가 남아 새 이미지가 반영되지 않으므로,
+                // 새로 업로드한 이미지를 기존/신규 URL 키에 직접 저장한다.
+                if let oldURL = originalProfile?.profileUrl, !oldURL.isEmpty {
+                    ImageCache.shared.store(image: resizedImage, for: oldURL)
+                }
+                if !newImageURL.isEmpty {
+                    ImageCache.shared.store(image: resizedImage, for: newImageURL)
+                }
             }
             
-            // 프로필 정보 업데이트
-            let birthString: String
-            if let date = birthDate {
-                let formatter = DateFormatter()
-                formatter.dateFormat = "yyyy-MM-dd"
-                birthString = formatter.string(from: date)
-            } else {
-                birthString = ""
-            }
-            
-            let genderAPI: String
-            switch selectedGender {
-            case "남자":
-                genderAPI = "MAN"
-            case "여자":
-                genderAPI = "WOMAN"
-            default:
-                genderAPI = "OTHER"
-            }
-            
-            let fullAddress = addressDetail.isEmpty ? address : "\(address) \(addressDetail)"
-            let resolution = selectedMotto?.title ?? ""
-            
+            // 프로필 정보 업데이트 (닉네임만)
             let request = ProfileUpdateRequest(
                 nickName: nickname,
-                birth: birthString,
-                gender: genderAPI,
-                address: fullAddress,
-                resolution: resolution
+                birth: "",
+                gender: "OTHER",
+                address: "",
+                resolution: ""
             )
             
             _ = try await updateProfileUseCase.execute(request: request)
@@ -262,6 +237,9 @@ public final class ProfileEditViewModel: ObservableObject {
             #if DEBUG
             print("✅ Profile saved - nickname: \(nickname)")
             #endif
+
+            // 마이페이지가 프로필 이미지/정보를 다시 읽도록 알림 발송
+            NotificationCenter.default.post(name: .profileDidUpdate, object: nil)
             
             // 최소 로딩 시간 보장
             let elapsed = Date().timeIntervalSince(startTime)

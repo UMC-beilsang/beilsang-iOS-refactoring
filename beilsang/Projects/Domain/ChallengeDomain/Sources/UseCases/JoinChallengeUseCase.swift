@@ -12,9 +12,9 @@ public protocol JoinChallengeUseCaseProtocol {
 }
 
 public final class JoinChallengeUseCase: JoinChallengeUseCaseProtocol {
-    private let repository: ChallengeRepositoryProtocol
+    private let repository: ChallengeCommandRepositoryProtocol
     
-    public init(repository: ChallengeRepositoryProtocol) {
+    public init(repository: ChallengeCommandRepositoryProtocol) {
         self.repository = repository
     }
     

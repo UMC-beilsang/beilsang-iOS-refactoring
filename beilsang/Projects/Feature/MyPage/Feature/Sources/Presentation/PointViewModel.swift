@@ -9,26 +9,21 @@ import Foundation
 import Combine
 import ModelsShared
 import UserDomain
-import UtilityShared
 
 @MainActor
 public final class PointViewModel: ObservableObject {
-    // MARK: - Published
     @Published public var totalPoint: Int = 0
-    @Published public var points: [PointItem] = []
+    @Published public var point: [PointItem] = []
     @Published public var isLoading: Bool = true
     @Published public var errorMessage: String?
     @Published public var isInitialLoading: Bool = true
     
-    // MARK: - Dependencies
     private let fetchPointsUseCase: FetchPointsUseCaseProtocol
     
-    // MARK: - Init
     public init(fetchPointsUseCase: FetchPointsUseCaseProtocol) {
         self.fetchPointsUseCase = fetchPointsUseCase
     }
     
-    // MARK: - Fetch Points
     public func fetchPoints(showSkeleton: Bool = false) async {
         if showSkeleton {
             isInitialLoading = true
@@ -37,27 +32,15 @@ public final class PointViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
         
-        let shouldDelay = showSkeleton && MockConfig.useMockData
-        let delayTask: Task<Void, Never>? = shouldDelay ? Task {
-            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
-        } : nil
-        
         do {
             let data = try await fetchPointsUseCase.execute()
             
-            if let delay = delayTask {
-                await delay.value
-            }
-            
             totalPoint = data.total
-            points = data.points
+            point = data.point
             #if DEBUG
-            print("💰 Loaded \(points.count) point items, total: \(totalPoint)")
+            print("💰 Loaded \(point.count) point items, total: \(totalPoint)")
             #endif
         } catch {
-            if let delay = delayTask {
-                await delay.value
-            }
             errorMessage = "포인트 내역을 불러오는 데 실패했습니다."
             print("❌ Error fetching points: \(error)")
         }
@@ -69,31 +52,30 @@ public final class PointViewModel: ObservableObject {
         }
     }
     
-    // MARK: - Filtered Points
     public func filteredPoints(by tabIndex: Int) -> [PointItem] {
         switch tabIndex {
-        case 0: // 전체
-            return points
-        case 1: // 적립
-            return points.filter { $0.status == .earn }
-        case 2: // 사용
-            return points.filter { $0.status == .use }
-        case 3: // 소멸
-            return points.filter { $0.status == .expire }
+        case 0:
+            return point
+        case 1:
+            return point.filter { $0.status == .earn }
+        case 2:
+            return point.filter { $0.status == .use }
+        case 3:
+            return point.filter { $0.status == .expire }
         default:
-            return points
+            return point
         }
     }
     
-    // MARK: - Expiring Points
     public var expiringPoints: Int {
-        // period가 0보다 크고 작은 값들을 합산 (소멸 예정)
-        return points
-            .filter { $0.status == .earn && $0.period > 0 && $0.period <= 30 }
+        return point
+            .filter {
+                guard $0.status == .earn, let period = $0.period else { return false }
+                return period > 0 && period <= 30
+            }
             .reduce(0) { $0 + $1.value }
     }
     
-    // MARK: - Format Helpers
     public func formatNumber(_ number: Int) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
@@ -113,8 +95,8 @@ public final class PointViewModel: ObservableObject {
         return displayFormatter.string(from: date)
     }
     
-    public func formatExpiryDate(_ dateString: String, period: Int) -> String? {
-        guard period > 0 else { return nil }
+    public func formatExpiryDate(_ dateString: String, period: Int?) -> String? {
+        guard let period, period > 0 else { return nil }
         
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
@@ -129,6 +111,3 @@ public final class PointViewModel: ObservableObject {
         return displayFormatter.string(from: expiryDate)
     }
 }
-
-
-

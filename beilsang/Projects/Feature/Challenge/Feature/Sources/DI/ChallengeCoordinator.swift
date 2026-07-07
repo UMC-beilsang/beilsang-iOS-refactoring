@@ -15,6 +15,7 @@ public final class ChallengeCoordinator: ObservableObject, ChallengeCoordinatabl
     
     // FullScreenCover 관리
     @Published public var presentedFeed: FeedPresentation? = nil
+    @Published public var presentedMemberProfile: MemberProfilePresentation? = nil
     @Published public var presentedChallenge: ChallengePresentation? = nil
     @Published public var presentedSearch: SearchPresentation? = nil
     @Published public var presentedChallengeAdd: ChallengeAddPresentation? = nil
@@ -23,9 +24,21 @@ public final class ChallengeCoordinator: ObservableObject, ChallengeCoordinatabl
     // Dependencies
     private let container: ChallengeContainer
     private weak var toastManager: ToastManager?
+    public var onNavigateToMyPage: (() -> Void)?
+    public var onBrowseChallenges: (() -> Void)?
     
     public struct FeedPresentation: Identifiable {
         public let id: Int
+    }
+
+    public struct MemberProfilePresentation: Identifiable {
+        public let id: Int
+        public let memberInfo: MemberInfo
+
+        public init(memberInfo: MemberInfo) {
+            self.id = memberInfo.memberId
+            self.memberInfo = memberInfo
+        }
     }
     
     public struct ChallengePresentation: Identifiable {
@@ -36,7 +49,7 @@ public final class ChallengeCoordinator: ObservableObject, ChallengeCoordinatabl
         public let id = UUID()
     }
     
-    public struct ChallengeAddPresentation: Identifiable {
+    public struct ChallengeAddPresentation: Identifiable, Equatable {
         public let id = UUID()
     }
     
@@ -62,6 +75,10 @@ public final class ChallengeCoordinator: ObservableObject, ChallengeCoordinatabl
     public func navigateToChallengeList(category: Keyword) {
         path.append(.challengeList(category: category))
     }
+
+    public func navigateToActiveList() {
+        path.append(.activeList)
+    }
     
     public func navigateToDetail(id: Int) {
         path.append(.challengeDetail(id: id))
@@ -84,6 +101,10 @@ public final class ChallengeCoordinator: ObservableObject, ChallengeCoordinatabl
     public func presentFeed(id: Int) {
         presentedFeed = FeedPresentation(id: id)
     }
+
+    public func presentMemberProfile(_ memberInfo: MemberInfo) {
+        presentedMemberProfile = MemberProfilePresentation(memberInfo: memberInfo)
+    }
     
     public func presentChallenge(id: Int) {
         presentedChallenge = ChallengePresentation(id: id)
@@ -99,6 +120,15 @@ public final class ChallengeCoordinator: ObservableObject, ChallengeCoordinatabl
     
     public func dismissFeed() {
         presentedFeed = nil
+    }
+
+    public func dismissMemberProfile() {
+        presentedMemberProfile = nil
+    }
+
+    public func navigateToMyProfile() {
+        dismissFeed()
+        onNavigateToMyPage?()
     }
     
     public func dismissChallenge() {
@@ -120,6 +150,10 @@ public final class ChallengeCoordinator: ObservableObject, ChallengeCoordinatabl
     public func dismissNotification() {
         presentedNotification = nil
     }
+
+    public func browseChallenges() {
+        onBrowseChallenges?()
+    }
     
     // MARK: - View Factory Methods
     @ViewBuilder
@@ -137,6 +171,24 @@ public final class ChallengeCoordinator: ObservableObject, ChallengeCoordinatabl
     public func makeFeedDetailView(feedId: Int) -> some View {
         ChallengeFeedDetailView(
             viewModel: container.makeChallengeFeedDetailViewModel(feedId: feedId)
+        )
+        .environmentObject(self)
+        .ifLet(toastManager) { view, manager in
+            view.environmentObject(manager)
+        }
+    }
+
+    @ViewBuilder
+    public func makeMemberProfileView(memberInfo: MemberInfo) -> some View {
+        MemberProfileView(
+            viewModel: container.makeMemberProfileViewModel(memberInfo: memberInfo),
+            feedDetailViewBuilder: { [weak self] feedId in
+                Group {
+                    if let self {
+                        self.makeFeedDetailView(feedId: feedId)
+                    }
+                }
+            }
         )
         .environmentObject(self)
         .ifLet(toastManager) { view, manager in
@@ -162,7 +214,7 @@ public final class ChallengeCoordinator: ObservableObject, ChallengeCoordinatabl
     
     @ViewBuilder
     public func makeChallengeAddView() -> some View {
-        ChallengeAddView(viewModel: container.challengeAddViewModel)
+        ChallengeAddView(viewModel: container.makeChallengeAddViewModel())
             .environmentObject(self)
             .ifLet(toastManager) { view, manager in
                 view.environmentObject(manager)
@@ -179,6 +231,9 @@ public final class ChallengeCoordinator: ObservableObject, ChallengeCoordinatabl
                 category: category
             )
             .environmentObject(self)
+        case .activeList:
+            ActiveChallengeListView(viewModel: container.makeActiveChallengeListViewModel())
+                .environmentObject(self)
         case .challengeDetail(let id):
             makeChallengeDetailView(challengeId: id)
         case .challengeCreate:
@@ -226,6 +281,7 @@ extension View {
 
 public enum ChallengeRoute: Hashable {
     case challengeList(category: Keyword)
+    case activeList
     case challengeDetail(id: Int)
     case feedDetail(id: Int)
     case challengeCreate(step: Int)

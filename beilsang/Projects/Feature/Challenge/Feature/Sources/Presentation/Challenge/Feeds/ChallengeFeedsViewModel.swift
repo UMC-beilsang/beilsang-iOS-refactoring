@@ -19,55 +19,17 @@ public final class ChallengeFeedsViewModel: ObservableObject {
     @Published var selectedFeedId: Int?
     
     private let challengeId: Int
-    let repository: ChallengeRepositoryProtocol
     private var currentPage = 0
     
-    public init(challengeId: Int, repository: ChallengeRepositoryProtocol) {
+    public init(challengeId: Int) {
         self.challengeId = challengeId
-        self.repository = repository
     }
     
     func loadFeeds(showSkeleton: Bool = false) async {
         guard !isLoading else { return }
-        
-        if showSkeleton {
-            isLoading = true
-        }
-        
-        let shouldDelay = showSkeleton && MockConfig.useMockData
-        let delayTask: Task<Void, Never>? = shouldDelay ? Task {
-            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
-        } : nil
-        
-        do {
-            let response = try await repository.fetchChallengeFeedThumbnails(
-                challengeId: challengeId,
-                page: currentPage
-            )
-            
-            if let delay = delayTask {
-                await delay.value
-            }
-            
-            if currentPage == 0 {
-                thumbnails = response.feeds
-            } else {
-                thumbnails.append(contentsOf: response.feeds)
-            }
-            
-            hasNext = response.hasNext
-            currentPage += 1
-            
-        } catch {
-            if let delay = delayTask {
-                await delay.value
-            }
-            print("피드 로딩 실패: \(error)")
-        }
-        
-        if showSkeleton {
-            isLoading = false
-        }
+        // TODO: 백엔드 API 추가되면 구현
+        thumbnails = []
+        hasNext = false
     }
     
     func loadMoreFeeds() async {

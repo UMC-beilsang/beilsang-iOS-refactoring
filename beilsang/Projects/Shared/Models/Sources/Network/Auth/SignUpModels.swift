@@ -42,14 +42,12 @@ public struct SignUpRequest: Codable, Sendable {
     }
 }
 
-// 단순화된 회원가입용 Request (약관 동의만)
+// 약관 동의 Request - POST /api/terms/agree
 public struct SignUpSimplifiedRequest: Codable, Sendable {
-    public let accessToken: String
-    public let marketingAgreed: Bool
-    
-    public init(accessToken: String, marketingAgreed: Bool) {
-        self.accessToken = accessToken
-        self.marketingAgreed = marketingAgreed
+    public let agreed: Bool
+
+    public init(agreed: Bool) {
+        self.agreed = agreed
     }
 }
 
@@ -59,6 +57,19 @@ public struct SignUpResponse: Codable, Sendable {
     public let message: String
     public let data: EmptyData
     public let success: Bool
+}
+
+// 약관 동의 응답
+public typealias SignUpSimplifiedResponse = APIResponse<SignUpSimplifiedData>
+
+public struct SignUpSimplifiedData: Codable, Sendable {
+    public let accessToken: String
+    public let refreshToken: String
+    
+    public init(accessToken: String, refreshToken: String) {
+        self.accessToken = accessToken
+        self.refreshToken = refreshToken
+    }
 }
 
 /// 서버 응답 data가 빈 객체 `{}` 인 경우

@@ -46,7 +46,7 @@ public struct DiscoverView: View {
                             .transition(.opacity)
                         }
                     }
-                    .animation(.easeOut(duration: 0.4), value: viewModel.isInitialLoading)
+                    .animation(.easeOut(duration: 0.2), value: viewModel.isInitialLoading)
                 }
 
                 Spacer().frame(minHeight: 180)
@@ -55,27 +55,16 @@ public struct DiscoverView: View {
             .scrollDismissesKeyboard(.interactively)
         }
         .ignoresSafeArea(.keyboard)
-        .onAppear {
-            // 이미 데이터가 있으면 로딩 상태 즉시 해제 (깜빡임 방지)
-            if !viewModel.honorsChallenges.isEmpty || !viewModel.keywordFeeds.isEmpty {
-                viewModel.isInitialLoading = false
-            }
-        }
+        .toolbar(.hidden, for: .navigationBar)
         .task {
-            // 초기 로딩 (데이터가 비어있을 때만)
+            // 데이터가 없을 때만 최초 로드 (스켈레톤)
+            // 이미 데이터가 있으면 아무것도 안 함 → pull-to-refresh로 명시적 갱신
             if viewModel.honorsChallenges.isEmpty && viewModel.keywordFeeds.isEmpty {
-                await viewModel.loadHonors(showSkeleton: true)
-                await viewModel.loadFeeds(for: viewModel.feedsSelectedKeyword, showSkeleton: true)
+                await viewModel.loadInitialData(keyword: viewModel.feedsSelectedKeyword, showSkeleton: true)
             }
         }
         .refreshable {
-            await viewModel.loadHonors(showSkeleton: true)
-            await viewModel.loadFeeds(for: viewModel.feedsSelectedKeyword, reset: true, showSkeleton: true)
-        }
-        .onChange(of: viewModel.feedsSelectedKeyword) { _, newKeyword in
-            Task {
-                await viewModel.loadFeeds(for: newKeyword, reset: true)
-            }
+            await viewModel.refresh()
         }
         .alert(item: $viewModel.alert) { alert in
             Alert(
@@ -110,11 +99,25 @@ public struct DiscoverView: View {
             }
             .padding(.top, 20)
 
-            if let challenges = viewModel.honorsChallenges[viewModel.honorsSelectedKeyword],
-               !challenges.isEmpty {
+            if viewModel.isHonorsSectionLoading {
+                // 카테고리 전환 중 로딩 스켈레톤
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 16) {
-                        ForEach(Array(challenges.enumerated()), id: \.element.id) { (index, challenge) in
+                        ForEach(0..<3, id: \.self) { _ in
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(ColorSystem.labelNormalDisable)
+                                .frame(width: 160, height: 160)
+                                .modifier(ShimmerModifier())
+                        }
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.top, 12)
+                }
+            } else if let hallOfFame = viewModel.honorsChallenges[viewModel.honorsSelectedKeyword],
+                      !hallOfFame.challenges.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 16) {
+                        ForEach(Array(hallOfFame.challenges.enumerated()), id: \.element.id) { (index, challenge) in
                             HonorsChallengeCard(challenge: challenge, rank: index + 1) {
                                 challengePresentationCoordinator?.presentChallenge(id: challenge.id)
                             }
@@ -123,7 +126,7 @@ public struct DiscoverView: View {
                     .padding(.horizontal, 24)
                     .padding(.top, 12)
                 }
-            }  else {
+            } else {
                 Text("해당 카테고리의 챌린지가 없습니다.")
                     .fontStyle(.detail1Medium)
                     .foregroundStyle(ColorSystem.labelNormalBasic)
@@ -151,8 +154,26 @@ public struct DiscoverView: View {
             }
             .padding(.top, 20)
 
-            if let state = viewModel.keywordFeeds[viewModel.feedsSelectedKeyword],
-               !state.feeds.isEmpty {
+            if viewModel.isFeedSectionLoading {
+                // 카테고리 전환 중 그리드 스켈레톤
+                LazyVGrid(
+                    columns: [
+                        GridItem(.flexible(), spacing: 14),
+                        GridItem(.flexible(), spacing: 14)
+                    ],
+                    spacing: 14
+                ) {
+                    ForEach(0..<6, id: \.self) { _ in
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(ColorSystem.labelNormalDisable)
+                            .frame(height: 160)
+                            .modifier(ShimmerModifier())
+                    }
+                }
+                .padding(.horizontal, 24)
+                .padding(.top, 16)
+            } else if let state = viewModel.keywordFeeds[viewModel.feedsSelectedKeyword],
+                      !state.feeds.isEmpty {
                 VStack(alignment: .leading, spacing: 12) {
                     LazyVGrid(
                         columns: [
@@ -162,12 +183,30 @@ public struct DiscoverView: View {
                         spacing: 14
                     ) {
                         ForEach(state.feeds) { feed in
-                            FeedThumbnailCard(
-                                imageUrl: feed.feedUrl,
-                                isMyFeed: feed.isMyFeed
-                            ) {
-                                challengePresentationCoordinator?.presentFeed(id: feed.id)
+                            Button {
+                                challengePresentationCoordinator?.presentFeed(id: feed.feedId)
+                            } label: {
+                                Group {
+                                    if feed.feedUrl.hasPrefix("http") {
+                                        CachedAsyncImage(url: feed.feedUrl) { image in
+                                            image
+                                                .resizable()
+                                                .scaledToFill()
+                                        } placeholder: {
+                                            Rectangle()
+                                                .fill(ColorSystem.lineNeutral)
+                                        }
+                                    } else {
+                                        Image(feed.feedUrl, bundle: .designSystem)
+                                            .resizable()
+                                            .scaledToFill()
+                                    }
+                                }
+                                .frame(height: 160)
+                                .clipped()
+                                .cornerRadius(12)
                             }
+                            .buttonStyle(.plain)
                             .onAppear {
                                 if feed == state.feeds.last, state.hasNext {
                                     Task { await viewModel.loadNextFeeds(for: viewModel.feedsSelectedKeyword) }
@@ -179,7 +218,8 @@ public struct DiscoverView: View {
                     .padding(.top, 16)
 
                     if viewModel.isLoadingMore {
-                        ProgressView()
+                        DotsLoadingView()
+                            .frame(maxWidth: .infinity)
                             .padding(.top, 16)
                     }
                 }
@@ -188,7 +228,7 @@ public struct DiscoverView: View {
                     .fontStyle(.detail1Medium)
                     .foregroundStyle(ColorSystem.labelNormalBasic)
                     .padding(.horizontal, 24)
-                    .padding(.top, 8)
+                    .padding(.top, 40)
             }
         }
     }

@@ -19,14 +19,14 @@ public struct ProfileEditView: View {
     @EnvironmentObject var toastManager: ToastManager
     @EnvironmentObject var appRouter: AppRouter
     @FocusState private var focusedField: AnyHashable?
-    @State private var showMottoSheet: Bool = false
     @State private var showLogoutPopup: Bool = false
     @State private var showRevokeReason: Bool = false
-    let webURL: URL? = URL(string: "https://30isdead.github.io/Kakao-Postcode/")
+    @State private var showImageSourceOptions: Bool = false
+    @State private var showDefaultImagePicker: Bool = false
+    @State private var showPhotosPicker: Bool = false
     
     private enum Field: Hashable {
         case nickname
-        case addressDetail
     }
     
     public init(viewModel: ProfileEditViewModel) {
@@ -43,26 +43,14 @@ public struct ProfileEditView: View {
                         let success = await viewModel.saveProfile()
                         if success {
                             // 로딩 오버레이 보이는 상태로 바로 pop
-                            // (화면 전환과 함께 자연스럽게 사라짐)
                             coordinator.pop()
                             
-                            // pop 후 토스트 표시 (이전 화면에서 보임)
+                            // pop 후 토스트 표시
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                // 다짐이 변경되었는지 확인
-                                let originalMotto = viewModel.originalMotto
-                                let currentMotto = viewModel.selectedMotto?.title
-                                
-                                if originalMotto != currentMotto {
-                                    toastManager.show(
-                                        iconName: "toastCheckIcon",
-                                        message: "내 다짐을 변경했어요"
-                                    )
-                                } else {
-                                    toastManager.show(
-                                        iconName: "toastCheckIcon",
-                                        message: "변경사항을 저장했어요"
-                                    )
-                                }
+                                toastManager.show(
+                                    iconName: "toastCheckIcon",
+                                    message: "변경사항을 저장했어요"
+                                )
                             }
                         }
                     }
@@ -86,12 +74,6 @@ public struct ProfileEditView: View {
             }
         }
         .toolbar(.hidden, for: .navigationBar)
-        .fullScreenCover(isPresented: $showMottoSheet) {
-            MottoEditView(
-                selectedMotto: $viewModel.selectedMotto,
-                onSave: {}
-            )
-        }
         .overlay {
             // 로그아웃 팝업
             if showLogoutPopup {
@@ -157,19 +139,6 @@ public struct ProfileEditView: View {
                     // 닉네임 섹션
                     nicknameSection
                     
-                    // 내다짐 섹션
-                    mottoSection
-                    
-                    
-                    // 생년월일 섹션
-                    birthSection
-                    
-                    // 성별 섹션
-                    genderSection
-                    
-                    // 주소 섹션
-                    addressSection
-                    
                     Spacer().frame(height: 80)
                 }
                 .padding(.top, 20)
@@ -183,7 +152,7 @@ public struct ProfileEditView: View {
                 termsFooterSection
             }
         }
-        .background(ColorSystem.backgroundNormalAlternative)
+        .background(ColorSystem.labelNormalDisable)
         .dismissKeyboardOnTap(focusedField: $focusedField)
     }
     
@@ -199,14 +168,18 @@ public struct ProfileEditView: View {
                 }
                 // 2순위: 기존 프로필 이미지 URL
                 else if let profileImageURL = viewModel.profileImageURL, !profileImageURL.isEmpty {
-                    AsyncImage(url: URL(string: profileImageURL)) { image in
+                    CachedAsyncImage(url: profileImageURL) { image in
                         image
                             .resizable()
                             .scaledToFill()
                     } placeholder: {
-                        Image("profilePlaceholderImage", bundle: .designSystem)
-                            .resizable()
-                            .scaledToFill()
+                        // 기존 이미지가 있는 경우, 로딩 중에는 기본(보라) 아바타 대신 중립 배경을 보여
+                        // 보라색 → 내 이미지로 바뀌며 깜빡이는 현상 방지
+                        ZStack {
+                            ColorSystem.labelNormalDisable
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: ColorSystem.primaryNormal))
+                        }
                     }
                 }
                 // 3순위: 플레이스홀더
@@ -226,11 +199,9 @@ public struct ProfileEditView: View {
             .frame(width: 88, height: 88)
             .clipShape(Circle())
             
-            PhotosPicker(
-                selection: $viewModel.selectedPhotoItem,
-                matching: .images,
-                photoLibrary: .shared()
-            ) {
+            Button {
+                showImageSourceOptions = true
+            } label: {
                 Text("사진 변경")
                     .fontStyle(.detail1Medium)
                     .foregroundColor(ColorSystem.primaryStrong)
@@ -241,14 +212,35 @@ public struct ProfileEditView: View {
                             .fill(ColorSystem.primaryAlternative)
                     )
             }
-            .onChange(of: viewModel.selectedPhotoItem) { _, _ in
-                Task {
-                    await viewModel.loadSelectedImage()
-                }
-            }
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 8)
+        .confirmationDialog("프로필 사진 변경", isPresented: $showImageSourceOptions, titleVisibility: .visible) {
+            Button("기본 이미지에서 선택하기") {
+                showDefaultImagePicker = true
+            }
+            Button("사진 보관함에서 선택하기") {
+                showPhotosPicker = true
+            }
+            Button("취소", role: .cancel) {}
+        }
+        .sheet(isPresented: $showDefaultImagePicker) {
+            DefaultProfileImagePickerView(
+                currentSelectedName: $viewModel.selectedDefaultImageName,
+                onSelect: { name, image in
+                    viewModel.selectDefaultImage(named: name, image: image)
+                }
+            )
+            .presentationDetents([.height(290)])
+            .presentationDragIndicator(.visible)
+            .presentationCornerRadius(20)
+        }
+        .photosPicker(isPresented: $showPhotosPicker, selection: $viewModel.selectedPhotoItem, matching: .images)
+        .onChange(of: viewModel.selectedPhotoItem) { _, _ in
+            Task {
+                await viewModel.loadSelectedImage()
+            }
+        }
     }
     
     // MARK: - Nickname Section
@@ -271,129 +263,6 @@ public struct ProfileEditView: View {
                 }
             )
             .focused($focusedField, equals: Field.nickname)
-        }
-        .padding(.horizontal, 24)
-    }
-    
-    // MARK: - Motto Section
-    private var mottoSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("내다짐")
-                .fontStyle(Fonts.heading3Bold)
-                .foregroundStyle(ColorSystem.labelNormalStrong)
-            
-            // 다짐 박스 
-            if let motto = viewModel.selectedMotto {
-                HStack(spacing: 12) {
-                    Image(motto.iconName, bundle: .designSystem)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 22, height: 22)
-                    
-                    Text(motto.title)
-                        .fontStyle(.body1Bold)
-                        .foregroundStyle(ColorSystem.primaryHeavy)
-                    
-                    Spacer()
-                }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 18)
-                .background(
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(ColorSystem.labelNormalDisable)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .strokeBorder(ColorSystem.primaryStrong, lineWidth: 2.75)
-                )
-            } else {
-                HStack(spacing: 12) {
-                    Text("다짐을 선택해 주세요")
-                        .fontStyle(.body1Bold)
-                        .foregroundStyle(ColorSystem.labelNormalBasic)
-                    
-                    Spacer()
-                }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 18)
-                .background(
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(ColorSystem.labelNormalDisable)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .strokeBorder(ColorSystem.labelNormalNormal, lineWidth: 1.5)
-                )
-            }
-            
-            // 내 다짐 수정하기 버튼
-            Button {
-                showMottoSheet = true
-            } label: {
-                HStack(spacing: 4) {
-                    Spacer()
-                    Text("내 다짐 수정하기")
-                        .fontStyle(.detail1Medium)
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 10))
-                }
-                .foregroundStyle(ColorSystem.labelNormalBasic)
-            }
-        }
-        .padding(.horizontal, 24)
-    }
-    
-    // MARK: - Birth Section
-    private var birthSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("생년월일")
-                .fontStyle(Fonts.heading3Bold)
-                .foregroundStyle(ColorSystem.labelNormalStrong)
-            
-            BirthDateTextField(
-                birthDate: $viewModel.birthDate,
-                placeholder: "생년월일 8자리"
-            )
-        }
-        .padding(.horizontal, 24)
-    }
-    
-    // MARK: - Gender Section
-    private var genderSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("성별")
-                .fontStyle(Fonts.heading3Bold)
-                .foregroundStyle(ColorSystem.labelNormalStrong)
-                .padding(.horizontal, 24)
-            
-            DropdownField(
-                selected: $viewModel.selectedGender,
-                placeholder: "성별을 선택해 주세요",
-                options: ["여자", "남자", "기타"],
-                optionTitle: { $0 }
-            )
-            .padding(.horizontal, 24)
-        }
-    }
-    
-    // MARK: - Address Section
-    private var addressSection: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text("주소")
-                .fontStyle(Fonts.heading3Bold)
-                .foregroundStyle(ColorSystem.labelNormalStrong)
-            
-            Spacer()
-                .frame(height: 12)
-            
-            AddressField(
-                address: $viewModel.address,
-                addressDetail: $viewModel.addressDetail,
-                showAddressSearch: $viewModel.showAddressSearch,
-                focusedField: $focusedField,
-                addressDetailFocusValue: Field.addressDetail,
-                webURL: webURL
-            )
         }
         .padding(.horizontal, 24)
     }
@@ -462,7 +331,94 @@ public struct ProfileEditView: View {
             
             Spacer().frame(height: 40)
         }
-        .background(ColorSystem.backgroundNormalAlternative)
+        .background(ColorSystem.labelNormalDisable)
     }
 }
 
+// MARK: - Default Profile Image Picker
+
+private struct DefaultProfileImagePickerView: View {
+    @Binding var currentSelectedName: String?
+    let onSelect: (String, UIImage) -> Void
+    @Environment(\.dismiss) private var dismiss
+    @State private var selectedName: String? = nil
+
+    private let defaultImages = [
+        "profilePlaceholderImage",
+        "profileGreenImage",
+        "profilePinkImage",
+        "profileYellowImage",
+    ]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            Text("기본 이미지 선택")
+                .fontStyle(.heading1Bold)
+                .foregroundStyle(ColorSystem.labelNormalStrong)
+                .padding(.top, 32)
+            
+            Spacer()
+
+            HStack(spacing: 16) {
+                ForEach(defaultImages, id: \.self) { name in
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.15)) {
+                            selectedName = name
+                        }
+                    } label: {
+                        ZStack {
+                            Image(name, bundle: .designSystem)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 64, height: 64)
+                                .clipShape(Circle())
+
+                            if selectedName == name {
+                                Circle()
+                                    .stroke(ColorSystem.primaryNormal, lineWidth: 3)
+                                    .frame(width: 64, height: 64)
+                            }
+                        }
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Spacer()
+
+            NextStepButton(
+                title: "저장하기",
+                isEnabled: selectedName != nil,
+                onTap: {
+                    guard let name = selectedName else { return }
+                    let rendered = renderImage(name: name)
+                    onSelect(name, rendered)
+                    dismiss()
+                }
+            )
+        }
+        .padding(.horizontal, 24)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .background(ColorSystem.backgroundNormalNormal)
+        .onAppear {
+            selectedName = currentSelectedName
+        }
+    }
+
+    @MainActor
+    private func renderImage(name: String) -> UIImage {
+        // 흰 배경 + 원형 디스크보다 살짝 크게(overscan) 렌더링.
+        // 투명 모서리가 JPEG에서 검정으로 채워지며 생기는 테두리(stroke) 아티팩트 방지.
+        let view = Image(name, bundle: .designSystem)
+            .resizable()
+            .scaledToFill()
+            .frame(width: 136, height: 136)
+            .frame(width: 128, height: 128)
+            .clipped()
+            .background(Color.white)
+        let renderer = ImageRenderer(content: view)
+        renderer.scale = UIScreen.main.scale
+        renderer.isOpaque = true
+        return renderer.uiImage ?? UIImage()
+    }
+}

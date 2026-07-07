@@ -30,6 +30,7 @@ let project = Project(
       sources: ["Feature/Sources/**"],
       dependencies: [
         .project(target: "ChallengeDomain", path: "../../Domain/ChallengeDomain"),
+        .project(target: "UserDomain", path: "../../Domain/UserDomain"),
         .project(target: "NetworkCore", path: "../../Core/NetworkCore"),
         .project(target: "ModelsShared", path: "../../Shared/Models"),
         .project(target: "UtilityShared", path: "../../Shared/Utility"),

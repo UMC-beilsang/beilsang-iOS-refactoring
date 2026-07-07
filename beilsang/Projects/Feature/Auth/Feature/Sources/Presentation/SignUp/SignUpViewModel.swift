@@ -132,12 +132,16 @@ final class SignUpViewModel: ObservableObject {
     func completeSignUpSimplified() {
         guard terms.requiredAgreed else { return }
         
-        signUpUseCase.signUpSimplified(marketingAgreed: terms.marketing)
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] state in
-                self?.handleSignUpState(state)
+        Task {
+            isLoading = true
+            alert = nil
+            
+            let state = await signUpUseCase.signUpSimplified(agreed: true)
+            
+            await MainActor.run {
+                self.handleSignUpState(state)
             }
-            .store(in: &cancellables)
+        }
     }
 
     func clearError() { alert = nil }

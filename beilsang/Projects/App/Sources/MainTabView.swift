@@ -90,9 +90,18 @@ struct MainTabView: View {
                 appRouter.selectedTab = oldValue
             }
         }
+        .onChange(of: challengeCoordinator.presentedChallengeAdd) { _, newValue in
+            if newValue == nil {
+                KeyboardDismiss.perform()
+            }
+        }
         // Challenge Coordinator의 FullScreenCover 관리
         .fullScreenCover(item: $challengeCoordinator.presentedFeed) { feed in
             challengeCoordinator.makeFeedDetailView(feedId: feed.id)
+                .toolbar(.hidden, for: .navigationBar)
+        }
+        .fullScreenCover(item: $challengeCoordinator.presentedMemberProfile) { profile in
+            challengeCoordinator.makeMemberProfileView(memberInfo: profile.memberInfo)
                 .toolbar(.hidden, for: .navigationBar)
         }
         .fullScreenCover(item: $challengeCoordinator.presentedChallenge) { challenge in
@@ -121,12 +130,15 @@ struct MainTabView: View {
         // MyPage Coordinator의 FullScreenCover 관리
         .fullScreenCover(item: $myPageCoordinator.presentedMyChallengeList) { presentation in
             myPageCoordinator.makeMyChallengeListView(initialTab: presentation.tabIndex)
+                .environment(\.challengePresentationCoordinator, challengeCoordinator)
         }
         .fullScreenCover(item: $myPageCoordinator.presentedMyFeedList) { _ in
             myPageCoordinator.makeMyFeedListView()
+                .environment(\.challengePresentationCoordinator, challengeCoordinator)
         }
         .fullScreenCover(item: $myPageCoordinator.presentedFavoriteChallengeList) { _ in
             myPageCoordinator.makeFavoriteChallengeListView()
+                .environment(\.challengePresentationCoordinator, challengeCoordinator)
         }
         .onAppear {
             // 기본 탭바 숨기기
@@ -134,6 +146,16 @@ struct MainTabView: View {
             
             appRouter.challengeCoordinator = challengeCoordinator
             appRouter.myPageCoordinator = myPageCoordinator
+            challengeCoordinator.onNavigateToMyPage = {
+                appRouter.switchTab(to: 3)
+            }
+            challengeCoordinator.onBrowseChallenges = {
+                myPageCoordinator.dismissMyFeedList()
+                myPageCoordinator.dismissMyChallengeList()
+                myPageCoordinator.dismissFavoriteChallengeList()
+                appRouter.switchTab(to: 0)
+                challengeCoordinator.navigateToChallengeList(category: .all)
+            }
         }
     }
     
@@ -156,7 +178,12 @@ struct MainTabView: View {
                         .environmentObject(challengeCoordinator)
                     case .challengeCreate:
                         ChallengeAddView(
-                            viewModel: challengeContainer.challengeAddViewModel
+                            viewModel: challengeContainer.makeChallengeAddViewModel()
+                        )
+                        .environmentObject(challengeCoordinator)
+                    case .activeList:
+                        ActiveChallengeListView(
+                            viewModel: challengeContainer.makeActiveChallengeListViewModel()
                         )
                         .environmentObject(challengeCoordinator)
                     case .feedDetail(let feedId):
@@ -197,3 +224,5 @@ struct MainTabView: View {
         }
     }
 }
+
+

@@ -15,27 +15,28 @@ import ChallengeDomain
 
 @main
 struct ChallengeExampleApp: App {
-    @StateObject private var toastManager = ToastManager()
-    @StateObject private var appRouter = AppRouter()
-    
     init() {
         FontRegister.registerFonts()
     }
-    
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environmentObject(toastManager)
-                .environmentObject(appRouter)
+            PhotoVerificationExampleRootView()
         }
     }
 }
 
 struct ContentView: View {
     @EnvironmentObject var appRouter: AppRouter
-    @StateObject private var coordinator = ChallengeCoordinator()
     
-    private let container = ChallengeContainer()
+    private let container: ChallengeContainer
+    @StateObject private var coordinator: ChallengeCoordinator
+    
+    init() {
+        let container = ChallengeContainer()
+        self.container = container
+        _coordinator = StateObject(wrappedValue: ChallengeCoordinator(container: container))
+    }
     
     var body: some View {
         NavigationStack(path: $coordinator.path) {            HomeView(container: container)
@@ -58,6 +59,11 @@ struct ContentView: View {
                 viewModel: container.makeChallengeListViewModel(),
                 category: category
             )
+
+        case .activeList:
+            ActiveChallengeListView(
+                viewModel: container.makeActiveChallengeListViewModel()
+            )
             
         case .challengeDetail(let id):
             ChallengeDetailView(
@@ -71,7 +77,7 @@ struct ContentView: View {
             
         case .challengeCreate:
             ChallengeAddView(
-                viewModel: container.challengeAddViewModel
+                viewModel: container.makeChallengeAddViewModel()
             )
         }
     }

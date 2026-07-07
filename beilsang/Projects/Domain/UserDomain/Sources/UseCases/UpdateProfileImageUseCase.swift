@@ -9,7 +9,7 @@ import Foundation
 
 public protocol UpdateProfileImageUseCaseProtocol {
     /// Returns updated profile image URL if server provides it, otherwise empty string.
-    func execute(imageBase64: String) async throws -> String
+    func execute(imageData: Data) async throws -> String
 }
 
 public final class UpdateProfileImageUseCase: UpdateProfileImageUseCaseProtocol {
@@ -19,8 +19,8 @@ public final class UpdateProfileImageUseCase: UpdateProfileImageUseCaseProtocol 
         self.repository = repository
     }
     
-    public func execute(imageBase64: String) async throws -> String {
-        try await repository.updateProfileImage(imageBase64: imageBase64)
+    public func execute(imageData: Data) async throws -> String {
+        try await repository.updateProfileImage(imageData: imageData)
     }
 }
 

@@ -17,7 +17,6 @@ public struct HomeView: View {
     @EnvironmentObject var coordinator: ChallengeCoordinator
     
     @StateObject private var viewModel: HomeViewModel
-    @StateObject private var keyboard = KeyboardResponder()
     
     public init(container: ChallengeContainer) {
         _viewModel = StateObject(wrappedValue: container.homeViewModel)
@@ -47,26 +46,26 @@ public struct HomeView: View {
                                 .transition(.opacity)
                         }
                     }
-                    .animation(.easeOut(duration: 0.4), value: viewModel.isLoading)
+                    .animation(.easeOut(duration: 0.2), value: viewModel.isLoading)
                 }
                 
                 Spacer().frame(minHeight: 180)
             }
-            .padding(.bottom, keyboard.currentHeight)
             .scrollBounceBehavior(.basedOnSize)
             .refreshable {
-                await viewModel.loadChallenges(showSkeleton: true)
+                await viewModel.loadChallenges(showSkeleton: false)
             }
         }
         .ignoresSafeArea(edges: .bottom)
+        .ignoresSafeArea(.keyboard, edges: .bottom)
+        .toolbar(.hidden, for: .navigationBar)
         .onAppear {
-            // 이미 데이터가 있으면 로딩 상태 즉시 해제 (깜빡임 방지)
             if !viewModel.activeChallenges.isEmpty || !viewModel.recommendedChallenges.isEmpty {
                 viewModel.isLoading = false
+                Task { await viewModel.loadChallenges(showSkeleton: false) }
             }
         }
         .task {
-            // 초기 로딩 (데이터가 비어있을 때만)
             if viewModel.activeChallenges.isEmpty && viewModel.recommendedChallenges.isEmpty {
                 await viewModel.loadChallenges(showSkeleton: true)
             }
@@ -110,7 +109,7 @@ public struct HomeView: View {
                 title: "참여 중인 챌린지",
                 showAllButton: viewModel.activeChallenges.count > 2,
                 onShowAllTapped: {
-                    coordinator.navigateToChallengeList(category: .all)
+                    coordinator.navigateToActiveList()
                 }
             )
             .padding(.horizontal, 24)
@@ -133,7 +132,7 @@ public struct HomeView: View {
                         ChallengeItemView(
                             title: challenge.title,
                             imageUrl: challenge.thumbnailImageUrl ?? "",
-                            style: .progressGrid(String(format: "%.0f%%", challenge.progress)),
+                            style: .progressGrid(String(format: "%.0f%%", (challenge.progress ?? 0.0) * 100)),
                             isRecruitmentClosed: challenge.isRecruitmentClosed
                         ) {
                             coordinator.navigateToDetail(id: challenge.id)

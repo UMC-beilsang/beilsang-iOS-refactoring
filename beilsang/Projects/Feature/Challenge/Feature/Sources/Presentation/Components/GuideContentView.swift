@@ -19,16 +19,20 @@ struct GuideContentView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(spacing: 12) {
                     ForEach(Array(certImages.enumerated()), id: \.offset) { index, url in
-                        Image(url, bundle: .designSystem)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 120, height: 120)
-                            .clipped()
-                            .cornerRadius(16)
-                            .onTapGesture {
-                                selectedImageIndex = index
-                                showImageModal = true
-                            }
+                        CachedAsyncImage(url: url) { image in
+                            image
+                                .resizable()
+                                .scaledToFill()
+                        } placeholder: {
+                            Color.gray.opacity(0.2)
+                        }
+                        .frame(width: 120, height: 120)
+                        .clipped()
+                        .cornerRadius(16)
+                        .onTapGesture {
+                            selectedImageIndex = index
+                            showImageModal = true
+                        }
                     }
                 }
                 .padding(.horizontal, 20)

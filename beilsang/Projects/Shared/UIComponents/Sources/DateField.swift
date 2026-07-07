@@ -59,7 +59,7 @@ public struct DateField: View {
                     date = selectedDate
                 }
             )
-            .presentationDetents([.medium])
+            .presentationDetents([.large])
         }
     }
     
@@ -86,7 +86,9 @@ public struct DatePickerSheet: View {
         self._date = date
         self._showPicker = showPicker
         self.onConfirm = onConfirm
-        self._selectedDate = State(initialValue: date.wrappedValue)
+        let today = Calendar.current.startOfDay(for: Date())
+        let initial = max(date.wrappedValue, today)
+        self._selectedDate = State(initialValue: initial)
     }
     
     public var body: some View {
@@ -94,6 +96,7 @@ public struct DatePickerSheet: View {
             DatePicker(
                 "",
                 selection: $selectedDate,
+                in: Calendar.current.startOfDay(for: Date())...,
                 displayedComponents: [.date]
             )
             .datePickerStyle(.graphical)

@@ -11,17 +11,17 @@ import ModelsShared
 
 @MainActor
 public final class FavoriteChallengeListViewModel: ObservableObject {
-    @Published public var challenges: [Challenge] = []
+    @Published public var challenges: [ChallengeItem] = []
     @Published public var isLoading: Bool = false
     @Published public var errorMessage: String?
     
-    private let repository: ChallengeRepositoryProtocol
+    private let queryRepo: ChallengeQueryRepositoryProtocol
     private var currentPage: Int = 0
     private let pageSize: Int = 20
     public var hasNext: Bool = true
     
-    public init(repository: ChallengeRepositoryProtocol) {
-        self.repository = repository
+    public init(queryRepo: ChallengeQueryRepositoryProtocol) {
+        self.queryRepo = queryRepo
     }
     
     public func fetchFavoriteChallenges(category: Keyword, reset: Bool = false) async {
@@ -37,41 +37,20 @@ public final class FavoriteChallengeListViewModel: ObservableObject {
         errorMessage = nil
         
         do {
-            // 찜한 챌린지는 모든 상태의 챌린지를 조회
-            let request = ChallengeListRequest(
-                page: currentPage,
-                size: pageSize,
+            let request = LikedChallengeListRequest(
                 category: category == .all ? nil : category.apiCategory,
-                challengeStatus: nil, // 모든 상태의 챌린지
-                isFinished: nil, // 종료 여부 상관없이
-                isJoined: nil
-            )
-            
-            // 먼저 모든 챌린지를 가져와서 찜한 챌린지만 필터링
-            // 카테고리 필터 없이 전체 챌린지 조회
-            let allChallengesRequest = ChallengeListRequest(
+                sortType: "DEADLINE_SOON",
                 page: currentPage,
-                size: pageSize * 3, // 더 많이 가져와서 필터링 후 충분한 수 확보
-                category: nil, // 카테고리 필터 제거
-                challengeStatus: nil,
-                isFinished: nil,
-                isJoined: nil
+                size: pageSize
             )
             
-            var fetchedChallenges = try await repository.fetchChallengeList(request: allChallengesRequest)
+            let response = try await queryRepo.fetchLikedChallenges(request: request)
             
-            // 찜한 챌린지만 필터링 (isLiked == true)
-            fetchedChallenges = fetchedChallenges.filter { $0.isLiked }
-            
-            // 카테고리 필터링 적용
-            if category != .all {
-                fetchedChallenges = fetchedChallenges.filter { $0.category == category.rawValue }
-            }
+            let fetchedChallenges = response.content
             
             challenges.append(contentsOf: fetchedChallenges)
             currentPage += 1
-            
-            hasNext = fetchedChallenges.count >= pageSize
+            hasNext = response.hasNext
             
             #if DEBUG
             print("❤️ Fetched \(fetchedChallenges.count) favorite challenges for category: \(category.rawValue)")

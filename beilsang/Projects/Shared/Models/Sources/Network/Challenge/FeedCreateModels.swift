@@ -8,15 +8,13 @@
 import Foundation
 
 // MARK: - Request
-public struct FeedCreateRequest: Sendable {
+public struct FeedCreateRequest: Codable, Sendable {
     public let challengeId: Int
-    public let review: String
-    public let feedImage: Data
+    public let content: String
     
-    public init(challengeId: Int, review: String, feedImage: Data) {
+    public init(challengeId: Int, content: String) {
         self.challengeId = challengeId
-        self.review = review
-        self.feedImage = feedImage
+        self.content = content
     }
 }
 

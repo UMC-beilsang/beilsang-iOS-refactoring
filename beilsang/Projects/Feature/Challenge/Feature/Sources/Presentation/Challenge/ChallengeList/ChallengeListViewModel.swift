@@ -7,7 +7,6 @@
 import Foundation
 import ChallengeDomain
 import ModelsShared
-import UtilityShared
 
 @MainActor
 public final class ChallengeListViewModel: ObservableObject {
@@ -25,69 +24,57 @@ public final class ChallengeListViewModel: ObservableObject {
         self.fetchChallengeListUseCase = fetchChallengeListUseCase
     }
     
-    // 필터 적용
-    public func applyFilter(_ filter: ChallengeFilter) {
+    // 필터 적용 후 서버에서 재조회
+    public func applyFilter(_ filter: ChallengeFilter, category: Keyword) async {
         selectedFilter = filter
         showFilterSheet = false
-        applyAllFilters()
+        await fetchChallenges(for: category, showSkeleton: true)
     }
     
     // 모집마감 체크박스 토글
-    public func toggleClosedChallenges() {
+    public func toggleClosedChallenges(category: Keyword) {
         hideClosedChallenges.toggle()
-        applyAllFilters()
-    }
-    
-    // 모든 필터 적용 (정렬 + 모집마감)
-    private func applyAllFilters() {
-        var filtered = allItems
-        
-        // 1. 모집마감 필터
-        if hideClosedChallenges {
-            filtered = filtered.filter { !$0.isRecruitmentClosed }
+        Task {
+            await fetchChallenges(for: category, showSkeleton: true)
         }
-        
-        // 2. 정렬
-        switch selectedFilter {
-        case .recent:
-            filtered = filtered.sorted { $0.startDate < $1.startDate }
-        case .latest:
-            filtered = filtered.sorted { $0.createdAt > $1.createdAt }
-        }
-        
-        items = filtered
     }
     
     public func fetchChallenges(for category: Keyword, showSkeleton: Bool = false) async {
-        if showSkeleton {
-            isLoading = true
-        }
+        isLoading = true
         
-        // 목업 데이터일 때만 최소 0.5초 스켈레톤 UI 표시를 위한 지연
-        let shouldDelay = showSkeleton && MockConfig.useMockData
-        let delayTask: Task<Void, Never>? = shouldDelay ? Task {
-            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5초
-        } : nil
+        let currentFilter = self.selectedFilter
+        let showClosedOnly = self.hideClosedChallenges
+        
+        // ✅ 1. 서버에 전달할 정렬 타입만 결정
+        let sortType = currentFilter == .recent ? "DEADLINE_SOON" : "NEWEST"
+        let categoryParam = category == .all ? nil : category.apiCategory
+        let closedCategoryParam = category.apiCategory
         
         async let fetchTask = Task {
             do {
-                // 카테고리별 챌린지 조회 - 전체 챌린지 조회 (신청 마감 포함)
-                let request = ChallengeListRequest(
-                    page: 0,
-                    size: 20,
-                    category: category == .all ? nil : category.apiCategory,
-                    challengeStatus: nil, // 전체 챌린지 (신청 마감 포함)
-                    isFinished: nil, // 종료 여부 상관없이
-                    isJoined: nil
-                )
+                if showClosedOnly {
+                    // ✅ 2. 모집마감 챌린지만 (3.3 API) — closed API에서 왔으므로 isClosed = true
+                    let closedRequest = ClosedChallengeListRequest(
+                        category: closedCategoryParam,
+                        page: 0,
+                        size: 20
+                    )
+                    let closedResponse = try await fetchChallengeListUseCase.executeClosed(request: closedRequest)
                 
-                let challenges = try await fetchChallengeListUseCase.execute(request: request)
-                
-                #if DEBUG
-                print("🎯 Fetched \(challenges.count) challenges for category: \(category.rawValue)")
-                #endif
-                
-                return challenges.map { ChallengeItemViewModel(challenge: $0) }
+                    return closedResponse.content.map { ChallengeItemViewModel(challengeItem: $0, isClosed: true) }
+                    
+                } else {
+                    // ✅ 3. 모집중 챌린지만 (3.2 API) — open API에서 왔으므로 isClosed = false
+                    let openRequest = OpenChallengeListRequest(
+                        category: categoryParam,
+                        sortType: sortType,
+                        page: 0,
+                        size: 20
+                    )
+                    let openResponse = try await fetchChallengeListUseCase.executeOpen(request: openRequest)
+                    
+                    return openResponse.content.map { ChallengeItemViewModel(challengeItem: $0, isClosed: false) }
+                }
             } catch {
                 print("❌ Error fetching challenges: \(error)")
                 return []
@@ -96,22 +83,13 @@ public final class ChallengeListViewModel: ObservableObject {
         
         do {
             let items = try await fetchTask.value
-            if let delay = delayTask {
-                await delay.value
-            }
-            
             self.allItems = items
-            applyAllFilters()
+            self.items = items
         } catch {
-            if let delay = delayTask {
-                await delay.value
-            }
             self.allItems = []
             self.items = []
         }
         
-        if showSkeleton {
-            isLoading = false
-        }
+        isLoading = false
     }
 }

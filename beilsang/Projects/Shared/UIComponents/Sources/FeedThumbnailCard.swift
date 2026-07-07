@@ -31,7 +31,7 @@ public struct FeedThumbnailCard: View {
     public var body: some View {
         Button(action: onTap) {
             ZStack(alignment: .topTrailing) {
-                AsyncImage(url: URL(string: imageUrl ?? "")) { image in
+                CachedAsyncImage(url: imageUrl) { image in
                     image
                         .resizable()
                         .aspectRatio(1.3, contentMode: .fill)
