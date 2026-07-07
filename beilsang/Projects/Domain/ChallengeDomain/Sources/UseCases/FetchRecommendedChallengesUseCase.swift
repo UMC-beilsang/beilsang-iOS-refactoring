@@ -1,4 +1,3 @@
-//
 //  FetchRecommendedChallengesUseCase.swift
 //  ChallengeDomain
 //
@@ -9,19 +8,19 @@ import Foundation
 import ModelsShared
 
 public protocol FetchRecommendedChallengesUseCaseProtocol {
-    func execute() async throws -> [Challenge]
+    func execute(size: Int) async throws -> [ChallengeItem]
 }
 
 public final class FetchRecommendedChallengesUseCase: FetchRecommendedChallengesUseCaseProtocol {
-    private let repository: ChallengeRepositoryProtocol
+    private let repository: ChallengeQueryRepositoryProtocol
     
-    public init(repository: ChallengeRepositoryProtocol) {
+    public init(repository: ChallengeQueryRepositoryProtocol) {
         self.repository = repository
     }
     
-    public func execute() async throws -> [Challenge] {
-        try await repository.fetchRecommendedChallenges()
+    public func execute(size: Int = 10) async throws -> [ChallengeItem] {
+        let request = RecommendedChallengeRequest(size: size)
+        return try await repository.fetchRecommended(request: request)
     }
 }
-
 
