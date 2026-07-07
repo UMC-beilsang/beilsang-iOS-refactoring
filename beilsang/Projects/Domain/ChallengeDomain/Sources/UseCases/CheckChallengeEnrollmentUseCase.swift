@@ -13,9 +13,9 @@ public protocol CheckChallengeEnrollmentUseCaseProtocol {
 }
 
 public final class CheckChallengeEnrollmentUseCase: CheckChallengeEnrollmentUseCaseProtocol {
-    private let repository: ChallengeRepositoryProtocol
+    private let repository: ChallengeQueryRepositoryProtocol
     
-    public init(repository: ChallengeRepositoryProtocol) {
+    public init(repository: ChallengeQueryRepositoryProtocol) {
         self.repository = repository
     }
     

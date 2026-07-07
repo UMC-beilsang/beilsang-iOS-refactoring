@@ -17,9 +17,9 @@ public protocol CreateChallengeUseCaseProtocol {
 }
 
 public final class CreateChallengeUseCase: CreateChallengeUseCaseProtocol {
-    private let repository: ChallengeRepositoryProtocol
+    private let repository: ChallengeCommandRepositoryProtocol
     
-    public init(repository: ChallengeRepositoryProtocol) {
+    public init(repository: ChallengeCommandRepositoryProtocol) {
         self.repository = repository
     }
     
