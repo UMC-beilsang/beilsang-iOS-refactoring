@@ -44,7 +44,6 @@ public struct MyPageView: View {
                             // 프로필 섹션
                             profileSection
                             
-                            
                             //Divider
                             Rectangle()
                                 .fill(ColorSystem.labelNormalDisable)
@@ -61,25 +60,25 @@ public struct MyPageView: View {
                         .transition(.opacity)
                     }
                 }
-                .animation(.easeOut(duration: 0.4), value: viewModel.isInitialLoading)
+                .animation(.easeOut(duration: 0.2), value: viewModel.isInitialLoading)
             }
         }
+        .toolbar(.hidden, for: .navigationBar)
         .onAppear {
-            // 이미 데이터가 있으면 로딩 상태 즉시 해제 (깜빡임 방지)
             if viewModel.userProfile != nil || !viewModel.myFeeds.isEmpty {
                 viewModel.isInitialLoading = false
+                // 기존 데이터 보여주면서 백그라운드 조용히 갱신
+                Task { await viewModel.loadInitialData(showSkeleton: false) }
             }
         }
         .task {
-            // 초기 로딩 (데이터가 비어있을 때만)
+            // 최초 로딩 (데이터 없을 때만 스켈레톤 표시)
             if viewModel.userProfile == nil && viewModel.myFeeds.isEmpty {
-                await viewModel.loadUserProfile(showSkeleton: true)
-                await viewModel.loadMyFeeds(reset: true, showSkeleton: true)
+                await viewModel.loadInitialData(showSkeleton: true)
             }
         }
         .refreshable {
-            await viewModel.loadUserProfile(showSkeleton: true)
-            await viewModel.loadMyFeeds(reset: true, showSkeleton: true)
+            await viewModel.loadInitialData(showSkeleton: false)
         }
     }
     
@@ -93,26 +92,18 @@ public struct MyPageView: View {
             
             HStack(alignment: .center) {
                 // 프로필 이미지
-                if let imageUrl = viewModel.profileImageUrl,
-                   let url = URL(string: imageUrl) {
-                    AsyncImage(url: url) { image in
-                        image
-                            .resizable()
-                            .scaledToFill()
-                    } placeholder: {
-                        Image("profilePlaceholderImage", bundle: .designSystem)
-                            .resizable()
-                            .scaledToFill()
-                    }
-                    .frame(width: 88, height: 88)
-                    .clipShape(Circle())
-                } else {
+                CachedAsyncImage(url: viewModel.profileImageUrl) { image in
+                    image
+                        .resizable()
+                        .scaledToFill()
+                } placeholder: {
                     Image("profilePlaceholderImage", bundle: .designSystem)
                         .resizable()
                         .scaledToFill()
-                        .frame(width: 88, height: 88)
-                        .clipShape(Circle())
                 }
+                .id(viewModel.profileImageReloadToken)
+                .frame(width: 88, height: 88)
+                .clipShape(Circle())
                 
                 Spacer()
                 
@@ -143,13 +134,6 @@ public struct MyPageView: View {
             .padding(.horizontal, 20)
             
             VStack(spacing: 12) {
-                if let motto = viewModel.motto {
-                    MottoDisplayView(
-                        title: motto.title,
-                        iconName: motto.iconName
-                    )
-                }
-                
                 // Profile Edit Button
                 HStack {
                     Spacer()
@@ -315,9 +299,9 @@ public struct MyPageView: View {
             .padding(.horizontal, 24)
             
             // 피드 그리드
-            if viewModel.myFeeds.isEmpty {
+                if viewModel.myFeeds.isEmpty {
                 if viewModel.isFeedsLoading {
-                    ProgressView()
+                    DotsLoadingView()
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 40)
                 } else {
@@ -340,7 +324,7 @@ public struct MyPageView: View {
                 .padding(.top, 36)
             
             ActiveButton(title: "챌린지 둘러보기") {
-                // TODO: 챌린지 목록으로 이동
+                challengePresentationCoordinator?.browseChallenges()
             }
         }
         .frame(maxWidth: .infinity, alignment: .center)
@@ -379,7 +363,8 @@ public struct MyPageView: View {
             .padding(.horizontal, 24)
             
             if viewModel.isFeedsLoading && !viewModel.myFeeds.isEmpty {
-                ProgressView()
+                DotsLoadingView()
+                    .frame(maxWidth: .infinity)
                     .padding(.top, 16)
             }
         }

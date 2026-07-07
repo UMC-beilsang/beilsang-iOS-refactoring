@@ -14,6 +14,8 @@ import ChallengeDomain
 
 public struct ChallengeFeedDetailView: View {
     @StateObject private var viewModel: ChallengeFeedDetailViewModel
+    @State private var reportSheetDetent: PresentationDetent = .large
+    @State private var localToast: (iconName: String, message: String)? = nil
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var toastManager: ToastManager
     @EnvironmentObject var coordinator: ChallengeCoordinator
@@ -45,7 +47,7 @@ public struct ChallengeFeedDetailView: View {
                             // 사용자 프로필 영역
                             VStack(alignment: .leading, spacing: 16) {
                                 HStack(spacing: 20) {
-                                    AsyncImage(url: URL(string: feedDetail.userProfileImageUrl ?? "")) { image in
+                                    CachedAsyncImage(url: feedDetail.memberInfo.profileImage) { image in
                                         image
                                             .resizable()
                                             .aspectRatio(contentMode: .fill)
@@ -59,14 +61,13 @@ public struct ChallengeFeedDetailView: View {
                                     
                                     VStack(alignment: .leading, spacing: 2) {
                                         HStack(alignment: .center, spacing: 12) {
-                                            Text(feedDetail.userName)
+                                            Text(feedDetail.memberInfo.nickName ?? "")
                                                 .fontStyle(.body1Bold)
                                                 .foregroundStyle(ColorSystem.labelNormalStrong)
                                             
-                                            //TODO: Action 연결
-                                            Button(action : {
-                                                print("프로필 보기")
-                                            }) {
+                                            Button {
+                                                handleProfileTap(for: feedDetail)
+                                            } label: {
                                                 HStack(alignment: .center, spacing: 0){
                                                     Text("프로필 보기")
                                                         .fontStyle(.detail1Medium)
@@ -88,7 +89,7 @@ public struct ChallengeFeedDetailView: View {
                                 .padding(.top, 24)
                                 
                                 // 피드 이미지
-                                AsyncImage(url: URL(string: feedDetail.feedUrl)) { image in
+                                CachedAsyncImage(url: feedDetail.feedUrl) { image in
                                     image
                                         .resizable()
                                         .aspectRatio(contentMode: .fit)
@@ -129,8 +130,8 @@ public struct ChallengeFeedDetailView: View {
                                 
                                 
                                 // 피드 설명
-                                if !feedDetail.description.isEmpty {
-                                    Text(feedDetail.description)
+                                if let review = feedDetail.review, !review.isEmpty {
+                                    Text(review) 
                                         .fontStyle(.body2SemiBold)
                                         .foregroundStyle(ColorSystem.labelNormalNormal)
                                         .lineLimit(nil)
@@ -145,7 +146,7 @@ public struct ChallengeFeedDetailView: View {
                                 
                                 // 챌린지 태그들
                                 HStack(alignment: .center, spacing: 6) {
-                                    ForEach(feedDetail.challengeTags, id: \.self) { tag in
+                                    ForEach([feedDetail.challengeCategory], id: \.self) { tag in
                                         Text("#\(tag)")
                                             .fontStyle(.detail1Medium)
                                             .foregroundColor(ColorSystem.primaryStrong)
@@ -175,13 +176,57 @@ public struct ChallengeFeedDetailView: View {
                         .transition(.opacity)
                     }
                 }
-                .animation(.easeOut(duration: 0.4), value: viewModel.isLoading)
+                .animation(.easeOut(duration: 0.2), value: viewModel.isLoading)
             }
             .task {
                 await viewModel.loadFeedDetail()
             }
         }
+    .toolbar(.hidden, for: .navigationBar)
+    .fullScreenCover(item: $coordinator.presentedMemberProfile) { profile in
+        coordinator.makeMemberProfileView(memberInfo: profile.memberInfo)
+            .toolbar(.hidden, for: .navigationBar)
     }
+    .sheet(isPresented: $viewModel.showReportSheet) {
+        ReportBottomSheet(
+            title: "피드 신고하기",
+            onCancel: { viewModel.showReportSheet = false },
+            onReasonSelected: { (reason: FeedReportReason, otherText: String?) in
+                viewModel.showReportSheet = false
+                Task {
+                    let result = await viewModel.reportFeedFromSheet(reason: reason, otherText: otherText)
+                    await MainActor.run {
+                        let (iconName, message): (String, String) = {
+                            switch result {
+                            case .success(let msg): return ("toastCheckIcon", msg)
+                            case .error(let msg):   return ("toastWarningIcon", msg)
+                            default:                return ("toastCheckIcon", "")
+                            }
+                        }()
+                        guard !message.isEmpty else { return }
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                            localToast = (iconName, message)
+                        }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.3) {
+                            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                localToast = nil
+                            }
+                        }
+                    }
+                }
+            },
+            detent: $reportSheetDetent
+        )
+        .presentationDragIndicator(.visible)
+    }
+    .overlay(alignment: .bottom) {
+        if let toast = localToast {
+            ToastView(iconName: toast.iconName, message: toast.message)
+                .padding(.bottom, UIScreen.main.bounds.height * 0.17)
+                .transition(.opacity)
+        }
+    }
+  }
     
     private var headerTitle: String {
         guard let feedDetail = viewModel.feedDetail else {
@@ -194,46 +239,21 @@ public struct ChallengeFeedDetailView: View {
     private var createdAtText: String {
         guard let feedDetail = viewModel.feedDetail else { return "" }
         
-        let formatter = RelativeDateTimeFormatter()
-        formatter.locale = Locale(identifier: "ko_KR")
-        return formatter.localizedString(for: feedDetail.createdAt, relativeTo: Date())
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        guard let date = formatter.date(from: feedDetail.createdAt) else { return "" }
+        
+        let relative = RelativeDateTimeFormatter()
+        relative.locale = Locale(identifier: "ko_KR")
+        return relative.localizedString(for: date, relativeTo: Date())
     }
-    
-    @ViewBuilder
-    private var popupOverlay: some View {
-        if viewModel.showingPopup, let popupType = viewModel.currentPopupType {
-            ZStack {
-                Color.black.opacity(0.4)
-                    .ignoresSafeArea()
-                    .onTapGesture { viewModel.dismissPopup() }
-                
-                PopupView(
-                    title: popupType.title,
-                    style: popupType.style,
-                    primary: PopupAction(title: "신고하기") {
-                        Task {
-                            let success = await viewModel.handleReport()
-                            await MainActor.run {
-                                viewModel.dismissPopup()
-                                if success {
-                                    toastManager.show(
-                                        iconName: "toastWarningIcon",
-                                        message: "신고가 접수되었습니다"
-                                    )
-                                } else {
-                                    toastManager.show(
-                                        iconName: "toastWarningIcon",
-                                        message: "신고 처리 중 오류가 발생했습니다"
-                                    )
-                                }
-                            }
-                        }
-                    },
-                    secondary: PopupAction(title: "취소") {
-                        viewModel.dismissPopup()
-                    }
-                )
-            }
+
+    private func handleProfileTap(for feedDetail: FeedDetailData) {
+        if feedDetail.isMyFeed {
+            coordinator.navigateToMyProfile()
+        } else {
+            coordinator.presentMemberProfile(feedDetail.memberInfo)
         }
     }
+    
 }

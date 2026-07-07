@@ -19,7 +19,7 @@ public final class MyPageContainer {
     public let myPageViewModel: MyPageViewModel
     
     private let userRepository: UserRepositoryProtocol
-    private let challengeRepository: ChallengeRepositoryProtocol
+    private let challengeQueryRepository: ChallengeQueryRepositoryProtocol
     private let baseURL: String
     private let tokenStorage: KeychainTokenStorageProtocol
     
@@ -28,24 +28,21 @@ public final class MyPageContainer {
         self.baseURL = baseURL
         self.tokenStorage = tokenStorage
         
-        // AuthInterceptor로 토큰 자동 추가
         let interceptor = AuthInterceptor(tokenStorage: tokenStorage, baseURL: baseURL)
         let session = Session(interceptor: interceptor)
         let apiClient = APIClient(baseURL: baseURL, session: session)
         let userRepo = UserRepository(apiClient: apiClient)
-        let challengeRepo = ChallengeRepository(apiClient: apiClient)
+        let challengeQueryRepo = ChallengeQueryRepository(apiClient: apiClient)
         
         self.userRepository = userRepo
-        self.challengeRepository = challengeRepo
+        self.challengeQueryRepository = challengeQueryRepo
         
-        // User UseCases
         let fetchUserProfileUseCase = FetchUserProfileUseCase(repository: userRepo)
         let fetchMyFeedsUseCase = FetchMyFeedsUseCase(repository: userRepo)
         let updateProfileUseCase = UpdateProfileUseCase(repository: userRepo)
         let updateProfileImageUseCase = UpdateProfileImageUseCase(repository: userRepo)
         let fetchPointsUseCase = FetchPointsUseCase(repository: userRepo)
         
-        // MyPage Root ViewModel
         self.myPageViewModel = MyPageViewModel(
             fetchUserProfileUseCase: fetchUserProfileUseCase,
             fetchMyFeedsUseCase: fetchMyFeedsUseCase
@@ -63,16 +60,18 @@ public final class MyPageContainer {
         let fetchUserProfileUseCase = FetchUserProfileUseCase(repository: userRepository)
         let updateProfileUseCase = UpdateProfileUseCase(repository: userRepository)
         let updateProfileImageUseCase = UpdateProfileImageUseCase(repository: userRepository)
+        let checkNicknameUseCase = CheckNicknameUseCase(repository: userRepository)
         
         return ProfileEditViewModel(
             fetchUserProfileUseCase: fetchUserProfileUseCase,
             updateProfileUseCase: updateProfileUseCase,
-            updateProfileImageUseCase: updateProfileImageUseCase
+            updateProfileImageUseCase: updateProfileImageUseCase,
+            checkNicknameUseCase: checkNicknameUseCase
         )
     }
     
     public func makeMyChallengeListViewModel() -> MyChallengeListViewModel {
-        return MyChallengeListViewModel(repository: challengeRepository)
+        return MyChallengeListViewModel(queryRepo: challengeQueryRepository)
     }
     
     public func makeMyFeedListViewModel() -> MyFeedListViewModel {
@@ -86,7 +85,7 @@ public final class MyPageContainer {
     }
     
     public func makeFavoriteChallengeListViewModel() -> FavoriteChallengeListViewModel {
-        return FavoriteChallengeListViewModel(repository: challengeRepository)
+        return FavoriteChallengeListViewModel(queryRepo: challengeQueryRepository)
     }
     
     public func makeMyBadgeViewModel() -> MyBadgeViewModel {

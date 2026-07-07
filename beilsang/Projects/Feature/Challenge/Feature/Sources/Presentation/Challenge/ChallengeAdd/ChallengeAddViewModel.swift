@@ -11,6 +11,7 @@ import SwiftUI
 import UIKit
 import ModelsShared
 import ChallengeDomain
+import UserDomain
 import _PhotosUI_SwiftUI
 import UIComponentsShared
 
@@ -68,6 +69,7 @@ public final class ChallengeAddViewModel: ObservableObject {
     @Published var selectedPhotos: [PhotosPickerItem] = []
     
     private let createChallengeUseCase: CreateChallengeUseCaseProtocol
+    private let fetchPointsUseCase: FetchPointsUseCaseProtocol
     private var titleDebounceTask: Task<Void, Never>?
     public let confirmList = [
         "카테고리에 알맞는 챌린지를 만들어 주세요",
@@ -77,8 +79,12 @@ public final class ChallengeAddViewModel: ObservableObject {
         "챌린지 등록 시 자동으로 챌린지에 참여해요"
     ]
     
-    public init(createChallengeUseCase: CreateChallengeUseCaseProtocol) {
+    public init(
+        createChallengeUseCase: CreateChallengeUseCaseProtocol,
+        fetchPointsUseCase: FetchPointsUseCaseProtocol
+    ) {
         self.createChallengeUseCase = createChallengeUseCase
+        self.fetchPointsUseCase = fetchPointsUseCase
     }
     
     deinit { titleDebounceTask?.cancel() }
@@ -96,7 +102,9 @@ public final class ChallengeAddViewModel: ObservableObject {
         !title.isEmpty &&
         (1...30).contains(title.count) &&
         category != nil &&
-        representativePhotos.count >= 1 &&
+        loadedRepresentativePhotoCount >= 1 &&
+        !representativePhotos.contains(where: { $0.isLoading || $0.isFailed }) &&
+        startDate != nil &&
         period != nil &&
         practiceCount > 0
     }
@@ -104,7 +112,8 @@ public final class ChallengeAddViewModel: ObservableObject {
     private func validateStep2() -> Bool {
         isDescriptionValid &&
         isCautionValid &&
-        samplePhotos.count >= 1 &&
+        loadedSamplePhotoCount >= 4 &&
+        !samplePhotos.contains(where: { $0.isLoading || $0.isFailed }) &&
         minPoint >= 100 &&
         minPoint % 100 == 0
     }
@@ -225,7 +234,6 @@ public final class ChallengeAddViewModel: ObservableObject {
     
     func showSampleImagePicker() {
         imagePickerTarget = .sample
-        samplePhotos = [] 
         selectedPhotos = []
         showImagePicker = true
     }
@@ -282,61 +290,86 @@ public final class ChallengeAddViewModel: ObservableObject {
         }
     }
     
+    // MARK: - 포인트
+    @Published var userPoints: Int = 0
+    @Published var showInsufficientPointsPopup: Bool = false
+
+    var isPointExceedingBalance: Bool {
+        userPoints > 0 && minPoint > userPoints
+    }
+
+    func fetchUserPoints() async {
+        do {
+            let data = try await fetchPointsUseCase.execute()
+            userPoints = data.total
+            if userPoints < 100 {
+                showInsufficientPointsPopup = true
+            }
+        } catch {
+            print("❌ 포인트 조회 실패: \(error)")
+        }
+    }
+
     // MARK: - Final Action
     @Published var isCreating: Bool = false
     @Published var createError: String?
     @Published var createdChallengeId: Int?
     
-    func createChallenge() {
-        guard validateStep1(), validateStep2(), validateStep3() else { return }
-        guard let category = category, let period = period, let startDate = startDate else { return }
+    func createChallenge() async throws {
+        guard validateStep1(), validateStep2(), validateStep3() else {
+            throw ChallengeAddError.invalidForm
+        }
+        guard let category = category, let period = period, let startDate = startDate else {
+            throw ChallengeAddError.invalidForm
+        }
         
         isCreating = true
         createError = nil
         
-        Task {
-            do {
-                // 날짜 포맷팅
-                let dateFormatter = DateFormatter()
-                dateFormatter.dateFormat = "yyyy-MM-dd"
-                let startDateString = dateFormatter.string(from: startDate)
-                
-                // 이미지들을 Data로 변환
-                let infoImageData = convertPhotosToData(representativePhotos)
-                let certImageData = convertPhotosToData(samplePhotos)
-                
-                // 챌린지 유의사항을 줄바꿈으로 분리
-                let notes = caution.components(separatedBy: "\n").filter { !$0.isEmpty }
-                
-                let request = ChallengeCreateRequest(
-                    title: title,
-                    startDate: startDateString,
-                    period: mapPeriod(period),
-                    totalGoalDay: practiceCount,
-                    category: category.apiCategory,
-                    details: description,
-                    notes: notes,
-                    joinPoint: minPoint
-                )
-                
-                let response = try await createChallengeUseCase.execute(
-                    request: request,
-                    infoImages: infoImageData,
-                    certImages: certImageData
-                )
-                
-                await MainActor.run {
-                    self.createdChallengeId = response.challengeId
-                    self.isCreating = false
-                    print("✅ 챌린지 생성 완료 - ID: \(response.challengeId)")
-                }
-            } catch {
-                await MainActor.run {
-                    self.isCreating = false
-                    self.createError = error.localizedDescription
-                    print("❌ 챌린지 생성 실패: \(error)")
-                }
-            }
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        let startDateString = dateFormatter.string(from: startDate)
+        
+        let infoImageData = convertPhotosToData(representativePhotos)
+        let certImageData = convertPhotosToData(samplePhotos)
+
+        guard !infoImageData.isEmpty else {
+            isCreating = false
+            throw ChallengeAddError.missingRepresentativeImages
+        }
+
+        guard certImageData.count >= 4 else {
+            isCreating = false
+            throw ChallengeAddError.missingSampleImages
+        }
+        
+        let notes = caution.components(separatedBy: "\n").filter { !$0.isEmpty }
+        
+        let request = ChallengeCreateRequest(
+            title: title,
+            startDate: startDateString,
+            period: mapPeriod(period),
+            totalGoalDay: practiceCount,
+            category: category.apiCategory,
+            details: description,
+            challengeNotes: notes,
+            joinPoint: minPoint
+        )
+        
+        do {
+            let response = try await createChallengeUseCase.execute(
+                request: request,
+                infoImages: infoImageData,
+                certImages: certImageData
+            )
+            createdChallengeId = response.challengeId
+            isCreating = false
+            print("✅ 챌린지 생성 완료 - ID: \(response.challengeId)")
+        } catch {
+            isCreating = false
+            createError = error.localizedDescription
+            print("❌ 챌린지 생성 실패: \(error)")
+            throw error
         }
     }
     
@@ -397,6 +430,31 @@ public final class ChallengeAddViewModel: ObservableObject {
         switch period {
         case .week: return .week
         case .month: return .month
+        }
+    }
+
+    private var loadedRepresentativePhotoCount: Int {
+        representativePhotos.filter { $0.image != nil }.count
+    }
+
+    private var loadedSamplePhotoCount: Int {
+        samplePhotos.filter { $0.image != nil }.count
+    }
+}
+
+enum ChallengeAddError: LocalizedError {
+    case invalidForm
+    case missingRepresentativeImages
+    case missingSampleImages
+
+    var errorDescription: String? {
+        switch self {
+        case .invalidForm:
+            return "입력 정보를 다시 확인해 주세요"
+        case .missingRepresentativeImages:
+            return "대표 이미지를 다시 등록해 주세요"
+        case .missingSampleImages:
+            return "모범 인증 사진 4장을 다시 등록해 주세요"
         }
     }
 }

@@ -8,7 +8,6 @@
 import Foundation
 import UserDomain
 import ModelsShared
-import UtilityShared
 
 @MainActor
 public final class MyFeedListViewModel: ObservableObject {
@@ -47,18 +46,8 @@ public final class MyFeedListViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
         
-        let shouldDelay = showSkeleton && reset && MockConfig.useMockData
-        let delayTask: Task<Void, Never>? = shouldDelay ? Task {
-            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
-        } : nil
-        
         do {
-            // TODO: 탭과 카테고리에 따른 필터링은 API가 지원하면 추가
             let response = try await fetchMyFeedsUseCase.execute(page: currentPage, size: pageSize)
-            
-            if let delay = delayTask {
-                await delay.value
-            }
             
             feeds.append(contentsOf: response.content)
             currentPage += 1
@@ -68,9 +57,6 @@ public final class MyFeedListViewModel: ObservableObject {
             print("📷 Fetched \(response.content.count) feeds for tab: \(tabIndex), category: \(category.rawValue)")
             #endif
         } catch {
-            if let delay = delayTask {
-                await delay.value
-            }
             errorMessage = "피드 목록을 불러오는 데 실패했습니다."
             #if DEBUG
             print("❌ Error fetching feeds: \(error)")
@@ -84,6 +70,3 @@ public final class MyFeedListViewModel: ObservableObject {
         }
     }
 }
-
-
-

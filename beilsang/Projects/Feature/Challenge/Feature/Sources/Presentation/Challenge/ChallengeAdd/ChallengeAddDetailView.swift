@@ -21,15 +21,12 @@ struct ChallengeAddDetailView: View {
             
             Spacer(minLength: UIScreen.main.bounds.height * 0.06)
             
-            ScrollView(.vertical, showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 32) {
-                    descriptionSection
-                    cautionSection
-                    sampleImagesSection
-                    pointSection
-                }
+            VStack(alignment: .leading, spacing: 32) {
+                descriptionSection
+                cautionSection
+                sampleImagesSection
+                pointSection
             }
-            .scrollBounceBehavior(.basedOnSize)
         }
         .padding(.horizontal, 24)
         .dismissKeyboardOnTap(focusedField: $focusedField)
@@ -143,6 +140,19 @@ struct ChallengeAddDetailView: View {
                     viewModel.decreasePoint()
                 }
             )
+            
+            if viewModel.isPointExceedingBalance {
+                HStack(spacing: 4) {
+                    Image(systemName: "exclamationmark.circle.fill")
+                        .font(.system(size: 13))
+                        .foregroundStyle(ColorSystem.semanticNegativeHeavy)
+                    Text("현재 보유 포인트(\(viewModel.userPoints)P)보다 높게 설정되어 있어요")
+                        .fontStyle(.detail1Medium)
+                        .foregroundStyle(ColorSystem.semanticNegativeHeavy)
+                }
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
         }
+        .animation(.easeInOut(duration: 0.2), value: viewModel.isPointExceedingBalance)
     }
 }

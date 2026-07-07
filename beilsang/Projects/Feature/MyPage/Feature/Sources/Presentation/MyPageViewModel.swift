@@ -10,7 +10,11 @@ import Combine
 import SwiftUI
 import UserDomain
 import ModelsShared
-import UtilityShared
+
+public extension Foundation.Notification.Name {
+    /// 프로필(이미지/닉네임 등) 수정이 완료되었을 때 발생
+    static let profileDidUpdate = Foundation.Notification.Name("ProfileDidUpdate")
+}
 
 @MainActor
 public final class MyPageViewModel: ObservableObject {
@@ -22,12 +26,15 @@ public final class MyPageViewModel: ObservableObject {
     @Published public var errorMessage: String?
     @Published public var hasMoreFeeds: Bool = true
     @Published public var isInitialLoading: Bool = true
+    /// 프로필 이미지 뷰를 강제로 다시 그리기 위한 토큰 (URL이 동일해도 캐시를 다시 읽도록)
+    @Published public var profileImageReloadToken = UUID()
     
     // MARK: - Private Properties
     private let fetchUserProfileUseCase: FetchUserProfileUseCaseProtocol
     private let fetchMyFeedsUseCase: FetchMyFeedsUseCaseProtocol
     private var currentFeedPage: Int = 0
     private let feedPageSize: Int = 4
+    private var cancellables = Set<AnyCancellable>()
     
     // MARK: - Init
     public init(
@@ -36,10 +43,35 @@ public final class MyPageViewModel: ObservableObject {
     ) {
         self.fetchUserProfileUseCase = fetchUserProfileUseCase
         self.fetchMyFeedsUseCase = fetchMyFeedsUseCase
+
+        NotificationCenter.default.publisher(for: .profileDidUpdate)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.profileImageReloadToken = UUID()
+                Task { await self?.loadUserProfile() }
+            }
+            .store(in: &cancellables)
     }
     
     // MARK: - Public Methods
+    public func loadInitialData(showSkeleton: Bool = false) async {
+        if showSkeleton {
+            isInitialLoading = true
+        }
+
+        await withTaskGroup(of: Void.self) { group in
+            group.addTask { await self.loadUserProfile() }
+            group.addTask { await self.loadMyFeeds(reset: true) }
+        }
+
+        if showSkeleton {
+            isInitialLoading = false
+        }
+    }
+
     public func loadUserProfile(showSkeleton: Bool = false) async {
+        guard !isLoading else { return }
+        
         if showSkeleton {
             isInitialLoading = true
         }
@@ -47,21 +79,9 @@ public final class MyPageViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
         
-        let shouldDelay = showSkeleton && MockConfig.useMockData
-        let delayTask: Task<Void, Never>? = shouldDelay ? Task {
-            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
-        } : nil
-        
         do {
             userProfile = try await fetchUserProfileUseCase.execute()
-            
-            if let delay = delayTask {
-                await delay.value
-            }
         } catch {
-            if let delay = delayTask {
-                await delay.value
-            }
             errorMessage = "프로필을 불러오는 데 실패했습니다."
             #if DEBUG
             print("❌ Failed to load user profile: \(error)")
@@ -80,7 +100,6 @@ public final class MyPageViewModel: ObservableObject {
         
         if reset {
             currentFeedPage = 0
-            myFeeds = []
             hasMoreFeeds = true
         }
         
@@ -92,18 +111,12 @@ public final class MyPageViewModel: ObservableObject {
         
         isFeedsLoading = true
         
-        let shouldDelay = showSkeleton && reset && MockConfig.useMockData
-        let delayTask: Task<Void, Never>? = shouldDelay ? Task {
-            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
-        } : nil
-        
         do {
             let response = try await fetchMyFeedsUseCase.execute(page: currentFeedPage, size: feedPageSize)
             
-            if let delay = delayTask {
-                await delay.value
+            if reset {
+                myFeeds = []
             }
-            
             myFeeds.append(contentsOf: response.content)
             hasMoreFeeds = response.hasNext
             currentFeedPage += 1
@@ -112,9 +125,6 @@ public final class MyPageViewModel: ObservableObject {
             print("📷 Loaded \(response.content.count) feeds, total: \(myFeeds.count), hasMore: \(hasMoreFeeds)")
             #endif
         } catch {
-            if let delay = delayTask {
-                await delay.value
-            }
             #if DEBUG
             print("❌ Failed to load my feeds: \(error)")
             #endif
@@ -133,7 +143,7 @@ public final class MyPageViewModel: ObservableObject {
     }
     
     public var profileImageUrl: String? {
-        userProfile?.profileImage
+        userProfile?.profileUrl
     }
     
     public var totalPoint: String {
@@ -141,16 +151,15 @@ public final class MyPageViewModel: ObservableObject {
         return formatPoint(point)
     }
     
-    /// 포인트 포맷팅 (큰 숫자 축약)
     private func formatPoint(_ value: Int) -> String {
         switch value {
-        case 100_000_000...:  // 1억 이상
+        case 100_000_000...:
             let billions = Double(value) / 100_000_000
             return String(format: "%.0f억P", billions)
-        case 10_000...:  // 1만 이상
+        case 10_000...:
             let tenThousands = Double(value) / 10_000
             return String(format: "%.0f만P", tenThousands)
-        case 1_000...:  // 1천 이상
+        case 1_000...:
             let formatter = NumberFormatter()
             formatter.numberStyle = .decimal
             return "\(formatter.string(from: NSNumber(value: value)) ?? "\(value)")P"
@@ -163,17 +172,14 @@ public final class MyPageViewModel: ObservableObject {
         "\(userProfile?.countFeed ?? 0)개"
     }
     
-    /// 성공한 챌린지 수
     public var successChallengeCount: String {
         "\(userProfile?.successChallenge ?? 0)개"
     }
     
-    /// 실패한 챌린지 수
     public var failedChallengeCount: String {
         "\(userProfile?.failedChallenges ?? 0)개"
     }
     
-    /// 진행중인 챌린지 수
     public var ongoingChallengeCount: String {
         "\(userProfile?.challenges ?? 0)개"
     }
@@ -182,20 +188,16 @@ public final class MyPageViewModel: ObservableObject {
         "\(userProfile?.likes ?? 0)개"
     }
     
-    /// 배지 수 (TODO: API에서 badges 필드 추가 시 연동)
     public var badgeCount: String {
         "0개"
     }
     
-    // MARK: - Motto (Resolution)
     public var resolution: String? {
         userProfile?.resolution
     }
     
-    /// Motto 모델로 변환 (아이콘 포함)
     public var motto: Motto? {
         guard let resolution = userProfile?.resolution, !resolution.isEmpty else { return nil }
         return Motto.allCases.first { $0.title == resolution }
     }
 }
-

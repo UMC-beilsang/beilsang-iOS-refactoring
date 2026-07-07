@@ -8,20 +8,18 @@
 import Foundation
 import ChallengeDomain
 import ModelsShared
-import UtilityShared
 
 @MainActor
 public final class SearchViewModel: ObservableObject {
     @Published public var searchText: String = ""
     @Published public var recentSearches: [String] = []
-    @Published public var challengeResults: [Challenge] = []
-    @Published public var feedResults: [ChallengeFeedDetail] = []
+    @Published public var challengeResults: [ChallengeItem] = []
+    @Published public var feedResults: [SearchFeedItem] = []
     @Published public var selectedTab: SearchTab = .challenge
     @Published public var isLoading: Bool = false
     @Published public var hasSearched: Bool = false
     @Published public var showEmptyState: Bool = false
     
-    // 탭별 빈 상태 체크
     public var currentTabIsEmpty: Bool {
         switch selectedTab {
         case .challenge:
@@ -31,16 +29,16 @@ public final class SearchViewModel: ObservableObject {
         }
     }
     @Published public var selectedFilters: Set<Keyword> = []
-    @Published public var recommendedChallenges: [Challenge] = []
+    @Published public var recommendedChallenges: [ChallengeItem] = []
     
-    // 필터 관련
     @Published public var selectedFilter: ChallengeFilter = .recent
     @Published public var showFilterSheet: Bool = false
     @Published public var hideClosedChallenges: Bool = false
     
-    private var allChallengeResults: [Challenge] = []
+    private var allChallengeResults: [ChallengeItem] = []
     
-    private let repository: ChallengeRepositoryProtocol
+    private let queryRepo: ChallengeQueryRepositoryProtocol
+    private let feedRepo: FeedRepositoryProtocol
     private let fetchRecommendedChallengesUseCase: FetchRecommendedChallengesUseCaseProtocol
     private let recentSearchesKey = "recentSearches"
     
@@ -50,10 +48,12 @@ public final class SearchViewModel: ObservableObject {
     }
     
     public init(
-        repository: ChallengeRepositoryProtocol,
+        queryRepo: ChallengeQueryRepositoryProtocol,
+        feedRepo: FeedRepositoryProtocol,
         fetchRecommendedChallengesUseCase: FetchRecommendedChallengesUseCaseProtocol
     ) {
-        self.repository = repository
+        self.queryRepo = queryRepo
+        self.feedRepo = feedRepo
         self.fetchRecommendedChallengesUseCase = fetchRecommendedChallengesUseCase
         loadRecentSearches()
     }
@@ -108,23 +108,13 @@ public final class SearchViewModel: ObservableObject {
         }
         
         addRecentSearch(trimmed)
-        
-        // 목업 데이터일 때만 최소 0.5초 스켈레톤 UI 표시를 위한 지연
-        let shouldDelay = MockConfig.useMockData
-        let delayTask: Task<Void, Never>? = shouldDelay ? Task {
-            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5초
-        } : nil
-        
+
         async let searchTask = Task {
             await performActualSearch(query: trimmed)
         }
-        
+
         await searchTask.value
-        
-        if let delay = delayTask {
-            await delay.value // 목업일 때만 최소 0.5초 대기
-        }
-        
+
         await MainActor.run {
             isLoading = false
         }
@@ -132,41 +122,41 @@ public final class SearchViewModel: ObservableObject {
     
     private func performActualSearch(query: String) async {
         do {
-            // 챌린지 검색
-            let challengeRequest = ChallengeListRequest(
-                page: 0,
-                size: 20,
-                keyword: query
-            )
-            let challenges = try await repository.fetchChallengeList(request: challengeRequest)
+            var challenges: [ChallengeItem] = []
             
-            // 피드 검색 (일단 빈 결과, 나중에 피드 검색 API 추가 필요)
-            let feedListResponse = try await repository.fetchFeedList(category: nil, page: 0, size: 20)
-            let feeds = feedListResponse.content.map { feedItem in
-                ChallengeFeedDetail(
-                    id: feedItem.feedId,
-                    feedUrl: feedItem.feedUrl,
-                    day: feedItem.day,
-                    userName: "비밀상님",
-                    userProfileImageUrl: nil,
-                    description: "",
-                    likeCount: 0,
-                    isLiked: false,
-                    challengeTags: [],
-                    createdAt: Date(),
-                    isMyFeed: false
+            if hideClosedChallenges {
+                let closedRequest = SearchClosedChallengeRequest(keyword: query, page: 0, size: 20)
+                let closedResponse = try await queryRepo.searchClosedChallenges(request: closedRequest)
+                challenges = closedResponse.content
+            } else {
+                let sortType = selectedFilter == .recent ? "DEADLINE_SOON" : "NEWEST"
+                let challengeRequest = SearchOpenChallengeRequest(
+                    keyword: query,
+                    sortType: sortType,
+                    page: 0,
+                    size: 20
                 )
+                let challengeResponse = try await queryRepo.searchOpenChallenges(request: challengeRequest)
+                challenges = challengeResponse.content
             }
+            
+            let feedPageData = try await feedRepo.searchFeeds(
+                keyword: query,
+                sortType: "NEWEST",
+                category: nil,
+                page: 0,
+                size: 10
+            )
             
             await MainActor.run {
                 allChallengeResults = challenges
-                feedResults = feeds
+                feedResults = feedPageData.content
                 applyAllFilters()
-                showEmptyState = challengeResults.isEmpty && feeds.isEmpty
+                showEmptyState = challengeResults.isEmpty && feedResults.isEmpty
             }
             
             #if DEBUG
-            print("🔍 Search results - Challenges: \(challenges.count), Feeds: \(feeds.count)")
+            print("🔍 Search results - Challenges: \(challenges.count), Feeds: \(feedPageData.content.count)")
             #endif
         } catch {
             #if DEBUG
@@ -185,31 +175,24 @@ public final class SearchViewModel: ObservableObject {
     public func applyFilter(_ filter: ChallengeFilter) {
         selectedFilter = filter
         showFilterSheet = false
-        applyAllFilters()
+        if hasSearched, !searchText.isEmpty {
+            Task { await performSearch(query: searchText) }
+        } else {
+            applyAllFilters()
+        }
     }
     
     public func toggleClosedChallenges() {
         hideClosedChallenges.toggle()
-        applyAllFilters()
+        if hasSearched, !searchText.isEmpty {
+            Task { await performSearch(query: searchText) }
+        } else {
+            applyAllFilters()
+        }
     }
     
     private func applyAllFilters() {
-        var filtered = allChallengeResults
-        
-        // 1. 모집마감 필터
-        if hideClosedChallenges {
-            filtered = filtered.filter { !$0.isRecruitmentClosed }
-        }
-        
-        // 2. 정렬
-        switch selectedFilter {
-        case .recent:
-            filtered = filtered.sorted { $0.startDate < $1.startDate }
-        case .latest:
-            filtered = filtered.sorted { $0.createdAt > $1.createdAt }
-        }
-        
-        challengeResults = filtered
+        challengeResults = allChallengeResults
     }
     
     // MARK: - Filters
@@ -229,7 +212,7 @@ public final class SearchViewModel: ObservableObject {
     // MARK: - Recommended Challenges
     public func loadRecommendedChallenges() async {
         do {
-            recommendedChallenges = try await fetchRecommendedChallengesUseCase.execute()
+            recommendedChallenges = try await fetchRecommendedChallengesUseCase.execute(size: 10)
         } catch {
             #if DEBUG
             print("❌ Error loading recommended challenges: \(error)")

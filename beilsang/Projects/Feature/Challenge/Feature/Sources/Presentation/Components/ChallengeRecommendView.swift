@@ -6,15 +6,16 @@
 //
 
 import SwiftUI
+import UIComponentsShared
 import ModelsShared
 import DesignSystemShared
 import ChallengeDomain
 
 struct ChallengeRecommendView: View {
-    let recommendChallenges: [Challenge]
+    let recommendChallenges: [ChallengeItem]
     let showOnlyFirst: Bool
     
-    init(recommendChallenges: [Challenge], showOnlyFirst: Bool = false) {
+    init(recommendChallenges: [ChallengeItem], showOnlyFirst: Bool = false) {
         self.recommendChallenges = recommendChallenges
         self.showOnlyFirst = showOnlyFirst
     }
@@ -38,16 +39,17 @@ struct ChallengeRecommendView: View {
 }
 
 struct ChallengeRecommendItemView: View {
-    let challenge: Challenge
+    let challenge: ChallengeItem
     
     var body: some View {
         HStack(alignment: .center, spacing: 16) {
-            // TODO: URL 기반 AsyncImage로 교체 가능
-            Image(challenge.thumbnailImageUrl ?? "", bundle: .designSystem)
-                .resizable()
-                .scaledToFill()
-                .frame(width: UIScreen.main.bounds.height * 0.07, height: UIScreen.main.bounds.height * 0.07)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+            CachedAsyncImage(url: challenge.imageUrl) { image in
+                image.resizable().scaledToFill()
+            } placeholder: {
+                Color.gray
+            }
+            .frame(width: UIScreen.main.bounds.height * 0.07, height: UIScreen.main.bounds.height * 0.07)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
             
             VStack(alignment: .leading, spacing: 6) {
                 if let keyword = Keyword(rawValue: challenge.category) {

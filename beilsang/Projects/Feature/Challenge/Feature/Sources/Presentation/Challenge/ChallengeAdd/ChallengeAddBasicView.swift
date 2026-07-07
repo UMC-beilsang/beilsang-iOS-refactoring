@@ -100,7 +100,7 @@ struct ChallengeAddBasicView: View {
             DropdownField(
                 selected: $viewModel.category,
                 placeholder: "카테고리를 선택해 주세요",
-                options: Keyword.allCases,
+                options: Keyword.allCases.filter { $0 != .all },
                 optionTitle: { $0.title }
             )
         }

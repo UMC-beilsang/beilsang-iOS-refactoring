@@ -13,6 +13,7 @@ import NavigationShared
 
 public struct MyFeedListView: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.challengePresentationCoordinator) private var challengePresentationCoordinator
     @StateObject private var viewModel: MyFeedListViewModel
     
     // 네비게이션 경로
@@ -66,7 +67,7 @@ public struct MyFeedListView: View {
                         .padding(.top, 32)
                     
                     if viewModel.isLoading && viewModel.feeds.isEmpty {
-                        ProgressView()
+                        DotsLoadingView()
                             .frame(maxWidth: .infinity)
                             .padding(.top, 40)
                     } else if viewModel.feeds.isEmpty {
@@ -211,7 +212,7 @@ public struct MyFeedListView: View {
             .padding(.horizontal, 24)
             
             if viewModel.isLoading && !viewModel.feeds.isEmpty {
-                ProgressView()
+                DotsLoadingView()
                     .frame(maxWidth: .infinity)
                     .padding(.top, 16)
             }
@@ -227,7 +228,8 @@ public struct MyFeedListView: View {
                 .padding(.top, 36)
             
             ActiveButton(title: "챌린지 둘러보기") {
-                // TODO: 챌린지 목록으로 이동
+                dismiss()
+                challengePresentationCoordinator?.browseChallenges()
             }
         }
         .frame(maxWidth: .infinity, alignment: .center)

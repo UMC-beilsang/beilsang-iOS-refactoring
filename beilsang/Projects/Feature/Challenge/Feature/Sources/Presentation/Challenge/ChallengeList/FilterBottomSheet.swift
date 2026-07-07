@@ -93,7 +93,7 @@ struct FilterOption: View {
                 HStack(spacing: 20) {
                     
                     Text(title)
-                        .fontStyle(.body2SemiBold)
+                        .fontStyle(.heading3SemiBold)
                         .foregroundStyle(ColorSystem.labelNormalNormal)
                     
                     Text(description)

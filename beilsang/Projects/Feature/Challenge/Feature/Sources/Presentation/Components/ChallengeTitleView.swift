@@ -10,7 +10,7 @@ import DesignSystemShared
 
 struct ChallengeTitleView: View {
     let title: String
-    let createdAtText: String
+    let startDateText: String
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -19,17 +19,12 @@ struct ChallengeTitleView: View {
                 .foregroundStyle(ColorSystem.labelNormalStrong)
                 .padding(.top, 32)
             
-            HStack(spacing: 8) {
-                // TODO: - 작성자명 추가
-                Text("작성자명")
-                
-                Text("|")
-                
-                Text(createdAtText)
+            if !startDateText.isEmpty {
+                Text(startDateText)
+                    .padding(.bottom, 20)
+                    .fontStyle(.body2Medium)
+                    .foregroundStyle(ColorSystem.labelNormalBasic)
             }
-            .padding(.bottom, 20)
-            .fontStyle(.body2Medium)
-            .foregroundStyle(ColorSystem.labelNormalBasic)
         }
     }
 }

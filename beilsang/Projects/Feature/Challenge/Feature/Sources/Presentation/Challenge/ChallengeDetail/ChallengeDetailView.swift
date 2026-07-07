@@ -16,25 +16,81 @@ public struct ChallengeDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var toastManager: ToastManager
     @EnvironmentObject var coordinator: ChallengeCoordinator
+    @State private var reportSheetDetent: PresentationDetent = .large
 
     public init(viewModel: ChallengeDetailViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
     }
     
     public var body: some View {
-        ZStack {
-            if viewModel.isLoading {
-                ChallengeDetailSkeletonView()
-                    .transition(.opacity)
-            }
+        VStack(alignment: .leading, spacing: 0) {
+            Header(type: .tertiaryReport(
+                title: "챌린지",
+                onBack: { dismiss() },
+                onOption: { viewModel.showReportPopup() }
+            ))
             
-            if !viewModel.isLoading, let _ = viewModel.challenge {
-                contentView
-                    .transition(.opacity)
+            ZStack {
+                if viewModel.isLoading {
+                    ChallengeDetailSkeletonView()
+                        .transition(.opacity)
+                }
+                
+                if !viewModel.isLoading, let _ = viewModel.challenge {
+                    scrollContent
+                        .transition(.opacity)
+                }
+            }
+            .animation(.easeOut(duration: 0.2), value: viewModel.isLoading)
+        }
+        .ignoresSafeArea(edges: .bottom)
+        .toolbar(.hidden, for: .navigationBar)
+        .overlay(popupOverlay)
+        .fullScreenCover(isPresented: $viewModel.showFeeds) {
+            if let challenge = viewModel.challenge {
+                ChallengeFeedsView(
+                    viewModel: ChallengeFeedsViewModel(challengeId: challenge.challengeId),
+                    feedRepo: viewModel.feedRepo,
+                    queryRepo: viewModel.queryRepo,
+                    commandRepo: viewModel.commandRepo
+                )
+                .environmentObject(toastManager)
+                .environmentObject(coordinator)
             }
         }
-        .animation(.easeOut(duration: 0.4), value: viewModel.isLoading)
+        .fullScreenCover(isPresented: $viewModel.showCertification) {
+            if let challenge = viewModel.challenge {
+                ChallengeCertView(
+                    viewModel: ChallengeCertViewModel(
+                        challengeId: challenge.challengeId,
+                        feedRepo: viewModel.feedRepo,
+                        challengeContext: ChallengeVerificationContext(
+                            title: challenge.title,
+                            description: challenge.description,
+                            category: challenge.category,
+                            notes: challenge.challengeNotes
+                        )
+                    )
+                )
+                .environmentObject(toastManager)
+            }
+        }
+        .fullScreenCover(isPresented: $viewModel.showFeedDetail) {
+            if let feedId = viewModel.selectedFeedId {
+                ChallengeFeedDetailView(
+                    viewModel: ChallengeFeedDetailViewModel(
+                        feedId: feedId,
+                        feedRepo: viewModel.feedRepo,
+                        queryRepo: viewModel.queryRepo,
+                        commandRepo: viewModel.commandRepo
+                    )
+                )
+                .environmentObject(toastManager)
+                .environmentObject(coordinator)
+            }
+        }
         .task {
+            guard viewModel.challenge == nil else { return }
             await viewModel.loadChallengeDetail()
             await viewModel.loadFeedThumbnails()
             await viewModel.loadRecommendedChallenges()
@@ -49,82 +105,62 @@ public struct ChallengeDetailView: View {
                 showInitialToast()
             }
         }
+        .sheet(isPresented: $viewModel.showReportSheet) {
+            ReportBottomSheet(
+                title: "챌린지 신고하기",
+                onCancel: { viewModel.showReportSheet = false },
+                onReasonSelected: { (reason: ChallengeReportReason, otherText: String?) in
+                    viewModel.showReportSheet = false
+                    Task {
+                        let result = await viewModel.reportChallengeFromSheet(reason: reason, otherText: otherText)
+                        await MainActor.run {
+                            switch result {
+                            case .success(let message):
+                                toastManager.show(iconName: "toastCheckIcon", message: message)
+                            case .error(let message):
+                                toastManager.show(iconName: "toastWarningIcon", message: message)
+                            default:
+                                break
+                            }
+                        }
+                    }
+                },
+                detent: $reportSheetDetent
+            )
+            .presentationDragIndicator(.visible)
+        }
     }
     
-    // MARK: - Content
-    private var contentView: some View {
-        ZStack(alignment: .bottom) {
-            VStack(alignment: .leading, spacing: 0) {
-                Header(type: .tertiaryReport(
-                    title: "챌린지",
-                    onBack: { dismiss() },
-                    onOption: { viewModel.showReportPopup() }
-                ))
-                
-                ScrollView(.vertical, showsIndicators: false) {
-                    ChallengeImageView(
-                        imageURL: viewModel.imageURL,
-                        participantText: viewModel.participantText
-                    )
-                    
-                    challengeDetailSection1
-                    sectionDivider
-                    challengeDetailSection2
-                    
-                    if shouldShowSection3Divider {
-                        sectionDivider
-                    }
-                    
-                    challengeDetailSection3
-                    
-                    Spacer()
-                        .frame(minHeight: UIScreen.main.bounds.height * 0.21)
-                }
+    // MARK: - Scroll Content (below Header)
+    private var scrollContent: some View {
+        ScrollView(.vertical, showsIndicators: false) {
+            ChallengeImageView(
+                imageURL: viewModel.challenge?.infoImageUrls.first ?? "",
+                participantText: "\(viewModel.challenge?.attendeeCount ?? 0)명"
+            )
+            
+            challengeDetailSection1
+            sectionDivider
+            challengeDetailSection2
+            
+            if shouldShowSection3Divider {
+                sectionDivider
             }
             
+            challengeDetailSection3
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
             ChallengeBottomButton(
                 state: viewModel.state,
                 isLiked: viewModel.challenge?.isLiked ?? false,
                 likeCount: viewModel.challenge?.likeCount ?? 0,
-                onLikeTap: {},
+                onLikeTap: {
+                    Task {
+                        await viewModel.toggleLike()
+                    }
+                },
                 onMainAction: { handleMainActionSelection() }
             )
-        }
-        .ignoresSafeArea(edges: .bottom)
-        .toolbar(.hidden, for: .navigationBar)
-        .overlay(popupOverlay)
-        .fullScreenCover(isPresented: $viewModel.showFeeds) {
-            if let challenge = viewModel.challenge {
-                ChallengeFeedsView(
-                    viewModel: ChallengeFeedsViewModel(
-                        challengeId: challenge.id,
-                        repository: viewModel.repository
-                    )
-                )
-            }
-        }
-        .fullScreenCover(isPresented: $viewModel.showCertification) {
-            if let challenge = viewModel.challenge {
-                ChallengeCertView(
-                    viewModel: ChallengeCertViewModel(
-                        challengeId: challenge.id,
-                        repository: viewModel.repository
-                    )
-                )
-                .environmentObject(toastManager)
-            }
-        }
-        .fullScreenCover(isPresented: $viewModel.showFeedDetail) {
-            if let feedId = viewModel.selectedFeedId {
-                ChallengeFeedDetailView(
-                    viewModel: ChallengeFeedDetailViewModel(
-                        feedId: feedId,
-                        repository: viewModel.repository
-                    )
-                )
-                .environmentObject(toastManager)
-                .environmentObject(coordinator)
-            }
         }
     }
     
@@ -132,17 +168,17 @@ public struct ChallengeDetailView: View {
     private var challengeDetailSection1: some View {
         VStack(alignment: .leading, spacing: 0) {
             ChallengeTitleView(
-                title: viewModel.title,
-                createdAtText: viewModel.createdAtText
+                title: viewModel.challenge?.title ?? "",
+                startDateText: viewModel.challenge?.startDate ?? ""
             )
             
-            CategorySmallButton(keyword: Keyword(rawValue: viewModel.category) ?? .bicycle, action: {})
+            CategorySmallButton(keyword: Keyword(rawValue: viewModel.challenge?.category ?? "") ?? .bicycle, action: {})
             
             ChallengeInfoView(
                 state: viewModel.state,
                 dDayText: viewModel.dDayText,
-                startDateText: DateFormatter.frontFormatter.string(from: viewModel.startDate),
-                depositText: viewModel.depositText,
+                startDateText: viewModel.challenge?.startDate ?? "",
+                depositText: "\(viewModel.challenge?.joinPoint ?? 0)원",
                 onProgressTap: { handleProgressTap() }
             )
         }
@@ -183,8 +219,8 @@ public struct ChallengeDetailView: View {
                 challengeFeedSection(for: enrolledState)
             case .notEnrolled:
                 VStack(spacing: 0) {
-                    ChallengeDescriptionView(description: viewModel.description)
-                    ChallengeCertInfoView(certImages: viewModel.certImages)
+                    ChallengeDescriptionView(description: viewModel.challenge?.description ?? "")
+                    ChallengeCertInfoView(certImages: viewModel.challenge?.certImageUrls ?? [])
                     ChallengeDepositInfoView()
                 }
             }
@@ -199,7 +235,7 @@ public struct ChallengeDetailView: View {
                 switch enrolledState {
                 case .beforeStart, .inProgress, .calculating:
                     VStack(spacing: 0) {
-                        ChallengeDescriptionView(description: viewModel.description)
+                        ChallengeDescriptionView(description: viewModel.challenge?.description ?? "")
                         ChallengeDepositInfoView()
                     }
                 case .finished:
@@ -257,7 +293,7 @@ public struct ChallengeDetailView: View {
     
     private func handleProgressTap() {
         if case .enrolled(.inProgress(_)) = viewModel.state {
-            let progressPercent = Int(viewModel.progress)
+            let progressPercent = Int(((viewModel.challenge?.progress ?? nil) ?? 0.0) * 100)
             toastManager.show(
                 iconName: "toastBuldIcon",
                 message: "현재 진행도는 \(progressPercent)%입니다"
@@ -294,6 +330,9 @@ public struct ChallengeDetailView: View {
             toastManager.show(iconName: "toastWarningIcon", message: message)
         case .navigateToPointCharge:
             toastManager.show(iconName: "toastCheckIcon", message: "포인트 충전 화면으로 이동합니다")
+        case .openWebView(let url):
+            // TODO: 웹뷰로 url 열기
+            print("Open WebView: \(url)")
         case .none:
             break
         }
@@ -303,7 +342,7 @@ public struct ChallengeDetailView: View {
         let iconName: String = {
             switch popupType {
             case .participate: return "toastCheckIcon"
-            case .report: return "toastWarningIcon"
+            case .report: return "toastCheckIcon"
             default: return "toastCheckIcon"
             }
         }()
@@ -324,11 +363,24 @@ public struct ChallengeDetailView: View {
     }
     
     private func handleBeforeStartAction() {
-        let daysUntilStart = Calendar.current.dateComponents([.day], from: Date(), to: viewModel.startDate).day ?? 0
-        toastManager.show(
-            iconName: "toastCalenderIcon",
-            message: "챌린지가 \(daysUntilStart)일 뒤에 시작합니다!"
-        )
+        guard let challenge = viewModel.challenge else { return }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        guard let startDate = formatter.date(from: challenge.startDate) else { return }
+
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let start = calendar.startOfDay(for: startDate)
+        let days = calendar.dateComponents([.day], from: today, to: start).day ?? 0
+
+        let message: String
+        if days <= 0 {
+            message = "챌린지가 오늘 시작합니다!"
+        } else {
+            message = "챌린지가 \(days)일 뒤에 시작합니다!"
+        }
+
+        toastManager.show(iconName: "toastCalenderIcon", message: message)
     }
     
     private func handleInProgressAction(canCertify: Bool) {

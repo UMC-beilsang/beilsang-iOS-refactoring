@@ -15,10 +15,23 @@ import ChallengeDomain
 public struct ChallengeFeedsView: View {
     @StateObject private var viewModel: ChallengeFeedsViewModel
     @EnvironmentObject var coordinator: ChallengeCoordinator
+    @EnvironmentObject var toastManager: ToastManager
     @Environment(\.dismiss) private var dismiss
     
-    public init(viewModel: ChallengeFeedsViewModel) {
+    private let feedRepo: FeedRepositoryProtocol
+    private let queryRepo: ChallengeQueryRepositoryProtocol
+    private let commandRepo: ChallengeCommandRepositoryProtocol
+    
+    public init(
+        viewModel: ChallengeFeedsViewModel,
+        feedRepo: FeedRepositoryProtocol,
+        queryRepo: ChallengeQueryRepositoryProtocol,
+        commandRepo: ChallengeCommandRepositoryProtocol
+    ) {
         _viewModel = StateObject(wrappedValue: viewModel)
+        self.feedRepo = feedRepo
+        self.queryRepo = queryRepo
+        self.commandRepo = commandRepo
     }
     
     public var body: some View {
@@ -65,15 +78,14 @@ public struct ChallengeFeedsView: View {
                         if viewModel.isLoading && !viewModel.thumbnails.isEmpty {
                             HStack {
                                 Spacer()
-                                ProgressView()
-                                    .scaleEffect(0.8)
+                                DotsLoadingView()
                                     .padding(.vertical, 20)
                                 Spacer()
                             }
                         }
                     }
                 }
-                .animation(.easeOut(duration: 0.4), value: viewModel.isLoading)
+                .animation(.easeOut(duration: 0.2), value: viewModel.isLoading)
             }
         }
         .task {
@@ -81,14 +93,19 @@ public struct ChallengeFeedsView: View {
                 await viewModel.loadFeeds(showSkeleton: true)
             }
         }
+        .toolbar(.hidden, for: .navigationBar)
         .fullScreenCover(isPresented: $viewModel.showFeedDetail) {
             if let feedId = viewModel.selectedFeedId {
                 ChallengeFeedDetailView(
                     viewModel: ChallengeFeedDetailViewModel(
                         feedId: feedId,
-                        repository: viewModel.repository
+                        feedRepo: feedRepo,
+                        queryRepo: queryRepo,
+                        commandRepo: commandRepo
                     )
                 )
+                .environmentObject(toastManager)
+                .environmentObject(coordinator)
             }
         }
     }
