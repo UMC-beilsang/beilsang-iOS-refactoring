@@ -11,7 +11,8 @@ import UIKit
 import AuthDomain
 
 final class AppleSignInCoordinator: NSObject {
-    typealias Completion = (Result<String, Error>) -> Void
+    typealias AppleCredential = (identityToken: String, authorizationCode: String)
+    typealias Completion = (Result<AppleCredential, Error>) -> Void
     
     private let completion: Completion
     
@@ -33,26 +34,27 @@ final class AppleSignInCoordinator: NSObject {
 
 extension AppleSignInCoordinator: ASAuthorizationControllerDelegate {
     func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
-        guard
-            let credential = authorization.credential as? ASAuthorizationAppleIDCredential,
-            let tokenData = credential.identityToken,
-            let token = String(data: tokenData, encoding: .utf8)
-        else {
-            completion(.failure(AuthError.appleError("애플 토큰을 가져올 수 없습니다.")))
+        guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential else {
+            completion(.failure(AuthError.appleError("Apple 자격증명을 가져올 수 없습니다.")))
+            return
+        }
+        guard let tokenData = credential.identityToken,
+              let identityToken = String(data: tokenData, encoding: .utf8) else {
+            completion(.failure(AuthError.appleError("identityToken을 가져올 수 없습니다.")))
+            return
+        }
+        guard let codeData = credential.authorizationCode,
+              let authorizationCode = String(data: codeData, encoding: .utf8) else {
+            completion(.failure(AuthError.appleError("authorizationCode를 가져올 수 없습니다.")))
             return
         }
         
         #if DEBUG
-        if let codeData = credential.authorizationCode,
-           let code = String(data: codeData, encoding: .utf8) {
-            print("🔐 Apple authorizationCode: \(code)")
-        } else {
-            print("⚠️ Apple authorizationCode is nil")
-        }
-        print("🪪 Apple identityToken: \(token)")
+        print("🔐 Apple authorizationCode: \(authorizationCode)")
+        print("🪪 Apple identityToken: \(identityToken)")
         #endif
         
-        completion(.success(token))
+        completion(.success((identityToken: identityToken, authorizationCode: authorizationCode)))
     }
     
     func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {

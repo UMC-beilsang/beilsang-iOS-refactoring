@@ -189,10 +189,17 @@ public struct ImageModalView: View {
     private func assetNameTabView(names: [String]) -> some View {
         TabView(selection: $selectedIndex) {
             ForEach(Array(names.enumerated()), id: \.offset) { index, name in
-                Image(name)
-                    .resizable()
-                    .scaledToFit()
-                    .tag(index)
+                AsyncImage(url: URL(string: name)) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFit()
+                    default:
+                        Color.gray.opacity(0.3)
+                    }
+                }
+                .tag(index)
             }
         }
         .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))

@@ -19,9 +19,12 @@ public final class KeyboardResponder: ObservableObject {
         
         let willHide = NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)
             .map { _ in CGFloat(0) }
+
+        let didHide = NotificationCenter.default.publisher(for: UIResponder.keyboardDidHideNotification)
+            .map { _ in CGFloat(0) }
         
         willShow
-            .merge(with: willHide)
+            .merge(with: willHide, didHide)
             .receive(on: RunLoop.main)
             .sink { [weak self] height in
                 self?.currentHeight = height

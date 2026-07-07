@@ -176,38 +176,42 @@ extension Header {
     }
     
     private func tertiaryAddHeader(title: String, onBack: @escaping () -> Void, onAdd: @escaping () -> Void, onSearch: @escaping () -> Void) -> some View {
-        HStack {
-            Button(action: onBack) {
-                Image("backIcon", bundle: .designSystem)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 28, height: 28)
-            }
-            
-            Spacer()
-            
+        ZStack {
+            // 타이틀: 화면 정중앙 고정
             Text(title)
                 .fontStyle(Fonts.heading1Bold)
                 .foregroundColor(ColorSystem.labelNormalStrong)
-            
-            Spacer()
-            
-            HStack(spacing: 16) {
-                Button(action: onAdd) {
-                    Image("plusBlackIcon", bundle: .designSystem)
+                .frame(maxWidth: .infinity)
+                .multilineTextAlignment(.center)
+
+            // 버튼들: 양 끝 고정
+            HStack {
+                Button(action: onBack) {
+                    Image("backIcon", bundle: .designSystem)
                         .resizable()
-                        .aspectRatio(contentMode: .fit)
+                        .scaledToFit()
                         .frame(width: 28, height: 28)
                 }
-                .buttonStyle(.plain)
-                
-                Button(action: onSearch) {
-                    Image("searchIcon", bundle: .designSystem)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 28, height: 28)
+
+                Spacer()
+
+                HStack(spacing: 16) {
+                    Button(action: onAdd) {
+                        Image("plusBlackIcon", bundle: .designSystem)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 28, height: 28)
+                    }
+                    .buttonStyle(.plain)
+
+                    Button(action: onSearch) {
+                        Image("searchIcon", bundle: .designSystem)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 28, height: 28)
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
         }
     }

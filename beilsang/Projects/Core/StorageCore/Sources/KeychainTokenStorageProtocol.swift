@@ -6,11 +6,10 @@
 //
 
 import Foundation
-import Combine
 import ModelsShared
 
 public protocol KeychainTokenStorageProtocol {
-    func saveToken(_ token: KeychainToken) -> AnyPublisher<Void, KeychainError>
-    func getToken() -> AnyPublisher<KeychainToken?, KeychainError>
-    func deleteToken() -> AnyPublisher<Void, KeychainError>
+    func saveToken(_ token: KeychainToken) async throws
+    func getToken() async throws -> KeychainToken?
+    func deleteToken() async throws
 }

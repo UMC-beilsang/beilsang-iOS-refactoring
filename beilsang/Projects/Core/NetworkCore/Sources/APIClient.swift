@@ -6,24 +6,38 @@
 //
 
 import Foundation
-import Combine
 import Alamofire
 
-public enum APIClientError: Error {
+public enum APIClientError: Error, LocalizedError {
     case invalidURL
     case http(statusCode: Int, data: Data?)
     case decoding(String, Data?)
     case network(Error)
+
+    public var errorDescription: String? {
+        switch self {
+        case .invalidURL:
+            return "잘못된 URL입니다."
+        case .http(let statusCode, _):
+            return "서버 오류 (HTTP \(statusCode))"
+        case .decoding(let msg, _):
+            return "응답 파싱 실패: \(msg)"
+        case .network(let error):
+            return "네트워크 오류: \(error.localizedDescription)"
+        }
+    }
 }
 
 public protocol APIClientProtocol {
+    // 1. body 없는 요청: GET, DELETE
     func request<Response: Decodable>(
         path: String,
         method: HTTPMethod,
         headers: HTTPHeaders,
         interceptor: RequestInterceptor?
-    ) -> AnyPublisher<Response, APIClientError>
+    ) async throws -> Response
     
+    // 2. body 있는 요청: POST, PUT
     func request<Request: Encodable, Response: Decodable>(
         path: String,
         method: HTTPMethod,
@@ -31,29 +45,28 @@ public protocol APIClientProtocol {
         encoder: ParameterEncoder,
         headers: HTTPHeaders,
         interceptor: RequestInterceptor?
-    ) -> AnyPublisher<Response, APIClientError>
+    ) async throws -> Response
     
-    func uploadMultipart<Response: Decodable>(
+    // 3. Multipart Upload
+    func upload<Response: Decodable>(
         path: String,
-        parameters: [String: String],
-        imageData: Data,
-        imageKey: String,
-        imageName: String,
-        mimeType: String,
+        method: HTTPMethod,
+        formData: @escaping @Sendable (MultipartFormData) -> Void,
         headers: HTTPHeaders,
         interceptor: RequestInterceptor?
-    ) -> AnyPublisher<Response, APIClientError>
-    
-    /// 챌린지 생성용 - JSON 데이터 + 다중 이미지
-    func uploadChallengeMultipart<Request: Encodable, Response: Decodable>(
+    ) async throws -> Response
+
+    // 4. body 있는 요청 + 응답 헤더 반환 (헤더로 토큰을 내려주는 로그인 등에 사용)
+    func requestReturningHeaders<Request: Encodable, Response: Decodable>(
         path: String,
-        data: Request,
-        infoImages: [Data],
-        certImages: [Data],
+        method: HTTPMethod,
+        body: Request,
+        encoder: ParameterEncoder,
         headers: HTTPHeaders,
         interceptor: RequestInterceptor?
-    ) -> AnyPublisher<Response, APIClientError>
+    ) async throws -> (value: Response, responseHeaders: HTTPHeaders)
 }
+
 
 public final class APIClient: APIClientProtocol {
     private let baseURL: URL
@@ -68,30 +81,17 @@ public final class APIClient: APIClientProtocol {
         self.session = session
     }
     
-    // MARK: - Public
     public func request<Response: Decodable>(
         path: String,
         method: HTTPMethod = .get,
         headers: HTTPHeaders = APIClient.defaultHeaders,
         interceptor: RequestInterceptor? = nil
-    ) -> AnyPublisher<Response, APIClientError> {
-        guard let url = makeURL(from: path) else {
-            return Fail(error: .invalidURL).eraseToAnyPublisher()
-        }
+    ) async throws -> Response {
+        guard let url = makeURL(from: path) else { throw APIClientError.invalidURL }
         
-        return Future<Response, APIClientError> { promise in
-            self.session.request(
-                url,
-                method: method,
-                headers: headers,
-                interceptor: interceptor
-            )
-            .validate(statusCode: 200..<300)
-            .responseDecodable(of: Response.self) { response in
-                self.handle(response: response, path: path, promise: promise)
-            }
-        }
-        .eraseToAnyPublisher()
+        return try await perform(
+            session.request(url, method: method, headers: headers)
+        )
     }
     
     public func request<Request: Encodable, Response: Decodable>(
@@ -101,141 +101,104 @@ public final class APIClient: APIClientProtocol {
         encoder: ParameterEncoder = JSONParameterEncoder.default,
         headers: HTTPHeaders = APIClient.jsonHeaders,
         interceptor: RequestInterceptor? = nil
-    ) -> AnyPublisher<Response, APIClientError> {
-        guard let url = makeURL(from: path) else {
-            return Fail(error: .invalidURL).eraseToAnyPublisher()
-        }
+    ) async throws -> Response {
+        guard let url = makeURL(from: path) else { throw APIClientError.invalidURL }
         
-        return Future<Response, APIClientError> { promise in
-            self.session.request(
-                url,
-                method: method,
-                parameters: body,
-                encoder: encoder,
-                headers: headers,
-                interceptor: interceptor
-            )
-            .validate(statusCode: 200..<300)
-            .responseDecodable(of: Response.self) { response in
-                self.handle(response: response, path: path, promise: promise)
-            }
-        }
-        .eraseToAnyPublisher()
+        return try await perform(
+            session.request(url, method: method, parameters: body, encoder: encoder, headers: headers)
+        )
     }
     
-    public func uploadMultipart<Response: Decodable>(
+    public func upload<Response: Decodable>(
         path: String,
-        parameters: [String: String] = [:],
-        imageData: Data,
-        imageKey: String = "feedImage",
-        imageName: String = "image.jpg",
-        mimeType: String = "image/jpeg",
+        method: HTTPMethod = .post,
+        formData: @escaping @Sendable (MultipartFormData) -> Void,
         headers: HTTPHeaders = APIClient.defaultHeaders,
         interceptor: RequestInterceptor? = nil
-    ) -> AnyPublisher<Response, APIClientError> {
-        guard let url = makeURL(from: path) else {
-            return Fail(error: .invalidURL).eraseToAnyPublisher()
-        }
+    ) async throws -> Response {
+        guard let url = makeURL(from: path) else { throw APIClientError.invalidURL }
         
-        return Future<Response, APIClientError> { promise in
-            self.session.upload(
-                multipartFormData: { formData in
-                    // Add parameters
-                    for (key, value) in parameters {
-                        if let data = value.data(using: .utf8) {
-                            formData.append(data, withName: key)
-                        }
-                    }
-                    
-                    // Add image
-                    formData.append(
-                        imageData,
-                        withName: imageKey,
-                        fileName: imageName,
-                        mimeType: mimeType
-                    )
-                },
-                to: url,
-                method: .post,
-                headers: headers,
-                interceptor: interceptor
-            )
-            .validate(statusCode: 200..<300)
-            .responseDecodable(of: Response.self) { response in
-                self.handle(response: response, path: path, promise: promise)
-            }
-        }
-        .eraseToAnyPublisher()
+        return try await perform(
+            session.upload(multipartFormData: formData, to: url, method: method, headers: headers)
+        )
     }
     
-    /// 챌린지 생성용 - JSON 데이터 + 다중 이미지
-    public func uploadChallengeMultipart<Request: Encodable, Response: Decodable>(
+    public func requestReturningHeaders<Request: Encodable, Response: Decodable>(
         path: String,
-        data: Request,
-        infoImages: [Data],
-        certImages: [Data],
-        headers: HTTPHeaders = APIClient.defaultHeaders,
+        method: HTTPMethod = .post,
+        body: Request,
+        encoder: ParameterEncoder = JSONParameterEncoder.default,
+        headers: HTTPHeaders = APIClient.jsonHeaders,
         interceptor: RequestInterceptor? = nil
-    ) -> AnyPublisher<Response, APIClientError> {
-        guard let url = makeURL(from: path) else {
-            return Fail(error: .invalidURL).eraseToAnyPublisher()
+    ) async throws -> (value: Response, responseHeaders: HTTPHeaders) {
+        guard let url = makeURL(from: path) else { throw APIClientError.invalidURL }
+
+        let response = try await session.request(url, method: method, parameters: body, encoder: encoder, headers: headers)
+            .validate(statusCode: 200..<300)
+            .serializingDecodable(Response.self)
+            .response
+
+        #if DEBUG
+        if let data = response.data, let string = String(data: data, encoding: .utf8) {
+            let statusCode = response.response?.statusCode ?? 0
+            if statusCode >= 400 {
+                print("❌ API Error:")
+                print("   URL: \(response.request?.url?.absoluteString ?? "unknown")")
+                print("   Status: \(statusCode)")
+                print("   Body: \(string)")
+            }
         }
-        
-        // JSON 데이터를 문자열로 변환
-        guard let jsonData = try? JSONEncoder().encode(data),
-              let jsonString = String(data: jsonData, encoding: .utf8) else {
-            return Fail(error: .decoding("Failed to encode request data", nil)).eraseToAnyPublisher()
+        #endif
+
+        guard let value = response.value else {
+            if let error = response.error { throw error }
+            throw APIClientError.decoding("No value in response", response.data)
         }
+
+        let responseHeaders = response.response?.headers ?? HTTPHeaders()
+        return (value, responseHeaders)
+    }
+
+    private func perform<Response: Decodable>(_ request: DataRequest) async throws -> Response {
+        let response = try await request
+            .validate(statusCode: 200..<300)
+            .serializingDecodable(Response.self)
+            .response
         
         #if DEBUG
-        print("🎯 Challenge multipart request:")
-        print("   data: \(jsonString)")
-        print("   infoImages: \(infoImages.count)개")
-        print("   certImages: \(certImages.count)개")
-        #endif
-        
-        return Future<Response, APIClientError> { promise in
-            self.session.upload(
-                multipartFormData: { formData in
-                    // JSON 데이터 추가
-                    if let data = jsonString.data(using: .utf8) {
-                        formData.append(data, withName: "data", mimeType: "application/json")
-                    }
-                    
-                    // 대표 이미지들 추가
-                    for (index, imageData) in infoImages.enumerated() {
-                        formData.append(
-                            imageData,
-                            withName: "infoImages",
-                            fileName: "info_\(index).jpg",
-                            mimeType: "image/jpeg"
-                        )
-                    }
-                    
-                    // 인증샘플 이미지들 추가
-                    for (index, imageData) in certImages.enumerated() {
-                        formData.append(
-                            imageData,
-                            withName: "certImages",
-                            fileName: "cert_\(index).jpg",
-                            mimeType: "image/jpeg"
-                        )
-                    }
-                },
-                to: url,
-                method: .post,
-                headers: headers,
-                interceptor: interceptor
-            )
-            .validate(statusCode: 200..<300)
-            .responseDecodable(of: Response.self) { response in
-                self.handle(response: response, path: path, promise: promise)
+        if let data = response.data, let string = String(data: data, encoding: .utf8) {
+            let statusCode = response.response?.statusCode ?? 0
+            if statusCode >= 400 {
+                print("❌ API Error:")
+                print("   URL: \(response.request?.url?.absoluteString ?? "unknown")")
+                print("   Status: \(statusCode)")
+                print("   Body: \(string)")
             }
         }
-        .eraseToAnyPublisher()
+        #endif
+        
+        guard let value = response.value else {
+            let statusCode = response.response?.statusCode ?? -1
+            if statusCode >= 400 {
+                throw APIClientError.http(statusCode: statusCode, data: response.data)
+            }
+            if let error = response.error {
+                #if DEBUG
+                print("   Error: \(error)")
+                if let data = response.data, let string = String(data: data, encoding: .utf8) {
+                    print("❌ Decoding Failed - Response Body:")
+                    print("   URL: \(response.request?.url?.absoluteString ?? "unknown")")
+                    print("   Body: \(string)")
+                }
+                #endif
+                throw APIClientError.network(error)
+            }
+            throw APIClientError.decoding("No value in response", response.data)
+        }
+        
+        return value
     }
     
-    // MARK: - Private helpers
     private static func normalize(baseURL: String) -> String {
         var url = baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !url.isEmpty else { return "" }
@@ -250,47 +213,13 @@ public final class APIClient: APIClientProtocol {
     }
     
     private func makeURL(from path: String) -> URL? {
-        // 절대 URL인 경우 그대로 반환
         if let absolute = URL(string: path), absolute.scheme != nil {
             return absolute
         }
         
-        // 상대 경로 처리 (query string 포함 가능)
         let cleanPath = path.hasPrefix("/") ? String(path.dropFirst()) : path
-        
-        // appendingPathComponent는 ?를 인코딩하므로 문자열로 직접 조합
         let urlString = "\(baseURL.absoluteString)/\(cleanPath)"
         return URL(string: urlString)
-    }
-    
-    private func handle<Response: Decodable>(
-        response: AFDataResponse<Response>,
-        path: String,
-        promise: @escaping (Result<Response, APIClientError>) -> Void
-    ) {
-        #if DEBUG
-        let statusCode = response.response?.statusCode ?? 0
-        let debugBody = response.data.flatMap { String(data: $0, encoding: .utf8) } ?? "<empty>"
-        if let error = response.error {
-            print("🌐 [\(path)] failure [\(statusCode)]: \(error)")
-            print("🌐 body: \(debugBody)")
-        } else {
-            print("🌐 [\(path)] success [\(statusCode)]: \(debugBody)")
-        }
-        #endif
-        
-        switch response.result {
-        case .success(let value):
-            promise(.success(value))
-        case .failure(let error):
-            if let statusCode = response.response?.statusCode {
-                promise(.failure(.http(statusCode: statusCode, data: response.data)))
-            } else if error.isResponseSerializationError {
-                promise(.failure(.decoding(error.localizedDescription, response.data)))
-            } else {
-                promise(.failure(.network(error)))
-            }
-        }
     }
     
     public static let jsonHeaders: HTTPHeaders = [

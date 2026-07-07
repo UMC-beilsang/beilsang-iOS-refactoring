@@ -9,7 +9,7 @@ import Foundation
 import StorageCore
 
 /// 인증 관련 에러 정의 (로그인, 회원가입, 토큰 관리 등)
-public enum AuthError: Error, Equatable, Sendable {
+public enum AuthError: Error, Equatable, Sendable, LocalizedError {
     // 로그인 관련
     case invalidCredentials       // 로그인 정보 불일치
     
@@ -35,6 +35,33 @@ public enum AuthError: Error, Equatable, Sendable {
     // 공통
     case unknownError(String)     // 알 수 없는 에러
     
+    public var errorDescription: String? {
+        switch self {
+        case .invalidCredentials:
+            return "로그인 정보가 올바르지 않습니다."
+        case .signUpFailed(let msg):
+            return "회원가입 실패: \(msg)"
+        case .tokenExpired:
+            return "로그인이 만료되었습니다. 다시 로그인해주세요."
+        case .kakaoError(let msg):
+            return "카카오 로그인 오류: \(msg)"
+        case .appleError(let msg):
+            return "애플 로그인 오류: \(msg)"
+        case .httpError(let statusCode):
+            return "서버 오류가 발생했습니다. (HTTP \(statusCode))"
+        case .networkError:
+            return "네트워크 연결을 확인해주세요."
+        case .serverError(let msg):
+            return "서버 오류: \(msg)"
+        case .decodingError(let msg):
+            return "데이터 처리 오류: \(msg)"
+        case .encodingError(let msg):
+            return "데이터 처리 오류: \(msg)"
+        case .unknownError(let msg):
+            return "알 수 없는 오류: \(msg)"
+        }
+    }
+
     // Equatable 구현
     public static func == (lhs: AuthError, rhs: AuthError) -> Bool {
         switch (lhs, rhs) {

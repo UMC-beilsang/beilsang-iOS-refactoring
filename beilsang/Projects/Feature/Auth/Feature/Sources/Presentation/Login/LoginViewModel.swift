@@ -123,46 +123,54 @@ final class LoginViewModel: ObservableObject {
     
     // MARK: - Kakao Login
     func loginWithKakao(request: KakaoLoginRequest) {
-        container.kakaoLoginUseCase.login(request: request)
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] state in
-                self?.handleAuthState(state)
+        Task {
+            #if DEBUG
+            print("🔄 Calling kakaoLoginUseCase.login...")
+            #endif
+            
+            let state = await container.kakaoLoginUseCase.login(request: request)
+            
+            #if DEBUG
+            print("✅ kakaoLoginUseCase.login completed with state: \(state)")
+            #endif
+            
+            await MainActor.run {
+                self.handleAuthState(state)
             }
-            .store(in: &cancellables)
+        }
     }
     
     // MARK: - Kakao Web Login
     func handleKakaoWebLoginSuccess(accessToken: String, refreshToken: String, isExistMember: Bool) {
         isLoading = true
         
-        // 카카오 로그인 provider 정보 추가
         let token = KeychainToken(
             accessToken: accessToken,
             refreshToken: refreshToken,
             provider: .kakao
         )
-        container.tokenStorage.saveToken(token)
-            .receive(on: DispatchQueue.main)
-            .sink(
-                receiveCompletion: { [weak self] completion in
-                    if case .failure(let error) = completion {
-                        self?.handleAuthState(.error(.kakaoError(error.localizedDescription)))
-                    }
-                },
-                receiveValue: { [weak self] in
-                    #if DEBUG
-                    print("✅ 카카오 로그인 성공 - 토큰 저장 완료")
-                    print("   isExistMember: \(isExistMember)")
-                    #endif
-                    
+        
+        Task {
+            do {
+                try await container.tokenStorage.saveToken(token)
+                #if DEBUG
+                print("✅ 카카오 로그인 성공 - 토큰 저장 완료")
+                print("   isExistMember: \(isExistMember)")
+                #endif
+                
+                await MainActor.run {
                     if isExistMember {
-                        self?.handleAuthState(.authenticated)
+                        self.handleAuthState(.authenticated)
                     } else {
-                        self?.handleAuthState(.needsSignUp)
+                        self.handleAuthState(.needsSignUp)
                     }
                 }
-            )
-            .store(in: &cancellables)
+            } catch {
+                await MainActor.run {
+                    self.handleAuthState(.error(.kakaoError(error.localizedDescription)))
+                }
+            }
+        }
     }
 
     // MARK: - Apple Login
@@ -171,8 +179,11 @@ final class LoginViewModel: ObservableObject {
         let coordinator = AppleSignInCoordinator { [weak self] result in
             guard let self else { return }
             switch result {
-            case .success(let token):
-                let request = AppleLoginRequest(idToken: token)
+            case .success(let credential):
+                let request = AppleLoginRequest(
+                    identityToken: credential.identityToken,
+                    authorizationCode: credential.authorizationCode
+                )
                 self.loginWithApple(request: request)
             case .failure(let error):
                 self.handleAuthState(.error(.appleError(error.localizedDescription)))
@@ -184,12 +195,12 @@ final class LoginViewModel: ObservableObject {
     }
     
     func loginWithApple(request: AppleLoginRequest) {
-        container.appleLoginUseCase.login(request: request)
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] state in
-                self?.handleAuthState(state)
+        Task {
+            let state = await container.appleLoginUseCase.login(request: request)
+            await MainActor.run {
+                self.handleAuthState(state)
             }
-            .store(in: &cancellables)
+        }
     }
 
     // MARK: - Helpers
@@ -207,7 +218,7 @@ final class LoginViewModel: ObservableObject {
         case .loading:
             isLoading = true
             errorMessage = nil
-        case .authenticated:
+        case .authenticated, .needsSignUp:
             isLoading = false
         case .error(let error):
             isLoading = false

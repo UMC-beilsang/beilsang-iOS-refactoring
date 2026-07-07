@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import Combine
 
 // Protocol
 public protocol ChallengeCoordinatable: AnyObject {
@@ -15,24 +16,19 @@ public protocol MyPageCoordinatable: AnyObject {
     func showProfile(userId: String)
 }
 
-// Protocol for Challenge View Factory
-// Allows other features to create Challenge views without direct dependency
 public protocol ChallengeViewFactory: AnyObject {
     func makeChallengeDetailViewBuilder() -> (Int) -> AnyView
     func makeFeedDetailViewBuilder() -> (Int) -> AnyView
 }
 
-// Protocol for Challenge Presentation (FullScreenCover)
-// Allows other features to present Challenge screens without direct dependency
 public protocol ChallengePresentationCoordinator: AnyObject {
     func presentFeed(id: Int)
     func presentChallenge(id: Int)
     func presentSearch()
     func presentNotification()
+    func browseChallenges()
 }
 
-// EnvironmentKey for ChallengePresentationCoordinator
-// Allows using protocol in @Environment without direct module dependency
 public struct ChallengePresentationCoordinatorKey: EnvironmentKey {
     public static let defaultValue: ChallengePresentationCoordinator? = nil
 }
@@ -46,26 +42,41 @@ extension EnvironmentValues {
 
 @MainActor
 public final class AppRouter: ObservableObject {
-    // Tab
+    
+    // MARK: - App Screen State
+    public enum RootScreen {
+        case main
+        case login
+        case signup
+    }
+    
+    // 1. 상태: 현재 화면
+    @Published public var currentScreen: RootScreen
+    
+    // 2. 상태: 글로벌 로딩
+    @Published public var isGlobalLoading: Bool = false
+    
+    // 3. 상태: 선택된 탭
     @Published public var selectedTab: Int = 0
     
-    // Auth State (RootView에서 감지)
-    @Published public var shouldLogout: Bool = false
-    @Published public var shouldRevoke: Bool = false
+    // 한 번 발생하고 끝나는 단발성 액션은 Subject
+    public let logoutEvent = PassthroughSubject<Void, Never>()
+    public let revokeEvent = PassthroughSubject<Void, Never>()
     
     public weak var challengeCoordinator: ChallengeCoordinatable?
     public weak var myPageCoordinator: MyPageCoordinatable?
 
-    public init() {}
-    
-    // MARK: - Logout
-    public func logout() {
-        shouldLogout = true
+    public init(initialScreen: RootScreen = .login) {
+        self.currentScreen = initialScreen
     }
     
-    // MARK: - Revoke (탈퇴)
+    // MARK: - Auth Actions
+    public func logout() {
+        logoutEvent.send()
+    }
+    
     public func revoke() {
-        shouldRevoke = true
+        revokeEvent.send()
     }
 
     // MARK: - Tab
@@ -75,8 +86,7 @@ public final class AppRouter: ObservableObject {
 
     // MARK: - Coordination
     public func showChallengeDetail(id: Int) {
-        // Challenge 탭으로 이동 + Detail 보여주기
-        selectedTab = 2  // Challenge 탭
+        selectedTab = 2
         challengeCoordinator?.showChallengeDetail(id: id)
     }
 
@@ -86,7 +96,7 @@ public final class AppRouter: ObservableObject {
     }
 
     public func showProfile(userId: String) {
-        selectedTab = 3  // MyPage 탭
+        selectedTab = 3
         myPageCoordinator?.showProfile(userId: userId)
     }
 }
